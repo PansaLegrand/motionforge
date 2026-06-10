@@ -1,0 +1,336 @@
+{
+  "$ref": "#/definitions/MotionforgeScene",
+  "definitions": {
+    "MotionforgeScene": {
+      "type": "object",
+      "properties": {
+        "schemaVersion": {
+          "type": "number",
+          "const": 0
+        },
+        "width": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "height": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "fps": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "duration": {
+          "type": "integer",
+          "exclusiveMinimum": 0
+        },
+        "assets": {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "image",
+                  "video",
+                  "audio",
+                  "font"
+                ]
+              },
+              "src": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "required": [
+              "id",
+              "type",
+              "src"
+            ],
+            "additionalProperties": false
+          },
+          "default": {}
+        },
+        "nodes": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "minLength": 1
+              },
+              "type": {
+                "type": "string",
+                "enum": [
+                  "div",
+                  "text",
+                  "img",
+                  "video"
+                ]
+              },
+              "text": {
+                "type": "string"
+              },
+              "assetId": {
+                "type": "string"
+              },
+              "from": {
+                "type": "integer",
+                "default": 0
+              },
+              "duration": {
+                "type": "integer",
+                "exclusiveMinimum": 0
+              },
+              "style": {
+                "type": "object",
+                "properties": {
+                  "display": {
+                    "type": "string",
+                    "const": "flex"
+                  },
+                  "flexDirection": {
+                    "type": "string",
+                    "enum": [
+                      "row",
+                      "column"
+                    ]
+                  },
+                  "justifyContent": {
+                    "type": "string",
+                    "enum": [
+                      "flex-start",
+                      "center",
+                      "flex-end",
+                      "space-between"
+                    ]
+                  },
+                  "alignItems": {
+                    "type": "string",
+                    "enum": [
+                      "flex-start",
+                      "center",
+                      "flex-end",
+                      "stretch"
+                    ]
+                  },
+                  "gap": {
+                    "type": [
+                      "number",
+                      "string"
+                    ]
+                  },
+                  "width": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "height": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "minWidth": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "minHeight": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "maxWidth": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "maxHeight": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "padding": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "margin": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "position": {
+                    "type": "string",
+                    "enum": [
+                      "relative",
+                      "absolute"
+                    ]
+                  },
+                  "left": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "right": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "top": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "bottom": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "inset": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "background": {
+                    "type": "string"
+                  },
+                  "backgroundColor": {
+                    "type": "string"
+                  },
+                  "borderRadius": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "opacity": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1
+                  },
+                  "transform": {
+                    "type": "string"
+                  },
+                  "transformOrigin": {
+                    "type": "string"
+                  },
+                  "fontFamily": {
+                    "type": "string"
+                  },
+                  "fontSize": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "fontWeight": {
+                    "type": [
+                      "number",
+                      "string"
+                    ]
+                  },
+                  "fontStyle": {
+                    "type": "string",
+                    "enum": [
+                      "normal",
+                      "italic"
+                    ]
+                  },
+                  "color": {
+                    "type": "string"
+                  },
+                  "lineHeight": {
+                    "type": [
+                      "number",
+                      "string"
+                    ]
+                  },
+                  "letterSpacing": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "textAlign": {
+                    "type": "string",
+                    "enum": [
+                      "left",
+                      "center",
+                      "right"
+                    ]
+                  },
+                  "textShadow": {
+                    "type": "string"
+                  },
+                  "objectFit": {
+                    "type": "string",
+                    "enum": [
+                      "contain",
+                      "cover",
+                      "fill"
+                    ]
+                  },
+                  "objectPosition": {
+                    "type": "string"
+                  }
+                },
+                "additionalProperties": false,
+                "default": {}
+              },
+              "animations": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "kind": {
+                      "type": "string",
+                      "const": "keyframes"
+                    },
+                    "property": {
+                      "type": "string",
+                      "minLength": 1
+                    },
+                    "frames": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "frame": {
+                            "type": "integer",
+                            "minimum": 0
+                          },
+                          "value": {
+                            "type": [
+                              "number",
+                              "string"
+                            ]
+                          },
+                          "easing": {
+                            "type": "string",
+                            "enum": [
+                              "linear",
+                              "easeIn",
+                              "easeOut",
+                              "easeInOut"
+                            ]
+                          }
+                        },
+                        "required": [
+                          "frame",
+                          "value"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "minItems": 1
+                    }
+                  },
+                  "required": [
+                    "kind",
+                    "property",
+                    "frames"
+                  ],
+                  "additionalProperties": false
+                },
+                "default": []
+              },
+              "children": {
+                "type": "array",
+                "items": {
+                  "$ref": "#/definitions/MotionforgeScene/properties/nodes/items"
+                },
+                "default": []
+              }
+            },
+            "required": [
+              "id",
+              "type"
+            ],
+            "additionalProperties": false
+          },
+          "default": []
+        }
+      },
+      "required": [
+        "schemaVersion",
+        "width",
+        "height",
+        "fps",
+        "duration"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "$schema": "http://json-schema.org/draft-07/schema#"
+}

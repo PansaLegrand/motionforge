@@ -1,33 +1,92 @@
 # motionforge
 
-`motionforge` is a deterministic browser-native video scene engine.
+> A deterministic, browser-native video scene engine. The canonical video is a serializable JSON scene document; rendering is a pure function of (scene, frame). Agents author and patch scene JSON; the engine validates, lays out, and renders it.
 
-## Mental Model
-
-A composition is JSON. Rendering is a pure frame-indexed operation.
+## Mental model
 
 ```txt
-Scene + frame -> resolved node styles -> layout boxes -> canvas draw calls
+scene JSON + frame -> parseScene -> evaluateScene (keyframes) -> layoutScene (boxes) -> renderStill (Canvas2D) -> pixels
 ```
 
-Use `@motionforge/schema` to validate scene data, `@motionforge/core` to build and evaluate scenes, and `@motionforge/renderer-canvas2d` for the first reference renderer.
+- Time is integer frames at `scene.fps`, never wall-clock seconds.
+- A node is active for `[from, from + duration)` in its parent's local timeline; children's clocks restart when the parent appears.
+- Keyframe `frame` values are local to the node. Numeric values interpolate (easing: `linear`, `easeIn`, `easeOut`, `easeInOut`); string values step.
+- Node `id`s are unique across the scene by contract — patch and diff scenes by id.
 
-## Hard Rules
+## Hard rules
 
-- Do not use wall-clock time in render paths.
-- Do not use unseeded randomness in render paths.
-- Unsupported CSS-like properties should fail validation with actionable messages.
-- Prefer data keyframes over per-frame user code.
+- Never use wall-clock time or unseeded randomness in anything that feeds rendering.
+- Only use style properties from the support matrix (docs/scene-format.md). Unknown properties fail validation — this is intentional; do not work around it.
+- Prefer data keyframes over imperative per-frame code.
+- After editing a scene, re-validate with `validateScene()` and read the errors; they state the path, the problem, and the fix.
 
-## Minimal Scene
+## Minimal valid scene (JSON)
 
-```ts
-import { composition, div, text } from "@motionforge/core";
-
-const scene = composition({ width: 1080, height: 1920, fps: 30, duration: 90 })
-  .children(
-    div({ style: { display: "flex", alignItems: "center", justifyContent: "center" } })
-      .children(text("Hello motionforge", { style: { fontSize: 72, color: "#fff" } })),
-  )
-  .toJSON();
+```json
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 90,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "bg",
+      "type": "div",
+      "style": { "width": "100%", "height": "100%", "backgroundColor": "#101820" }
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "Hello motionforge",
+      "style": {
+        "position": "absolute",
+        "left": 64,
+        "right": 64,
+        "top": 800,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "textAlign": "center"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 12, "value": 1, "easing": "easeOut" }
+          ]
+        }
+      ]
+    }
+  ]
+}
 ```
+
+Node types: `div`, `text` (requires `text`), `img` and `video` (require `assetId` pointing at `scene.assets`; drawing not yet implemented). Lengths: number = px, `"50%"` = of parent, `"64px"`.
+
+Styles implemented today: `width`, `height`, `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`), `alignItems` (`flex-start`/`center`/`flex-end`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `fontSize`, `fontFamily`, `fontWeight`, `color`, `textAlign`, `textShadow`. Validated but not yet rendered: `margin`, `min/max` sizes, `transformOrigin`, `fontStyle`, `lineHeight`, `letterSpacing`, `objectFit`, `objectPosition`, `justifyContent: "space-between"`, `alignItems: "stretch"`.
+
+## Example validation errors
+
+```txt
+nodes.1.id: Duplicate node id "title". Node ids must be unique across the scene so tools can patch and diff nodes reliably.
+nodes.0.style: Unsupported style property. motionforge v0 supports a curated CSS-like subset; move unsupported behavior into supported transforms, layout, or custom draw nodes.
+nodes.2.assetId: img nodes require an assetId that points at scene.assets.
+```
+
+## APIs
+
+- `@motionforge/schema`: `parseScene(json)` (throws `SceneValidationError`), `validateScene(json)` (returns `{ ok, scene | errors }`), `sceneJsonSchema()` (JSON Schema draft-07; also shipped as `scene.schema.json`).
+- `@motionforge/core`: `composition()`, `div()`, `text()`, `img()`, `video()` builders → `.toJSON()`; `evaluateScene(scene, frame)`, `layoutScene(resolved)`.
+- `@motionforge/renderer-canvas2d`: `renderStill(ctx2d, scene, frame)`.
+- `@motionforge/export`: `detectExportCapability()`, `renderFrameSequence({ scene, context, onFrame })` — deterministic frame loop with µs timestamps; `exportVideo()` not yet implemented.
+
+## Docs
+
+- [Scene format spec and style support matrix](docs/scene-format.md): the canonical contract.
+- [JSON Schema for scenes](packages/schema/scene.schema.json): validate structurally without running code.
+- [M0 roadmap](docs/m0-roadmap.md): what is in and out of scope right now.
+- [Testing strategy](docs/testing-strategy.md): how changes must be verified.
+- [Contributing and coding standards](CONTRIBUTING.md): determinism rules for the render path.

@@ -120,7 +120,11 @@ export function frameToTimestampUs(frame: number, fps: number): number {
   return Math.round((frame * 1_000_000) / fps);
 }
 
-function validateFrameRange(scene: Scene, startFrame: number, endFrame: number): void {
+function validateFrameRange(
+  scene: Scene,
+  startFrame: number,
+  endFrame: number,
+): void {
   if (!Number.isInteger(startFrame) || !Number.isInteger(endFrame)) {
     throw new Error(
       `Frame range must use integer frames, received startFrame=${startFrame}, endFrame=${endFrame}.`,
@@ -146,6 +150,8 @@ function validateFrameRange(scene: Scene, startFrame: number, endFrame: number):
 
 function throwIfAborted(signal: AbortSignal | undefined): void {
   if (signal?.aborted) {
-    throw signal.reason instanceof Error ? signal.reason : new Error("Frame sequence render aborted.");
+    throw signal.reason instanceof Error
+      ? signal.reason
+      : new Error("Frame sequence render aborted.");
   }
 }

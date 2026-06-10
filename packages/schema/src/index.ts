@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { zodToJsonSchema } from "zod-to-json-schema";
 
 export const supportedStyleKeys = [
   "display",
@@ -245,4 +246,17 @@ function formatSceneIssues(issues: z.ZodIssue[]): string {
   return issues
     .map((issue) => `${issue.path.join(".") || "scene"}: ${issue.message}`)
     .join("\n");
+}
+
+/**
+ * JSON Schema (draft-07) for the scene document, so editors and agents can
+ * validate scenes without executing motionforge code. Covers structure only;
+ * cross-field invariants (unique node ids, asset key = asset.id, text/assetId
+ * requirements per node type) are enforced by parseScene/validateScene.
+ */
+export function sceneJsonSchema(): Record<string, unknown> {
+  return zodToJsonSchema(sceneSchema, {
+    name: "MotionforgeScene",
+    target: "jsonSchema7",
+  }) as Record<string, unknown>;
 }

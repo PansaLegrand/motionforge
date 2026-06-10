@@ -1,0 +1,63 @@
+// Captures the README hero screenshot of the playground at a representative
+// frame. Run with: pnpm --filter @motionforge/golden run screenshot
+import { mkdir } from "node:fs/promises";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { chromium, type Browser } from "playwright";
+import { createServer, type ViteDevServer } from "vite";
+
+const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
+const playgroundDir = resolve(rootDir, "apps/playground");
+const outPath = resolve(rootDir, "docs/assets/playground.png");
+const heroFrame = 40;
+
+const server = await createServer({
+  root: playgroundDir,
+  logLevel: "error",
+  resolve: {
+    alias: {
+      "@motionforge/schema": resolve(rootDir, "packages/schema/src/index.ts"),
+      "@motionforge/core": resolve(rootDir, "packages/core/src/index.ts"),
+      "@motionforge/renderer-canvas2d": resolve(
+        rootDir,
+        "packages/renderer-canvas2d/src/index.ts",
+      ),
+      "@motionforge/export": resolve(rootDir, "packages/export/src/index.ts"),
+    },
+  },
+  server: { host: "127.0.0.1", port: 0, strictPort: false },
+});
+
+let browser: Browser | undefined;
+
+try {
+  await server.listen();
+  const url = server.resolvedUrls?.local[0];
+
+  if (!url) {
+    throw new Error("Playground dev server did not expose a local URL.");
+  }
+
+  browser = await chromium.launch({ headless: true });
+  const page = await browser.newPage({
+    viewport: { width: 1100, height: 720 },
+    deviceScaleFactor: 2,
+  });
+  await page.goto(url, { waitUntil: "load" });
+  await page.fill("#frame", String(heroFrame));
+  await page.waitForFunction(
+    (frame) => document.querySelector("output")?.textContent === String(frame),
+    heroFrame,
+  );
+
+  await mkdir(dirname(outPath), { recursive: true });
+  await page.screenshot({ path: outPath });
+  console.log(`wrote ${outPath} at frame ${heroFrame}`);
+} finally {
+  await browser?.close();
+  await closeServer(server);
+}
+
+async function closeServer(viteServer: ViteDevServer): Promise<void> {
+  await viteServer.close();
+}

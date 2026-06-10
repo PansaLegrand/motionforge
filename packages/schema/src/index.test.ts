@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseScene, validateScene } from "./index.js";
+import { parseScene, sceneJsonSchema, validateScene } from "./index.js";
 
 describe("scene schema", () => {
   it("parses a minimal scene", () => {
@@ -60,5 +60,19 @@ describe("scene schema", () => {
     expect(result.ok ? [] : result.errors.join("\n")).toContain(
       'Duplicate node id "root"',
     );
+  });
+
+  it("exports a JSON Schema covering the recursive node structure", () => {
+    const jsonSchema = sceneJsonSchema() as {
+      $ref?: string;
+      definitions?: Record<string, { properties?: Record<string, unknown> }>;
+    };
+
+    expect(jsonSchema.$ref).toBe("#/definitions/MotionforgeScene");
+
+    const scene = jsonSchema.definitions?.MotionforgeScene;
+    expect(scene?.properties).toHaveProperty("schemaVersion");
+    expect(scene?.properties).toHaveProperty("nodes");
+    expect(JSON.stringify(jsonSchema)).toContain('"opacity"');
   });
 });

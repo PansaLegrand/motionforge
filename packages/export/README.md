@@ -13,7 +13,10 @@ npm install @motionforge/export
 ## Usage
 
 ```ts
-import { detectExportCapability, renderFrameSequence } from "@motionforge/export";
+import {
+  detectExportCapability,
+  renderFrameSequence,
+} from "@motionforge/export";
 
 const capability = detectExportCapability();
 // { webCodecs: boolean, videoEncoder: boolean, offscreenCanvas: boolean }

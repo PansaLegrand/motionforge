@@ -29,6 +29,7 @@
   },
   "files": [
     "dist",
+    "scene.schema.json",
     "!dist/**/*.test.*",
     "!dist/.tsbuildinfo"
   ],
@@ -40,13 +41,14 @@
     "access": "public"
   },
   "scripts": {
-    "build": "tsc -p tsconfig.json",
+    "build": "tsc -p tsconfig.json && node scripts/generate-json-schema.mjs",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
-    "zod": "^3.25.67"
+    "zod": "^3.25.67",
+    "zod-to-json-schema": "^3.25.2"
   },
   "devDependencies": {
     "vitest": "^3.2.4"

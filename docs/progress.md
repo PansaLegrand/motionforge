@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (documentation slice)
+
+### Changed
+
+- Rewrote `docs/scene-format.md` into the canonical contract: full type shapes, timing model, length values, animation semantics, validation invariants, a complete example scene, and a property-by-property style support matrix (validated / layout / render, with partial-support notes).
+- Added `sceneJsonSchema()` to `@motionforge/schema` (via `zod-to-json-schema`) and a committed `scene.schema.json` artifact regenerated on every build, so agents and editors can validate scenes without executing code.
+- Rewrote `llms.txt` as a working agent contract: mental model, hard rules, a complete valid scene in JSON, the implemented-today style list, example validation errors, and API index.
+- Rewrote the README: CI/license/status badges, playground hero screenshot, Mermaid render-pipeline and architecture diagrams, package status table, "Why not Remotion?" positioning, agent documentation section, and a builder code example.
+- Added `tools/golden/src/screenshot.ts` (`pnpm --filter @motionforge/golden run screenshot`) to regenerate the README hero image deterministically from the playground at frame 40.
+
+### Tested
+
+- `pnpm build` (regenerates `scene.schema.json`)
+- `pnpm typecheck`
+- `pnpm test` (new unit test for the JSON Schema export)
+- `pnpm golden:test`
+
+### Notes
+
+- The support matrix documents which validated properties are not yet implemented (`margin`, min/max sizes, `transformOrigin`, `fontStyle`, `lineHeight`, `letterSpacing`, `objectFit`, `objectPosition`, `justifyContent: space-between`, `alignItems: stretch`). Implementing the text-related ones is the next engine slice.
+- The JSON Schema covers structure only; cross-field invariants stay in `parseScene`/`validateScene` and are documented as such.
+
 ## 2026-06-11
 
 ### Changed
