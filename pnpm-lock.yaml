@@ -55,6 +55,9 @@ importers:
 
   packages/export:
     dependencies:
+      '@motionforge/renderer-canvas2d':
+        specifier: workspace:*
+        version: link:../renderer-canvas2d
       '@motionforge/schema':
         specifier: workspace:*
         version: link:../schema

@@ -20,7 +20,8 @@ M0 proves the thesis with the smallest useful engine.
 4. Simple layout pass for absolute/flex-centered scenes.
 5. Canvas2D reference renderer.
 6. Playground still-frame preview.
-7. WebCodecs/Mediabunny export prototype.
+7. Deterministic frame sequence loop for export.
+8. WebCodecs/Mediabunny export prototype.
 
 ## Deferred
 

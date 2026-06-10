@@ -12,6 +12,8 @@ This is the living project log. Every meaningful implementation slice should rec
 - Added duplicate node id validation so agent patches have stable node handles.
 - Prepared package metadata for future public npm publishing.
 - Cleaned up test command semantics so `pnpm test` is unit tests only and `pnpm golden:test` is the explicit browser pixel test.
+- Added `renderFrameSequence()` in `@motionforge/export` as the deterministic bridge from still rendering to video export.
+- Added export-relative and scene-relative timestamp conversion, progress callbacks, range validation, and abort handling for the export frame loop.
 
 ### Tested
 
@@ -19,11 +21,13 @@ This is the living project log. Every meaningful implementation slice should rec
 - `pnpm typecheck`
 - `pnpm test`
 - `pnpm golden:test`
+- `pnpm --filter @motionforge/export typecheck`
+- `pnpm --filter @motionforge/export test`
 
 ### Notes
 
 - Golden tests currently store exact hashes for geometry/paint fixtures and probe-based assertions for text, because text pixels remain font/platform-sensitive until embedded fonts land.
-- The next engineering slice should start the browser export prototype from the existing deterministic still-frame renderer.
+- The next engineering slice should adapt `renderFrameSequence()` to create `VideoFrame` objects and probe `VideoEncoder` support before muxing.
 
 ## 2026-06-10
 
