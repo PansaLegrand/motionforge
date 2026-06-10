@@ -62,6 +62,53 @@ describe("scene schema", () => {
     );
   });
 
+  it("rejects keyframes that are not strictly increasing", () => {
+    const result = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [
+        {
+          id: "animated",
+          type: "div",
+          animations: [
+            {
+              kind: "keyframes",
+              property: "opacity",
+              frames: [
+                { frame: 10, value: 0 },
+                { frame: 10, value: 1 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok ? [] : result.errors.join("\n")).toContain(
+      "strictly increasing",
+    );
+  });
+
+  it("re-parsing a parsed scene is an identity no-op", () => {
+    const scene = parseScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [],
+    });
+
+    expect(parseScene(scene)).toBe(scene);
+
+    const validated = validateScene(scene);
+    expect(validated.ok && validated.scene).toBe(scene);
+  });
+
   it("exports a JSON Schema covering the recursive node structure", () => {
     const jsonSchema = sceneJsonSchema() as {
       $ref?: string;

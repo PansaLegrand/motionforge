@@ -10,7 +10,7 @@ scene JSON + frame -> parseScene -> evaluateScene (keyframes) -> layoutScene (bo
 
 - Time is integer frames at `scene.fps`, never wall-clock seconds.
 - A node is active for `[from, from + duration)` in its parent's local timeline; children's clocks restart when the parent appears.
-- Keyframe `frame` values are local to the node. Numeric values interpolate (easing: `linear`, `easeIn`, `easeOut`, `easeInOut`); string values step.
+- Keyframe `frame` values are local to the node and must be strictly increasing (validated). Numeric values interpolate (easing: `linear`, `easeIn`, `easeOut`, `easeInOut`); color strings (`#hex`, `rgb()`, `rgba()`) interpolate in RGBA space; other strings step.
 - Node `id`s are unique across the scene by contract — patch and diff scenes by id.
 
 ## Hard rules
@@ -66,7 +66,7 @@ scene JSON + frame -> parseScene -> evaluateScene (keyframes) -> layoutScene (bo
 
 Node types: `div`, `text` (requires `text`), `img` and `video` (require `assetId` pointing at `scene.assets`; drawing not yet implemented). Lengths: number = px, `"50%"` = of parent, `"64px"`.
 
-Styles implemented today: `width`, `height`, `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`), `alignItems` (`flex-start`/`center`/`flex-end`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `fontSize`, `fontFamily`, `fontWeight`, `fontStyle`, `color`, `textAlign`, `textShadow`, `lineHeight` (unitless = multiplier of fontSize), `letterSpacing`. Validated but not yet rendered: `margin`, `min/max` sizes, `transformOrigin`, `objectFit`, `objectPosition`, `justifyContent: "space-between"`, `alignItems: "stretch"`.
+Styles implemented today: `width`, `height`, `minWidth`/`minHeight`/`maxWidth`/`maxHeight` (min wins over max), `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `margin` (single value, outer spacing), `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`/`space-between`), `alignItems` (`flex-start`/`center`/`flex-end`/`stretch`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `transformOrigin`, `fontSize`, `fontFamily`, `fontWeight`, `fontStyle`, `color`, `textAlign`, `textShadow`, `lineHeight` (unitless = multiplier of fontSize), `letterSpacing`. Validated but not yet rendered: `objectFit`, `objectPosition` (`img`/`video` drawing has not landed).
 
 Text is multi-line: explicit `\n` always breaks; words wrap to the node's box width using real font metrics; lines are spaced by `lineHeight` and the block is centered vertically in the box.
 

@@ -61,35 +61,35 @@ Style properties that take lengths accept:
 
 Validation is intentionally stricter than implementation: a property may validate today and gain behavior in a later release without a format change. The matrix below is the source of truth for what actually happens at each stage. **Validated** means the schema accepts it; **Layout** means it affects box geometry; **Render** means it affects pixels.
 
-| Property                                         | Validated | Layout | Render | Notes                                                                                                       |
-| ------------------------------------------------ | :-------: | :----: | :----: | ----------------------------------------------------------------------------------------------------------- |
-| `width`, `height`                                |    ✅     |   ✅   |   —    | number, `px`, or `%`                                                                                        |
-| `position`                                       |    ✅     |   ✅   |   —    | `relative` (default) or `absolute`                                                                          |
-| `left`, `top`, `right`, `bottom`                 |    ✅     |   ✅   |   —    | `right`/`bottom` only apply with `position: absolute`                                                       |
-| `inset`                                          |    ✅     |   ✅   |   —    | fallback for `left`/`top` and implied size                                                                  |
-| `padding`                                        |    ✅     |   ✅   |   —    | single value, all sides                                                                                     |
-| `display: "flex"`                                |    ✅     |   ✅   |   —    | the only non-default display                                                                                |
-| `flexDirection`                                  |    ✅     |   ✅   |   —    | `row` (default) or `column`                                                                                 |
-| `gap`                                            |    ✅     |   ✅   |   —    | main-axis gap between flex children                                                                         |
-| `justifyContent`                                 |    ✅     |   ⚠️   |   —    | `flex-start`, `center`, `flex-end` work; `space-between` validates but currently behaves as `flex-start`    |
-| `alignItems`                                     |    ✅     |   ⚠️   |   —    | `flex-start`, `center`, `flex-end` work; `stretch` validates but currently behaves as `flex-start`          |
-| `backgroundColor`                                |    ✅     |   —    |   ✅   | any Canvas2D fill style string                                                                              |
-| `background`                                     |    ✅     |   —    |   ⚠️   | solid colors; `linear-gradient` limited to exactly two stops, vertical (`180deg`/`to bottom`) or horizontal |
-| `borderRadius`                                   |    ✅     |   —    |   ⚠️   | rounds the background fill; does **not** clip children                                                      |
-| `opacity`                                        |    ✅     |   —    |   ✅   | `0`–`1`, multiplies down the subtree                                                                        |
-| `transform`                                      |    ✅     |   —    |   ⚠️   | `translate()`, `scale()`, `rotate()` only; applied around the box center                                    |
-| `fontSize`                                       |    ✅     |   ✅   |   ✅   | also drives intrinsic text size in flex layout                                                              |
-| `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   |                                                                                                             |
-| `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                   |
-| `textAlign`                                      |    ✅     |   —    |   ✅   | `left` (default), `center`, `right`                                                                         |
-| `textShadow`                                     |    ✅     |   —    |   ✅   | single `x y blur color` shadow                                                                              |
-| `fontStyle`                                      |    ✅     |   —    |   ✅   | `normal` (default) or `italic`                                                                              |
-| `lineHeight`                                     |    ✅     |   ✅   |   ✅   | unitless number = multiplier of `fontSize` (CSS semantics); `px`/`%` lengths also accepted; default `1.25`  |
-| `letterSpacing`                                  |    ✅     |   —    |   ✅   | number or `px`; uses the Canvas2D `letterSpacing` API (Chromium-class browsers)                             |
-| `margin`                                         |    ✅     |   📋   |   —    | validated, not yet implemented                                                                              |
-| `minWidth`, `minHeight`, `maxWidth`, `maxHeight` |    ✅     |   📋   |   —    | validated, not yet implemented                                                                              |
-| `transformOrigin`                                |    ✅     |   —    |   📋   | validated; renderer currently always uses the box center                                                    |
-| `objectFit`, `objectPosition`                    |    ✅     |   —    |   📋   | validated; `img`/`video` drawing has not landed yet                                                         |
+| Property                                         | Validated | Layout | Render | Notes                                                                                                                |
+| ------------------------------------------------ | :-------: | :----: | :----: | -------------------------------------------------------------------------------------------------------------------- |
+| `width`, `height`                                |    ✅     |   ✅   |   —    | number, `px`, or `%`                                                                                                 |
+| `position`                                       |    ✅     |   ✅   |   —    | `relative` (default) or `absolute`                                                                                   |
+| `left`, `top`, `right`, `bottom`                 |    ✅     |   ✅   |   —    | `right`/`bottom` only apply with `position: absolute`                                                                |
+| `inset`                                          |    ✅     |   ✅   |   —    | fallback for `left`/`top` and implied size                                                                           |
+| `padding`                                        |    ✅     |   ✅   |   —    | single value, all sides                                                                                              |
+| `display: "flex"`                                |    ✅     |   ✅   |   —    | the only non-default display                                                                                         |
+| `flexDirection`                                  |    ✅     |   ✅   |   —    | `row` (default) or `column`                                                                                          |
+| `gap`                                            |    ✅     |   ✅   |   —    | main-axis gap between flex children                                                                                  |
+| `justifyContent`                                 |    ✅     |   ✅   |   —    | `flex-start` (default), `center`, `flex-end`, `space-between` (distributes leftover space on top of `gap`)           |
+| `alignItems`                                     |    ✅     |   ✅   |   —    | `flex-start` (default), `center`, `flex-end`, `stretch` (fills the cross axis for children without an explicit size) |
+| `backgroundColor`                                |    ✅     |   —    |   ✅   | any Canvas2D fill style string                                                                                       |
+| `background`                                     |    ✅     |   —    |   ⚠️   | solid colors; `linear-gradient` limited to exactly two stops, vertical (`180deg`/`to bottom`) or horizontal          |
+| `borderRadius`                                   |    ✅     |   —    |   ⚠️   | rounds the background fill; does **not** clip children                                                               |
+| `opacity`                                        |    ✅     |   —    |   ✅   | `0`–`1`, multiplies down the subtree                                                                                 |
+| `transform`                                      |    ✅     |   —    |   ⚠️   | `translate()`, `scale()`, `rotate()` only; pivot set by `transformOrigin`                                            |
+| `fontSize`                                       |    ✅     |   ✅   |   ✅   | also drives intrinsic text size in flex layout                                                                       |
+| `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   |                                                                                                                      |
+| `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                            |
+| `textAlign`                                      |    ✅     |   —    |   ✅   | `left` (default), `center`, `right`                                                                                  |
+| `textShadow`                                     |    ✅     |   —    |   ✅   | single `x y blur color` shadow                                                                                       |
+| `fontStyle`                                      |    ✅     |   —    |   ✅   | `normal` (default) or `italic`                                                                                       |
+| `lineHeight`                                     |    ✅     |   ✅   |   ✅   | unitless number = multiplier of `fontSize` (CSS semantics); `px`/`%` lengths also accepted; default `1.25`           |
+| `letterSpacing`                                  |    ✅     |   —    |   ✅   | number or `px`; uses the Canvas2D `letterSpacing` API (Chromium-class browsers)                                      |
+| `margin`                                         |    ✅     |   ✅   |   —    | single value, all sides: outer spacing that shifts the box from its anchor edge and shrinks auto sizes               |
+| `minWidth`, `minHeight`, `maxWidth`, `maxHeight` |    ✅     |   ✅   |   —    | clamp the resolved size; `min` wins over `max` (CSS semantics)                                                       |
+| `transformOrigin`                                |    ✅     |   —    |   ✅   | `left`/`center`/`right`, `top`/`center`/`bottom`, `px`, or `%` per axis; default center                              |
+| `objectFit`, `objectPosition`                    |    ✅     |   —    |   📋   | validated; `img`/`video` drawing has not landed yet                                                                  |
 
 ✅ implemented · ⚠️ partial (see note) · 📋 validated only, planned · — not applicable
 
@@ -119,9 +119,10 @@ type SceneAnimation = {
 };
 ```
 
-- Keyframe `frame` values are local to the node's own timeline (frame 0 = the node's `from`).
+- Keyframe `frame` values are local to the node's own timeline (frame 0 = the node's `from`) and must be **strictly increasing** — validation rejects unsorted or duplicate frames.
 - Numeric values interpolate; `easing` on a keyframe shapes the segment _arriving at_ that keyframe (quadratic ease curves).
-- String values step: the value changes exactly at the next keyframe's frame.
+- String values that both parse as colors (`#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`) interpolate per-channel in RGBA space, emitting `rgba(...)` strings. Named colors, gradients, and other strings do not interpolate.
+- Other string values step: the value changes exactly at the next keyframe's frame.
 - Before the first keyframe the first value holds; after the last keyframe the last value holds.
 - The animated value overrides the node's static `style` value for that property at that frame.
 

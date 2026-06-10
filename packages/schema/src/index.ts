@@ -100,11 +100,26 @@ export const keyframeSchema = z.object({
   easing: z.enum(["linear", "easeIn", "easeOut", "easeInOut"]).optional(),
 });
 
-export const animationSchema = z.object({
-  kind: z.literal("keyframes"),
-  property: z.string().min(1),
-  frames: z.array(keyframeSchema).min(1),
-});
+export const animationSchema = z
+  .object({
+    kind: z.literal("keyframes"),
+    property: z.string().min(1),
+    frames: z.array(keyframeSchema).min(1),
+  })
+  .superRefine((animation, ctx) => {
+    for (let index = 1; index < animation.frames.length; index += 1) {
+      const previous = animation.frames[index - 1];
+      const current = animation.frames[index];
+
+      if (previous && current && current.frame <= previous.frame) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["frames", index, "frame"],
+          message: `Keyframe frames must be strictly increasing; frame ${current.frame} follows frame ${previous.frame}. Sort the frames and merge duplicates.`,
+        });
+      }
+    }
+  });
 
 export type SceneAnimation = z.infer<typeof animationSchema>;
 
@@ -215,22 +230,40 @@ export class SceneValidationError extends Error {
   }
 }
 
+/**
+ * Objects previously produced by parseScene/validateScene. Re-parsing one of
+ * these is a no-op, so frame loops can call parseScene per frame without
+ * paying for validation each time. Parsed scenes must be treated as
+ * immutable — mutating one bypasses re-validation by design.
+ */
+const parsedScenes = new WeakSet<object>();
+
 export function parseScene(input: unknown): Scene {
+  if (typeof input === "object" && input !== null && parsedScenes.has(input)) {
+    return input as Scene;
+  }
+
   const result = sceneSchema.safeParse(input);
 
   if (!result.success) {
     throw new SceneValidationError(result.error.issues);
   }
 
+  parsedScenes.add(result.data);
   return result.data;
 }
 
 export function validateScene(
   input: unknown,
 ): { ok: true; scene: Scene } | { ok: false; errors: string[] } {
+  if (typeof input === "object" && input !== null && parsedScenes.has(input)) {
+    return { ok: true, scene: input as Scene };
+  }
+
   const result = sceneSchema.safeParse(input);
 
   if (result.success) {
+    parsedScenes.add(result.data);
     return { ok: true, scene: result.data };
   }
 

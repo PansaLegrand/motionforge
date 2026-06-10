@@ -208,18 +208,18 @@ function evaluateNode(
   ];
 }
 
+/**
+ * Resolves an animated value at a node-local frame. Frames must be in strictly
+ * increasing order (the schema enforces this). Numeric values interpolate;
+ * string values interpolate in RGBA space when both parse as colors and step
+ * otherwise.
+ */
 export function evaluateKeyframes(
   frames: SceneAnimation["frames"],
   frame: number,
 ): string | number | undefined {
-  const ordered = [...frames].sort((a, b) => a.frame - b.frame);
-
-  if (ordered.length === 0) {
-    return undefined;
-  }
-
-  const first = ordered[0];
-  const last = ordered[ordered.length - 1];
+  const first = frames[0];
+  const last = frames[frames.length - 1];
 
   if (!first || !last) {
     return undefined;
@@ -233,23 +233,107 @@ export function evaluateKeyframes(
     return last.value;
   }
 
-  const nextIndex = ordered.findIndex((entry) => entry.frame >= frame);
-  const next = ordered[nextIndex];
-  const prev = ordered[nextIndex - 1];
+  const nextIndex = frames.findIndex((entry) => entry.frame >= frame);
+  const next = frames[nextIndex];
+  const prev = frames[nextIndex - 1];
 
   if (!prev || !next) {
     return last.value;
-  }
-
-  if (typeof prev.value !== "number" || typeof next.value !== "number") {
-    return frame < next.frame ? prev.value : next.value;
   }
 
   const span = next.frame - prev.frame;
   const rawT = span === 0 ? 1 : (frame - prev.frame) / span;
   const t = applyEasing(rawT, next.easing ?? "linear");
 
-  return prev.value + (next.value - prev.value) * t;
+  if (typeof prev.value === "number" && typeof next.value === "number") {
+    return prev.value + (next.value - prev.value) * t;
+  }
+
+  if (typeof prev.value === "string" && typeof next.value === "string") {
+    const from = parseColor(prev.value);
+    const to = parseColor(next.value);
+
+    if (from && to) {
+      return mixColors(from, to, t);
+    }
+  }
+
+  // Non-interpolatable values step at the next keyframe.
+  return frame < next.frame ? prev.value : next.value;
+}
+
+export type RgbaColor = { r: number; g: number; b: number; a: number };
+
+/**
+ * Parses #rgb/#rgba/#rrggbb/#rrggbbaa hex and rgb()/rgba() color strings.
+ * Returns null for anything else (named colors, gradients, hsl, ...), which
+ * makes the value step instead of interpolate.
+ */
+export function parseColor(value: string): RgbaColor | null {
+  const trimmed = value.trim();
+  const hex = trimmed.match(/^#([0-9a-fA-F]+)$/);
+
+  if (hex) {
+    const digits = hex[1] ?? "";
+
+    if (digits.length === 3 || digits.length === 4) {
+      const channels = digits
+        .split("")
+        .map((digit) => Number.parseInt(digit + digit, 16));
+      const [r, g, b, a] = channels;
+      return {
+        r: r ?? 0,
+        g: g ?? 0,
+        b: b ?? 0,
+        a: digits.length === 4 ? (a ?? 255) / 255 : 1,
+      };
+    }
+
+    if (digits.length === 6 || digits.length === 8) {
+      return {
+        r: Number.parseInt(digits.slice(0, 2), 16),
+        g: Number.parseInt(digits.slice(2, 4), 16),
+        b: Number.parseInt(digits.slice(4, 6), 16),
+        a:
+          digits.length === 8
+            ? Number.parseInt(digits.slice(6, 8), 16) / 255
+            : 1,
+      };
+    }
+
+    return null;
+  }
+
+  const fn = trimmed.match(/^rgba?\(([^)]+)\)$/);
+
+  if (!fn) {
+    return null;
+  }
+
+  const parts = (fn[1] ?? "").split(",").map((part) => part.trim());
+
+  if (parts.length !== 3 && parts.length !== 4) {
+    return null;
+  }
+
+  const r = Number.parseFloat(parts[0] ?? "");
+  const g = Number.parseFloat(parts[1] ?? "");
+  const b = Number.parseFloat(parts[2] ?? "");
+  const a = parts.length === 4 ? Number.parseFloat(parts[3] ?? "") : 1;
+
+  if (![r, g, b, a].every(Number.isFinite)) {
+    return null;
+  }
+
+  return { r, g, b, a };
+}
+
+function mixColors(from: RgbaColor, to: RgbaColor, t: number): string {
+  const channel = (start: number, end: number): number =>
+    Math.round(Math.min(255, Math.max(0, start + (end - start) * t)));
+  const alpha = Math.min(1, Math.max(0, from.a + (to.a - from.a) * t));
+
+  return `rgba(${channel(from.r, to.r)}, ${channel(from.g, to.g)}, ${channel(from.b, to.b)}, ${Number(alpha.toFixed(4))})`;
 }
 
 export function applyEasing(
@@ -298,6 +382,9 @@ function layoutNode(
 ): LayoutBox {
   const style = node.style ?? {};
   const inset = readLength(style.inset, containingBlock.width, 0);
+  // A single margin value adds outer spacing on all sides: it shifts the box
+  // away from its anchor edge and shrinks auto-sized dimensions.
+  const margin = readLength(style.margin, containingBlock.width, 0);
   const left = readLength(style.left, containingBlock.width, inset);
   const top = readLength(style.top, containingBlock.height, inset);
   const right =
@@ -309,42 +396,46 @@ function layoutNode(
       ? undefined
       : readLength(style.bottom, containingBlock.height, 0);
   const widthFallback =
-    style.position === "absolute" &&
+    (style.position === "absolute" &&
     right !== undefined &&
     style.width === undefined
       ? containingBlock.width - left - right
-      : containingBlock.width - inset * 2;
+      : containingBlock.width - inset * 2) -
+    margin * 2;
   const heightFallback =
-    style.position === "absolute" &&
+    (style.position === "absolute" &&
     bottom !== undefined &&
     style.height === undefined
       ? containingBlock.height - top - bottom
-      : containingBlock.height - inset * 2;
-  const width = resolveLength(
-    style.width,
+      : containingBlock.height - inset * 2) -
+    margin * 2;
+  const width = clampLength(
+    resolveLength(style.width, containingBlock.width, widthFallback),
+    style.minWidth,
+    style.maxWidth,
     containingBlock.width,
-    widthFallback,
   );
-  const height = resolveLength(
-    style.height,
+  const height = clampLength(
+    resolveLength(style.height, containingBlock.height, heightFallback),
+    style.minHeight,
+    style.maxHeight,
     containingBlock.height,
-    heightFallback,
   );
 
   const x =
-    style.position === "absolute"
-      ? containingBlock.x +
-        (style.left !== undefined || right === undefined
-          ? left
-          : containingBlock.width - right - width)
-      : containingBlock.x + left;
+    containingBlock.x +
+    (style.position === "absolute" &&
+    style.left === undefined &&
+    right !== undefined
+      ? containingBlock.width - right - width - margin
+      : left + margin);
   const y =
-    style.position === "absolute"
-      ? containingBlock.y +
-        (style.top !== undefined || bottom === undefined
-          ? top
-          : containingBlock.height - bottom - height)
-      : containingBlock.y + top;
+    containingBlock.y +
+    (style.position === "absolute" &&
+    style.top === undefined &&
+    bottom !== undefined
+      ? containingBlock.height - bottom - height - margin
+      : top + margin);
 
   const padding = readLength(style.padding, Math.min(width, height), 0);
   const content = {
@@ -384,16 +475,27 @@ function layoutFlexChildren(
   const childBoxes = children.map((child) => {
     const estimatedWidth = estimateNodeWidth(child);
     const estimatedHeight = estimateNodeHeight(child);
-    const childWidth = resolveLength(
+    let childWidth = resolveLength(
       child.style.width,
       content.width,
       Math.min(content.width, estimatedWidth),
     );
-    const childHeight = resolveLength(
+    let childHeight = resolveLength(
       child.style.height,
       content.height,
       Math.min(content.height, estimatedHeight),
     );
+
+    if (style.alignItems === "stretch") {
+      // Stretch fills the cross axis for children without an explicit size.
+      if (direction === "row" && child.style.height === undefined) {
+        childHeight = content.height;
+      }
+
+      if (direction === "column" && child.style.width === undefined) {
+        childWidth = content.width;
+      }
+    }
 
     return { child, width: childWidth, height: childHeight };
   });
@@ -407,6 +509,11 @@ function layoutFlexChildren(
     Math.max(0, childBoxes.length - 1) * gap;
   const mainSpace = direction === "row" ? content.width : content.height;
   const crossSpace = direction === "row" ? content.height : content.width;
+  // space-between distributes leftover main-axis space on top of `gap`.
+  const betweenGap =
+    style.justifyContent === "space-between" && childBoxes.length > 1
+      ? Math.max(0, mainSpace - mainTotal) / (childBoxes.length - 1)
+      : 0;
   let cursor =
     style.justifyContent === "center" ? (mainSpace - mainTotal) / 2 : 0;
 
@@ -439,9 +546,29 @@ function layoutFlexChildren(
             height,
           });
 
-    cursor += (direction === "row" ? width : height) + gap;
+    cursor += (direction === "row" ? width : height) + gap + betweenGap;
     return box;
   });
+}
+
+function clampLength(
+  value: number,
+  min: string | number | undefined,
+  max: string | number | undefined,
+  parent: number,
+): number {
+  let clamped = value;
+
+  if (max !== undefined) {
+    clamped = Math.min(clamped, readLength(max, parent, clamped));
+  }
+
+  // CSS semantics: min wins over max when they conflict.
+  if (min !== undefined) {
+    clamped = Math.max(clamped, readLength(min, parent, clamped));
+  }
+
+  return clamped;
 }
 
 function estimateNodeWidth(node: ResolvedNode): number {

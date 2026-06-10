@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (core engine hardening slice)
+
+### Changed
+
+- `@motionforge/schema`: `parseScene`/`validateScene` remember their results in a WeakSet, so re-parsing an already-parsed scene is an identity no-op. This removes the full Zod validation that previously ran on **every frame** of preview and export (a 120-frame export validated the scene 120 times). Parsed scenes are documented as immutable.
+- `@motionforge/schema`: keyframe frames must now be strictly increasing, with an actionable validation message. This makes evaluation order a contract instead of a per-call sort.
+- `@motionforge/core`: `evaluateKeyframes` no longer sorts on every call (the schema guarantees order) and now **interpolates colors**: when both keyframe values parse as `#hex`/`rgb()`/`rgba()`, the value lerps per-channel in RGBA space with easing applied; other strings still step. `parseColor` is exported.
+- `@motionforge/core` layout completion — every remaining layout row in the support matrix is now implemented:
+  - `margin` (single value): outer spacing that shifts the box away from its anchor edge (including right/bottom-anchored absolute boxes) and shrinks auto-sized dimensions.
+  - `minWidth`/`minHeight`/`maxWidth`/`maxHeight`: clamp resolved sizes; min wins over max (CSS semantics).
+  - `justifyContent: "space-between"`: distributes leftover main-axis space on top of `gap`.
+  - `alignItems: "stretch"`: fills the cross axis for flex children without an explicit cross size.
+- `@motionforge/renderer-canvas2d`: `transformOrigin` implemented (`left`/`center`/`right`, `top`/`center`/`bottom`, `px`, `%`; default remains center).
+- Support matrix, scene-format animation docs, and `llms.txt` updated; no validated-but-ignored style properties remain except `objectFit`/`objectPosition` (blocked on asset drawing).
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (10 new unit tests: color interpolation/easing on colors, parseColor forms and rejections, margin, min/max conflict, space-between positions, stretch sizing, parse-cache identity, unsorted-keyframe rejection)
+- `pnpm golden:test` — 3 new exact fixtures (color-keyframe-midpoint, flex-space-between-stretch, transform-origin-rotate); all 4 pre-existing exact hashes unchanged, proving the layout refactor is pixel-identical for existing scenes
+
+### Notes
+
+- Color interpolation covers hex and rgb()/rgba() only; named colors and hsl() intentionally step. Revisit if scenes need them.
+- The WeakSet parse cache means a scene mutated after parsing bypasses re-validation — consistent with the documented immutability contract, but worth a lint rule eventually.
+- Remaining renderer gaps (not layout): gradient parser is still two-stop vertical/horizontal, borderRadius does not clip children (would need an `overflow` property), and `objectFit`/`objectPosition` await the asset-loading slice.
+
 ## 2026-06-11 (export slice — M0 sequence complete)
 
 ### Changed

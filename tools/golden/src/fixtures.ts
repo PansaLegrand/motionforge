@@ -262,6 +262,163 @@ export const fixtures: GoldenFixture[] = [
     ],
   },
   {
+    kind: "exact",
+    id: "color-keyframe-midpoint",
+    description:
+      "backgroundColor keyframes interpolate in RGBA space (red to blue at the midpoint).",
+    frame: 15,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 31,
+      assets: {},
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 31,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "color-box",
+          type: "div",
+          from: 0,
+          duration: 31,
+          style: {
+            position: "absolute",
+            left: 80,
+            top: 45,
+            width: 160,
+            height: 90,
+          },
+          animations: [
+            {
+              kind: "keyframes",
+              property: "backgroundColor",
+              frames: [
+                { frame: 0, value: "#ff0000" },
+                { frame: 30, value: "#0000ff" },
+              ],
+            },
+          ],
+          children: [],
+        },
+      ],
+    },
+  },
+  {
+    kind: "exact",
+    id: "flex-space-between-stretch",
+    description:
+      "space-between distributes leftover main-axis space; stretch fills the cross axis for unsized children.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "row",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "stretch",
+            padding: 20,
+            backgroundColor: "#101820",
+          },
+          children: [
+            {
+              id: "stretched",
+              type: "div",
+              from: 0,
+              duration: 1,
+              style: { width: 60, backgroundColor: "#ffd166" },
+              children: [],
+            },
+            {
+              id: "fixed",
+              type: "div",
+              from: 0,
+              duration: 1,
+              style: { width: 60, height: 60, backgroundColor: "#4ecdc4" },
+              children: [],
+            },
+            {
+              id: "tail",
+              type: "div",
+              from: 0,
+              duration: 1,
+              style: { width: 60, height: 100, backgroundColor: "#ef476f" },
+              children: [],
+            },
+          ],
+        },
+      ],
+    },
+  },
+  {
+    kind: "exact",
+    id: "transform-origin-rotate",
+    description:
+      "transformOrigin moves the rotation pivot away from the box center.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "pivoted",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 120,
+            top: 60,
+            width: 120,
+            height: 40,
+            backgroundColor: "#ffd166",
+            transform: "rotate(30deg)",
+            transformOrigin: "left top",
+          },
+          children: [],
+        },
+      ],
+    },
+  },
+  {
     kind: "probe",
     id: "multiline-explicit-newline",
     description:

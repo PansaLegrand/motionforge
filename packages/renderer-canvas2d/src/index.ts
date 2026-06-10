@@ -178,6 +178,36 @@ function drawText(
   });
 }
 
+function resolveTransformOrigin(
+  value: string | undefined,
+  box: LayoutBox,
+): { x: number; y: number } {
+  const parts = (value ?? "").trim().split(/\s+/).filter(Boolean);
+  const xPart = parts[0] ?? "center";
+  const yPart = parts[1] ?? "center";
+
+  return {
+    x: box.x + resolveOriginComponent(xPart, box.width),
+    y: box.y + resolveOriginComponent(yPart, box.height),
+  };
+}
+
+function resolveOriginComponent(part: string, size: number): number {
+  if (part === "left" || part === "top") {
+    return 0;
+  }
+
+  if (part === "right" || part === "bottom") {
+    return size;
+  }
+
+  if (part === "center") {
+    return size / 2;
+  }
+
+  return readLength(part, size, size / 2);
+}
+
 function applyTransform(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   box: LayoutBox,
@@ -187,7 +217,7 @@ function applyTransform(
     return;
   }
 
-  const origin = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
+  const origin = resolveTransformOrigin(style.transformOrigin, box);
   context.translate(origin.x, origin.y);
 
   for (const part of style.transform.matchAll(
