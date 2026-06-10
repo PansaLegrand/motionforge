@@ -14,14 +14,16 @@ M0 proves the thesis with the smallest useful engine.
 
 ## Sequence
 
-1. Scene schema and actionable validation.
-2. Builder API and round-trip tests.
-3. Animation evaluator with frozen numeric tests.
-4. Simple layout pass for absolute/flex-centered scenes.
-5. Canvas2D reference renderer.
-6. Playground still-frame preview.
-7. Deterministic frame sequence loop for export.
-8. WebCodecs/Mediabunny export prototype.
+1. ✅ Scene schema and actionable validation.
+2. ✅ Builder API and round-trip tests.
+3. ✅ Animation evaluator with frozen numeric tests.
+4. ✅ Simple layout pass for absolute/flex-centered scenes.
+5. ✅ Canvas2D reference renderer.
+6. ✅ Playground still-frame preview.
+7. ✅ Deterministic frame sequence loop for export.
+8. ✅ WebCodecs/mediabunny export (`exportVideo()`, playground Export MP4 button, browser smoke test).
+
+All M0 sequence items have landed. M0 close-out remains open until the acceptance criteria have been re-verified together and the next milestone is scoped.
 
 ## Deferred
 

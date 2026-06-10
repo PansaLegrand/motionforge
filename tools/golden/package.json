@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "@motionforge/core": "workspace:*",
+    "@motionforge/export": "workspace:*",
     "@motionforge/renderer-canvas2d": "workspace:*",
     "@motionforge/schema": "workspace:*",
     "playwright": "^1.60.0",

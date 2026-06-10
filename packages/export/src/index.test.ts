@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Scene } from "@motionforge/schema";
 import {
   detectExportCapability,
+  exportVideo,
   frameToTimestampUs,
   renderFrameSequence,
 } from "./index.js";
@@ -202,5 +203,15 @@ describe("renderFrameSequence", () => {
     ).rejects.toThrow("stop after frame 1");
 
     expect(rendered).toEqual([0, 1]);
+  });
+});
+
+describe("exportVideo", () => {
+  it("fails fast with an actionable error when WebCodecs is unavailable", async () => {
+    // Plain Node has no VideoEncoder; the happy path is covered by the
+    // browser-based export smoke test in tools/golden.
+    await expect(exportVideo({ scene })).rejects.toThrow(
+      /VideoEncoder.*detectExportCapability/,
+    );
   });
 });

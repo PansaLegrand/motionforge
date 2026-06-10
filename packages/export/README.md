@@ -1,8 +1,6 @@
 # @motionforge/export
 
-Browser-native video export surface for [motionforge](https://github.com/PansaLegrand/motionforge) scenes.
-
-> **Status:** pre-M0. `renderFrameSequence()` provides the deterministic frame loop. `exportVideo()` currently throws; WebCodecs encoding lands after this loop is wired to `VideoFrame`/`VideoEncoder`.
+Browser-native video export for [motionforge](https://github.com/PansaLegrand/motionforge) scenes: the same deterministic Canvas2D renderer that drives preview feeds WebCodecs frame by frame, and [mediabunny](https://github.com/Vanilagy/mediabunny) muxes the result to MP4 — entirely in the browser, no server.
 
 ## Install
 
@@ -13,22 +11,35 @@ npm install @motionforge/export
 ## Usage
 
 ```ts
-import {
-  detectExportCapability,
-  renderFrameSequence,
-} from "@motionforge/export";
+import { detectExportCapability, exportVideo } from "@motionforge/export";
 
-const capability = detectExportCapability();
-// { webCodecs: boolean, videoEncoder: boolean, offscreenCanvas: boolean }
+if (!detectExportCapability().videoEncoder) {
+  // Gate export UI: this browser has no WebCodecs encoder.
+}
+
+const { blob, codec, totalFrames } = await exportVideo({
+  scene,
+  onProgress: ({ frameIndex, totalFrames }) => {
+    console.log(`encoding ${frameIndex + 1}/${totalFrames}`);
+  },
+});
+// blob is a video/mp4 Blob ready to download or upload.
+```
+
+Options: `startFrame`/`endFrame` export a sub-range, `signal` aborts cleanly, `bitrate` takes bits/s or a mediabunny `Quality` preset, and `codecs` restricts codec choice (by default the first MP4-compatible codec this browser can encode is used — AVC where available, falling back to VP9/AV1 in Chromium-only builds).
+
+## Lower-level frame loop
+
+`renderFrameSequence()` is the deterministic bridge `exportVideo()` is built on — use it to feed frames into your own encoder or pipeline:
+
+```ts
+import { renderFrameSequence } from "@motionforge/export";
 
 await renderFrameSequence({
   scene,
   context,
-  startFrame: 0,
-  endFrame: scene.duration - 1,
   onFrame: ({ frame, timestampUs, sceneTimestampUs }) => {
-    // WebCodecs will consume timestampUs next: canvas -> VideoFrame(timestampUs).
-    // sceneTimestampUs remains available for scene-time diagnostics.
+    // timestampUs is export-relative; sceneTimestampUs is scene-relative.
   },
 });
 ```

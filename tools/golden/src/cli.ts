@@ -2,7 +2,7 @@ import { createHash } from "node:crypto";
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { chromium, type Browser } from "playwright";
+import { chromium, type Browser, type Page } from "playwright";
 import { createServer, type ViteDevServer } from "vite";
 import { fixtures, type GoldenFixture } from "./fixtures.js";
 
@@ -43,6 +43,7 @@ async function run(currentMode: GoldenMode): Promise<void> {
           rootDir,
           "packages/renderer-canvas2d/src/index.ts",
         ),
+        "@motionforge/export": resolve(rootDir, "packages/export/src/index.ts"),
       },
     },
     server: {
@@ -108,6 +109,8 @@ async function run(currentMode: GoldenMode): Promise<void> {
       }
     }
 
+    failures.push(...(await runExportSmokeTest(page)));
+
     if (failures.length > 0) {
       throw new Error(`Golden failures:\n${failures.join("\n\n")}`);
     }
@@ -115,6 +118,51 @@ async function run(currentMode: GoldenMode): Promise<void> {
     await browser?.close();
     await closeServer(server);
   }
+}
+
+/**
+ * Encodes a short scene to MP4 inside the harness browser and checks the
+ * result is a plausible MP4 file. This is the integration test for
+ * exportVideo(); Node cannot run it because it has no WebCodecs.
+ */
+async function runExportSmokeTest(page: Page): Promise<string[]> {
+  const fixture = fixtures.find((entry) => entry.id === "opacity-keyframe");
+
+  if (!fixture) {
+    return ["export-smoke: missing opacity-keyframe fixture scene"];
+  }
+
+  const exported = await page.evaluate(
+    (scene) => window.renderGoldenExport(scene),
+    fixture.scene,
+  );
+
+  const failures: string[] = [];
+  const ftyp = String.fromCharCode(...exported.header.slice(4, 8));
+
+  if (exported.size <= 0) {
+    failures.push("export-smoke: produced an empty file");
+  }
+
+  if (ftyp !== "ftyp") {
+    failures.push(
+      `export-smoke: expected an MP4 ftyp box at byte 4, got "${ftyp}" (header ${exported.header.join(",")})`,
+    );
+  }
+
+  if (exported.totalFrames !== fixture.scene.duration) {
+    failures.push(
+      `export-smoke: expected ${fixture.scene.duration} frames, got ${exported.totalFrames}`,
+    );
+  }
+
+  if (failures.length === 0) {
+    console.log(
+      `ok export-smoke ${exported.size} bytes, ${exported.codec}, ${exported.totalFrames} frames, ${exported.mimeType}`,
+    );
+  }
+
+  return failures;
 }
 
 async function launchBrowser(): Promise<Browser> {

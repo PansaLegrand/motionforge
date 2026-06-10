@@ -78,6 +78,21 @@ button {
   cursor: pointer;
 }
 
+button.secondary {
+  background: #2c4a42;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
+}
+
+#export-status {
+  min-height: 1.2em;
+  font-size: 14px;
+  color: #53625d;
+}
+
 pre {
   overflow: auto;
   margin: 0;

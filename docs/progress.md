@@ -2,6 +2,31 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (export slice — M0 sequence complete)
+
+### Changed
+
+- `@motionforge/export`: implemented `exportVideo()` — renders the scene through the shared Canvas2D renderer via `renderFrameSequence()` and encodes to MP4 in the browser with WebCodecs, using mediabunny for encoding orchestration and muxing. Returns `{ blob, codec, totalFrames }`.
+- Codec negotiation via `getFirstEncodableVideoCodec()` over all MP4-compatible codecs, so Chromium-only builds without H.264 encode fall back to VP9/AV1. Options: `startFrame`/`endFrame` sub-range export, `signal` (cancels the muxer cleanly), `bitrate` (bits/s or Quality preset), `codecs` override.
+- Renders into an `OffscreenCanvas` when available, falling back to a DOM canvas. Awaits `CanvasSource.add()` per frame to respect encoder backpressure.
+- Playground: added an "Export MP4" button with frame-by-frame progress, capability gating, and automatic download.
+- Golden harness: added an export smoke test that encodes the `opacity-keyframe` scene in the harness browser and asserts a non-empty MP4 (`ftyp` box present, expected frame count). Runs as part of `pnpm golden:test`.
+- Marked all eight M0 sequence items complete in the roadmap; updated README status, export README, and `llms.txt`.
+
+### Tested
+
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test` (27 unit tests; new test covers the actionable no-WebCodecs error in Node)
+- `pnpm golden:test` (7 fixtures + export smoke: 6697 bytes, avc, 31 frames, video/mp4)
+- Playwright-driven playground check: clicking "Export MP4" downloaded `motionforge.mp4` (406 KiB, avc, 120 frames).
+
+### Notes
+
+- mediabunny (MIT) is the first runtime dependency outside zod — chosen deliberately over hand-rolling MP4 muxing; it also gives us WebM and streaming targets when we want them.
+- Headless Chromium encodes AVC, so golden export smoke results are stable in CI; the codec fallback path (VP9/AV1) is untested in CI until we add a fixture that excludes AVC.
+- Export duration scales with scene length (sequential frame loop). Worker-based parallel rendering is a post-M0 optimization.
+
 ## 2026-06-11 (text rendering slice)
 
 ### Changed

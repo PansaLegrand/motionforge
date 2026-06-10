@@ -1,3 +1,4 @@
+import { exportVideo } from "@motionforge/export";
 import { renderStill } from "@motionforge/renderer-canvas2d";
 import type { Scene } from "@motionforge/schema";
 
@@ -7,9 +8,19 @@ export type RenderedFrame = {
   rgba: number[];
 };
 
+export type ExportedVideo = {
+  size: number;
+  mimeType: string;
+  codec: string;
+  totalFrames: number;
+  /** First 12 bytes of the file; bytes 4-8 spell "ftyp" for valid MP4. */
+  header: number[];
+};
+
 declare global {
   interface Window {
     renderGoldenFrame: (scene: Scene, frame: number) => RenderedFrame;
+    renderGoldenExport: (scene: Scene) => Promise<ExportedVideo>;
   }
 }
 
@@ -32,5 +43,18 @@ window.renderGoldenFrame = (scene: Scene, frame: number): RenderedFrame => {
     width: scene.width,
     height: scene.height,
     rgba: Array.from(image.data),
+  };
+};
+
+window.renderGoldenExport = async (scene: Scene): Promise<ExportedVideo> => {
+  const { blob, codec, totalFrames } = await exportVideo({ scene });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+
+  return {
+    size: bytes.length,
+    mimeType: blob.type,
+    codec,
+    totalFrames,
+    header: Array.from(bytes.slice(0, 12)),
   };
 };

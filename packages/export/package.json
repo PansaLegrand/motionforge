@@ -46,7 +46,8 @@
   },
   "dependencies": {
     "@motionforge/renderer-canvas2d": "workspace:*",
-    "@motionforge/schema": "workspace:*"
+    "@motionforge/schema": "workspace:*",
+    "mediabunny": "^1.46.0"
   },
   "devDependencies": {
     "vitest": "^3.2.4"

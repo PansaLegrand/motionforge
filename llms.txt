@@ -83,7 +83,7 @@ nodes.2.assetId: img nodes require an assetId that points at scene.assets.
 - `@motionforge/schema`: `parseScene(json)` (throws `SceneValidationError`), `validateScene(json)` (returns `{ ok, scene | errors }`), `sceneJsonSchema()` (JSON Schema draft-07; also shipped as `scene.schema.json`).
 - `@motionforge/core`: `composition()`, `div()`, `text()`, `img()`, `video()` builders → `.toJSON()`; `evaluateScene(scene, frame)`, `layoutScene(resolved)`.
 - `@motionforge/renderer-canvas2d`: `renderStill(ctx2d, scene, frame)`.
-- `@motionforge/export`: `detectExportCapability()`, `renderFrameSequence({ scene, context, onFrame })` — deterministic frame loop with µs timestamps; `exportVideo()` not yet implemented.
+- `@motionforge/export`: `detectExportCapability()`; `exportVideo({ scene, onProgress?, startFrame?, endFrame?, signal? })` → `{ blob, codec, totalFrames }` — in-browser MP4 via WebCodecs + mediabunny (gate on `detectExportCapability().videoEncoder`); `renderFrameSequence({ scene, context, onFrame })` — the underlying deterministic frame loop with µs timestamps.
 
 ## Docs
 

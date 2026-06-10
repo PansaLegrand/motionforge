@@ -1,5 +1,5 @@
 import { sampleScene } from "@motionforge/core";
-import { detectExportCapability } from "@motionforge/export";
+import { detectExportCapability, exportVideo } from "@motionforge/export";
 import { renderStill } from "@motionforge/renderer-canvas2d";
 import "./styles.css";
 
@@ -19,6 +19,8 @@ const canvas = requiredElement<HTMLCanvasElement>("#preview");
 const slider = requiredElement<HTMLInputElement>("#frame");
 const readout = requiredElement<HTMLOutputElement>("#frame-readout");
 const playButton = requiredElement<HTMLButtonElement>("#play");
+const exportButton = requiredElement<HTMLButtonElement>("#export");
+const exportStatus = requiredElement<HTMLOutputElement>("#export-status");
 const capability = requiredElement<HTMLPreElement>("#capability");
 
 canvas.width = scene.width;
@@ -74,5 +76,44 @@ playButton.addEventListener("click", () => {
     requestAnimationFrame(tick);
   }
 });
+
+if (!detectExportCapability().videoEncoder) {
+  exportButton.disabled = true;
+  exportStatus.value = "WebCodecs is unavailable in this browser.";
+}
+
+exportButton.addEventListener("click", () => {
+  void runExport();
+});
+
+async function runExport(): Promise<void> {
+  exportButton.disabled = true;
+
+  try {
+    const { blob, codec, totalFrames } = await exportVideo({
+      scene,
+      onProgress: ({ frameIndex, totalFrames: total }) => {
+        exportStatus.value = `Encoding frame ${frameIndex + 1}/${total}`;
+      },
+    });
+
+    downloadBlob(blob, "motionforge.mp4");
+    exportStatus.value = `Done: ${(blob.size / 1024).toFixed(0)} KiB, ${codec}, ${totalFrames} frames`;
+  } catch (error) {
+    exportStatus.value = error instanceof Error ? error.message : String(error);
+  } finally {
+    exportButton.disabled = false;
+  }
+}
+
+function downloadBlob(blob: Blob, filename: string): void {
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+  // Give the browser time to start the download before releasing the URL.
+  setTimeout(() => URL.revokeObjectURL(url), 10_000);
+}
 
 draw(0);
