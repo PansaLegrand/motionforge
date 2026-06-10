@@ -66,7 +66,9 @@ scene JSON + frame -> parseScene -> evaluateScene (keyframes) -> layoutScene (bo
 
 Node types: `div`, `text` (requires `text`), `img` and `video` (require `assetId` pointing at `scene.assets`; drawing not yet implemented). Lengths: number = px, `"50%"` = of parent, `"64px"`.
 
-Styles implemented today: `width`, `height`, `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`), `alignItems` (`flex-start`/`center`/`flex-end`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `fontSize`, `fontFamily`, `fontWeight`, `color`, `textAlign`, `textShadow`. Validated but not yet rendered: `margin`, `min/max` sizes, `transformOrigin`, `fontStyle`, `lineHeight`, `letterSpacing`, `objectFit`, `objectPosition`, `justifyContent: "space-between"`, `alignItems: "stretch"`.
+Styles implemented today: `width`, `height`, `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`), `alignItems` (`flex-start`/`center`/`flex-end`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `fontSize`, `fontFamily`, `fontWeight`, `fontStyle`, `color`, `textAlign`, `textShadow`, `lineHeight` (unitless = multiplier of fontSize), `letterSpacing`. Validated but not yet rendered: `margin`, `min/max` sizes, `transformOrigin`, `objectFit`, `objectPosition`, `justifyContent: "space-between"`, `alignItems: "stretch"`.
+
+Text is multi-line: explicit `\n` always breaks; words wrap to the node's box width using real font metrics; lines are spaced by `lineHeight` and the block is centered vertically in the box.
 
 ## Example validation errors
 

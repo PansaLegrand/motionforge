@@ -447,7 +447,10 @@ function layoutFlexChildren(
 function estimateNodeWidth(node: ResolvedNode): number {
   if (node.type === "text") {
     const fontSize = readLength(node.style.fontSize, 0, 24);
-    return (node.text?.length ?? 1) * fontSize * 0.58;
+    const longestLine = (node.text ?? " ")
+      .split("\n")
+      .reduce((longest, line) => Math.max(longest, line.length), 1);
+    return longestLine * fontSize * 0.58;
   }
 
   return 0;
@@ -456,10 +459,23 @@ function estimateNodeWidth(node: ResolvedNode): number {
 function estimateNodeHeight(node: ResolvedNode): number {
   if (node.type === "text") {
     const fontSize = readLength(node.style.fontSize, 0, 24);
-    return fontSize * 1.25;
+    const lineCount = (node.text ?? "").split("\n").length;
+    return lineCount * resolveLineHeight(node.style.lineHeight, fontSize);
   }
 
   return 0;
+}
+
+function resolveLineHeight(
+  value: number | string | undefined,
+  fontSize: number,
+): number {
+  // CSS semantics: a unitless number is a multiplier of the font size.
+  if (typeof value === "number") {
+    return fontSize * value;
+  }
+
+  return readLength(value, fontSize, fontSize * 1.25);
 }
 
 function resolveLength(

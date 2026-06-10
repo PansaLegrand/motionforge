@@ -22,13 +22,6 @@ type GoldenSnapshot = {
   hash: string;
 };
 
-type ProbeResult = {
-  label: string;
-  x: number;
-  y: number;
-  rgba: [number, number, number, number];
-};
-
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const goldenDir = resolve(rootDir, "fixtures/goldens");
 const harnessDir = resolve(rootDir, "tools/golden");
@@ -179,39 +172,64 @@ function evaluateProbes(
   const failures: string[] = [];
 
   for (const probe of fixture.probes) {
-    const offset = (probe.y * frame.width + probe.x) * 4;
-    const rgba = frame.rgba.slice(offset, offset + 4) as [
-      number,
-      number,
-      number,
-      number,
-    ];
-    const result: ProbeResult = {
-      label: probe.label,
-      x: probe.x,
-      y: probe.y,
-      rgba,
-    };
+    // A probe with toX scans the row segment [x, toX] and passes if any pixel
+    // matches; a point probe checks the single pixel at (x, y).
+    const xs = probe.toX === undefined ? [probe.x] : range(probe.x, probe.toX);
+    const pixels = xs.map((x) => readPixel(frame, x, probe.y));
+    const anyMatch = pixels.some((rgba) => probeMatches(probe, rgba));
 
-    if (probe.minAlpha !== undefined && rgba[3] < probe.minAlpha) {
+    if (!anyMatch) {
+      const sample = pixels[Math.floor(pixels.length / 2)] ?? [0, 0, 0, 0];
+      const where =
+        probe.toX === undefined
+          ? `at (${probe.x}, ${probe.y})`
+          : `in row ${probe.y}, x ${probe.x}..${probe.toX}`;
       failures.push(
-        `${fixture.id}: ${result.label} expected alpha >= ${probe.minAlpha}, got ${rgba[3]}`,
-      );
-    }
-
-    if (
-      probe.notRgb &&
-      rgba[0] === probe.notRgb[0] &&
-      rgba[1] === probe.notRgb[1] &&
-      rgba[2] === probe.notRgb[2]
-    ) {
-      failures.push(
-        `${fixture.id}: ${result.label} expected pixel to differ from rgb(${probe.notRgb.join(", ")}), got ${rgba.join(", ")}`,
+        `${fixture.id}: ${probe.label} found no matching pixel ${where} ` +
+          `(minAlpha=${probe.minAlpha ?? "-"}, notRgb=${probe.notRgb?.join(",") ?? "-"}, sample=${sample.join(",")})`,
       );
     }
   }
 
   return failures;
+}
+
+function probeMatches(
+  probe: { minAlpha?: number; notRgb?: [number, number, number] },
+  rgba: [number, number, number, number],
+): boolean {
+  if (probe.minAlpha !== undefined && rgba[3] < probe.minAlpha) {
+    return false;
+  }
+
+  if (
+    probe.notRgb &&
+    rgba[0] === probe.notRgb[0] &&
+    rgba[1] === probe.notRgb[1] &&
+    rgba[2] === probe.notRgb[2]
+  ) {
+    return false;
+  }
+
+  return true;
+}
+
+function readPixel(
+  frame: RenderedFrame,
+  x: number,
+  y: number,
+): [number, number, number, number] {
+  const offset = (y * frame.width + x) * 4;
+  return frame.rgba.slice(offset, offset + 4) as [
+    number,
+    number,
+    number,
+    number,
+  ];
+}
+
+function range(from: number, to: number): number[] {
+  return Array.from({ length: to - from + 1 }, (_, index) => from + index);
 }
 
 function parseMode(value: string | undefined): GoldenMode {

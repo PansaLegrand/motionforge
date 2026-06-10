@@ -74,6 +74,57 @@ function drawBackground(
   context.fillRect(box.x, box.y, box.width, box.height);
 }
 
+/**
+ * Splits text into rendered lines: explicit "\n" always breaks, and words
+ * wrap when a line would exceed maxWidth. A single word wider than maxWidth
+ * gets its own line and is clamped by fillText's maxWidth at draw time.
+ */
+export function wrapTextLines(
+  text: string,
+  maxWidth: number,
+  measure: (line: string) => number,
+): string[] {
+  const lines: string[] = [];
+
+  for (const paragraph of text.split("\n")) {
+    const words = paragraph.split(/\s+/).filter((word) => word.length > 0);
+
+    if (words.length === 0) {
+      lines.push("");
+      continue;
+    }
+
+    let current = "";
+
+    for (const word of words) {
+      const candidate = current === "" ? word : `${current} ${word}`;
+
+      if (current !== "" && measure(candidate) > maxWidth) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = candidate;
+      }
+    }
+
+    lines.push(current);
+  }
+
+  return lines;
+}
+
+function resolveLineHeight(
+  value: number | string | undefined,
+  fontSize: number,
+): number {
+  // CSS semantics: a unitless number is a multiplier of the font size.
+  if (typeof value === "number") {
+    return fontSize * value;
+  }
+
+  return readLength(value, fontSize, fontSize * 1.25);
+}
+
 function drawText(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   box: LayoutBox,
@@ -83,10 +134,16 @@ function drawText(
   const fontSize = readLength(style.fontSize, box.height, 24);
   const fontFamily = style.fontFamily ?? "system-ui, sans-serif";
   const fontWeight = style.fontWeight ?? 400;
-  context.font = `${fontWeight} ${fontSize}px ${fontFamily}`;
+  const fontStyle = style.fontStyle ?? "normal";
+  context.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
   context.fillStyle = style.color ?? "#ffffff";
   context.textAlign = style.textAlign ?? "left";
   context.textBaseline = "middle";
+
+  const letterSpacing = readLength(style.letterSpacing, fontSize, 0);
+  if (letterSpacing !== 0 && "letterSpacing" in context) {
+    context.letterSpacing = `${letterSpacing}px`;
+  }
 
   const shadow = parseTextShadow(style.textShadow);
   if (shadow) {
@@ -102,7 +159,23 @@ function drawText(
       : style.textAlign === "right"
         ? box.x + box.width
         : box.x;
-  context.fillText(value, x, box.y + box.height / 2, box.width);
+
+  const lineHeight = resolveLineHeight(style.lineHeight, fontSize);
+  const lines = wrapTextLines(
+    value,
+    box.width,
+    (line) => context.measureText(line).width,
+  );
+  // The line block is centered vertically in the box, matching the previous
+  // single-line behavior when there is exactly one line.
+  const firstLineY =
+    box.y + box.height / 2 - ((lines.length - 1) * lineHeight) / 2;
+
+  lines.forEach((line, index) => {
+    if (line !== "") {
+      context.fillText(line, x, firstLineY + index * lineHeight, box.width);
+    }
+  });
 }
 
 function applyTransform(

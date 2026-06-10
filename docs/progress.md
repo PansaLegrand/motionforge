@@ -2,6 +2,30 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (text rendering slice)
+
+### Changed
+
+- `@motionforge/renderer-canvas2d`: text nodes now render multi-line. Explicit `\n` always breaks; words wrap to the box width using `measureText` with the resolved font; the line block is centered vertically, matching previous single-line placement exactly (existing exact-hash goldens unchanged).
+- Implemented `fontStyle` (italic), `lineHeight` (unitless multiplier or `px`/`%`, default 1.25), and `letterSpacing` (number/`px`, via the Canvas2D `letterSpacing` API) — three of the validated-but-ignored properties from the support matrix.
+- Exported `wrapTextLines(text, maxWidth, measure)` as a pure, unit-testable helper.
+- `@motionforge/core`: intrinsic text estimates for flex layout now account for explicit newlines and `lineHeight`.
+- Golden harness: probes can scan a row segment (`toX`) and pass if any pixel matches, making text-presence assertions robust without exact glyph hashing. Verified the probe fails on a background-only row before trusting it.
+- New golden fixtures: `multiline-explicit-newline` (newlines, lineHeight pitch, italic, letterSpacing) and `multiline-word-wrap` (measured wrapping).
+- Updated the style support matrix, text-behavior docs, and `llms.txt`.
+
+### Tested
+
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test` (7 new `wrapTextLines` unit tests; 26 total)
+- `pnpm golden:test` (7 fixtures, all passing; pre-existing exact hashes unchanged)
+
+### Notes
+
+- Wrapping happens at render time with real font metrics; flex intrinsic sizing still uses the character-count heuristic. Real text measurement in layout needs a metrics provider abstraction — candidate for the font-loading slice.
+- `letterSpacing` relies on the Canvas2D `letterSpacing` API (Chromium-class browsers); other engines silently render without spacing until a fallback lands.
+
 ## 2026-06-11 (documentation slice)
 
 ### Changed

@@ -18,6 +18,8 @@ export type ProbeGoldenFixture = {
     label: string;
     x: number;
     y: number;
+    /** When set, the probe scans the row segment [x, toX] and passes if any pixel matches. */
+    toX?: number;
     minAlpha?: number;
     notRgb?: [number, number, number];
   }>;
@@ -254,6 +256,146 @@ export const fixtures: GoldenFixture[] = [
         label: "glyph area is not background",
         x: 160,
         y: 91,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+    ],
+  },
+  {
+    kind: "probe",
+    id: "multiline-explicit-newline",
+    description:
+      "Explicit \\n breaks text into lines spaced by lineHeight; italic and letterSpacing apply.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "stacked",
+          type: "text",
+          text: "LINE ONE\nLINE TWO",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 40,
+            top: 30,
+            width: 240,
+            height: 120,
+            fontFamily: "Arial, sans-serif",
+            fontSize: 28,
+            fontWeight: 700,
+            fontStyle: "italic",
+            letterSpacing: 2,
+            lineHeight: 1.5,
+            color: "#ffffff",
+          },
+          children: [],
+        },
+      ],
+    },
+    // Box center y=90, two lines at 1.5 * 28 = 42px pitch -> line centers
+    // at y=69 and y=111. Caps-only text keeps both rows clear of descenders.
+    probes: [
+      {
+        label: "first line has glyph pixels",
+        x: 40,
+        y: 69,
+        toX: 280,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+      {
+        label: "second line has glyph pixels",
+        x: 40,
+        y: 111,
+        toX: 280,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+    ],
+  },
+  {
+    kind: "probe",
+    id: "multiline-word-wrap",
+    description:
+      "Text wider than its box wraps by measured word width into multiple lines.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "wrapped",
+          type: "text",
+          text: "AAAA BBBB",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 100,
+            top: 40,
+            width: 120,
+            height: 100,
+            fontFamily: "Arial, sans-serif",
+            fontSize: 30,
+            fontWeight: 700,
+            lineHeight: 1.5,
+            color: "#ffffff",
+          },
+          children: [],
+        },
+      ],
+    },
+    // "AAAA BBBB" at 30px bold is ~170px wide, the box is 120px, so it must
+    // wrap to two lines at 45px pitch: line centers at y=67.5 and y=112.5.
+    probes: [
+      {
+        label: "wrapped first line has glyph pixels",
+        x: 100,
+        y: 68,
+        toX: 220,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+      {
+        label: "wrapped second line has glyph pixels",
+        x: 100,
+        y: 112,
+        toX: 220,
         minAlpha: 255,
         notRgb: [16, 24, 32],
       },
