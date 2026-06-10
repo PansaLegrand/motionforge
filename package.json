@@ -9,7 +9,7 @@
   "scripts": {
     "build": "pnpm -r build",
     "dev": "pnpm --filter @motionforge/playground dev",
-    "golden:test": "pnpm --filter @motionforge/golden run test",
+    "golden:test": "pnpm --filter @motionforge/golden run golden:test",
     "golden:update": "pnpm --filter @motionforge/golden run update",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",

@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11
+
+### Changed
+
+- Added the browser-based golden-frame harness in `tools/golden`.
+- Added initial golden fixtures for gradients, absolute insets, opacity keyframes, flex centering, and text-shadow presence.
+- Made builder-generated node ids deterministic per scene serialization.
+- Added duplicate node id validation so agent patches have stable node handles.
+- Prepared package metadata for future public npm publishing.
+- Cleaned up test command semantics so `pnpm test` is unit tests only and `pnpm golden:test` is the explicit browser pixel test.
+
+### Tested
+
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test`
+- `pnpm golden:test`
+
+### Notes
+
+- Golden tests currently store exact hashes for geometry/paint fixtures and probe-based assertions for text, because text pixels remain font/platform-sensitive until embedded fonts land.
+- The next engineering slice should start the browser export prototype from the existing deterministic still-frame renderer.
+
 ## 2026-06-10
 
 ### Changed

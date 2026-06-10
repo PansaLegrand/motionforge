@@ -34,7 +34,7 @@ pnpm test
 pnpm dev
 ```
 
-Golden rendering tests need the Playwright-pinned Chromium once per machine:
+`pnpm test` runs unit tests only. Golden rendering tests are explicit because they need the Playwright-pinned Chromium once per machine:
 
 ```sh
 pnpm --filter @motionforge/golden exec playwright install chromium
