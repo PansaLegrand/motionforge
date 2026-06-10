@@ -18,6 +18,10 @@ jobs:
           node-version: 20
           cache: pnpm
       - run: pnpm install --frozen-lockfile
+      - run: pnpm --filter @motionforge/golden exec playwright install --with-deps chromium
+      # Build first: package tsconfigs use project references, so typecheck
+      # needs the referenced declaration outputs to exist.
+      - run: pnpm build
       - run: pnpm typecheck
       - run: pnpm test
-      - run: pnpm build
+      - run: pnpm golden:test

@@ -29,9 +29,16 @@ This repository is pre-M0. The first slice includes:
 
 ```sh
 pnpm install
-pnpm test
 pnpm build
+pnpm test
 pnpm dev
+```
+
+Golden rendering tests need the Playwright-pinned Chromium once per machine:
+
+```sh
+pnpm --filter @motionforge/golden exec playwright install chromium
+pnpm golden:test
 ```
 
 ## M0 Scope
@@ -50,3 +57,5 @@ See [docs/m0-roadmap.md](docs/m0-roadmap.md) for the working checklist.
 ## Working Practice
 
 Every meaningful code slice should include tests or a clear note explaining the current test gap. Progress is recorded in [docs/progress.md](docs/progress.md), and the test approach lives in [docs/testing-strategy.md](docs/testing-strategy.md).
+
+Coding standards and the contribution workflow live in [CONTRIBUTING.md](CONTRIBUTING.md).

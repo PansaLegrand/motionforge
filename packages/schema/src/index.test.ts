@@ -35,6 +35,30 @@ describe("scene schema", () => {
     });
 
     expect(result.ok).toBe(false);
-    expect(result.ok ? [] : result.errors.join("\n")).toContain("Unsupported style property");
+    expect(result.ok ? [] : result.errors.join("\n")).toContain(
+      "Unsupported style property",
+    );
+  });
+
+  it("rejects duplicate node ids anywhere in the tree", () => {
+    const result = validateScene({
+      schemaVersion: 0,
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      duration: 90,
+      nodes: [
+        {
+          id: "root",
+          type: "div",
+          children: [{ id: "root", type: "div" }],
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok ? [] : result.errors.join("\n")).toContain(
+      'Duplicate node id "root"',
+    );
   });
 });

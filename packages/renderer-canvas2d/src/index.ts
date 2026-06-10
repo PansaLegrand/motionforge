@@ -23,7 +23,10 @@ export function renderStill(
   }
 }
 
-function drawBox(context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D, box: LayoutBox): void {
+function drawBox(
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  box: LayoutBox,
+): void {
   const { node } = box;
   const style = node.style;
 
@@ -56,7 +59,11 @@ function drawBackground(
   }
 
   context.fillStyle = parseFill(context, box, background);
-  const radius = readLength(style.borderRadius, Math.min(box.width, box.height), 0);
+  const radius = readLength(
+    style.borderRadius,
+    Math.min(box.width, box.height),
+    0,
+  );
 
   if (radius > 0) {
     roundedRect(context, box.x, box.y, box.width, box.height, radius);
@@ -89,7 +96,12 @@ function drawText(
     context.shadowColor = shadow.color;
   }
 
-  const x = style.textAlign === "center" ? box.x + box.width / 2 : style.textAlign === "right" ? box.x + box.width : box.x;
+  const x =
+    style.textAlign === "center"
+      ? box.x + box.width / 2
+      : style.textAlign === "right"
+        ? box.x + box.width
+        : box.x;
   context.fillText(value, x, box.y + box.height / 2, box.width);
 }
 
@@ -105,12 +117,17 @@ function applyTransform(
   const origin = { x: box.x + box.width / 2, y: box.y + box.height / 2 };
   context.translate(origin.x, origin.y);
 
-  for (const part of style.transform.matchAll(/(translate|scale|rotate)\(([^)]+)\)/g)) {
+  for (const part of style.transform.matchAll(
+    /(translate|scale|rotate)\(([^)]+)\)/g,
+  )) {
     const fn = part[1];
     const args = part[2]?.split(",").map((arg) => arg.trim()) ?? [];
 
     if (fn === "translate") {
-      context.translate(readLength(args[0], box.width, 0), readLength(args[1], box.height, 0));
+      context.translate(
+        readLength(args[0], box.width, 0),
+        readLength(args[1], box.height, 0),
+      );
     }
 
     if (fn === "scale") {
@@ -133,7 +150,9 @@ function parseFill(
   box: LayoutBox,
   value: string,
 ): string | CanvasGradient {
-  const linear = value.match(/^linear-gradient\((.+),\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s+\d+%,\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s+\d+%\)$/);
+  const linear = value.match(
+    /^linear-gradient\((.+),\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s+\d+%,\s*(#[0-9a-fA-F]{3,8}|rgba?\([^)]+\))\s+\d+%\)$/,
+  );
 
   if (!linear) {
     return value;
@@ -152,12 +171,16 @@ function parseFill(
   return gradient;
 }
 
-function parseTextShadow(value: string | undefined): { x: number; y: number; blur: number; color: string } | null {
+function parseTextShadow(
+  value: string | undefined,
+): { x: number; y: number; blur: number; color: string } | null {
   if (!value) {
     return null;
   }
 
-  const match = value.match(/^(-?\d+(?:\.\d+)?)px?\s+(-?\d+(?:\.\d+)?)px?\s+(\d+(?:\.\d+)?)px?\s+(.+)$/);
+  const match = value.match(
+    /^(-?\d+(?:\.\d+)?)px?\s+(-?\d+(?:\.\d+)?)px?\s+(\d+(?:\.\d+)?)px?\s+(.+)$/,
+  );
 
   if (!match) {
     return null;
@@ -189,7 +212,11 @@ function roundedRect(
   context.closePath();
 }
 
-function readLength(value: string | number | undefined, parent: number, fallback: number): number {
+function readLength(
+  value: string | number | undefined,
+  parent: number,
+  fallback: number,
+): number {
   if (typeof value === "number") {
     return value;
   }

@@ -8,7 +8,9 @@
     "paths": {
       "@motionforge/schema": ["packages/schema/src/index.ts"],
       "@motionforge/core": ["packages/core/src/index.ts"],
-      "@motionforge/renderer-canvas2d": ["packages/renderer-canvas2d/src/index.ts"],
+      "@motionforge/renderer-canvas2d": [
+        "packages/renderer-canvas2d/src/index.ts"
+      ],
       "@motionforge/export": ["packages/export/src/index.ts"]
     },
     "strict": true,

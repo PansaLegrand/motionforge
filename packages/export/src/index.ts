@@ -12,7 +12,9 @@ export type ExportVideoOptions = {
   onProgress?: (progress: { frame: number; totalFrames: number }) => void;
 };
 
-export function detectExportCapability(globalObject: Partial<typeof globalThis> = globalThis): ExportCapability {
+export function detectExportCapability(
+  globalObject: Partial<typeof globalThis> = globalThis,
+): ExportCapability {
   return {
     webCodecs: "VideoFrame" in globalObject,
     videoEncoder: "VideoEncoder" in globalObject,

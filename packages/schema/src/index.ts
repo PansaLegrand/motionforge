@@ -47,8 +47,12 @@ export const styleSchema = z
   .object({
     display: z.literal("flex").optional(),
     flexDirection: z.enum(["row", "column"]).optional(),
-    justifyContent: z.enum(["flex-start", "center", "flex-end", "space-between"]).optional(),
-    alignItems: z.enum(["flex-start", "center", "flex-end", "stretch"]).optional(),
+    justifyContent: z
+      .enum(["flex-start", "center", "flex-end", "space-between"])
+      .optional(),
+    alignItems: z
+      .enum(["flex-start", "center", "flex-end", "stretch"])
+      .optional(),
     gap: lengthValueSchema.optional(),
     width: lengthValueSchema.optional(),
     height: lengthValueSchema.optional(),
@@ -177,6 +181,28 @@ export const sceneSchema = z
         });
       }
     }
+
+    const seenNodeIds = new Set<string>();
+
+    const visit = (
+      nodes: SceneNodeInput[],
+      path: Array<string | number>,
+    ): void => {
+      nodes.forEach((node, index) => {
+        if (seenNodeIds.has(node.id)) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [...path, index, "id"],
+            message: `Duplicate node id "${node.id}". Node ids must be unique across the scene so tools can patch and diff nodes reliably.`,
+          });
+        }
+
+        seenNodeIds.add(node.id);
+        visit(node.children ?? [], [...path, index, "children"]);
+      });
+    };
+
+    visit(scene.nodes, ["nodes"]);
   });
 
 export type Scene = z.infer<typeof sceneSchema>;
@@ -198,7 +224,9 @@ export function parseScene(input: unknown): Scene {
   return result.data;
 }
 
-export function validateScene(input: unknown): { ok: true; scene: Scene } | { ok: false; errors: string[] } {
+export function validateScene(
+  input: unknown,
+): { ok: true; scene: Scene } | { ok: false; errors: string[] } {
   const result = sceneSchema.safeParse(input);
 
   if (result.success) {
@@ -207,10 +235,14 @@ export function validateScene(input: unknown): { ok: true; scene: Scene } | { ok
 
   return {
     ok: false,
-    errors: result.error.issues.map((issue) => `${issue.path.join(".") || "scene"}: ${issue.message}`),
+    errors: result.error.issues.map(
+      (issue) => `${issue.path.join(".") || "scene"}: ${issue.message}`,
+    ),
   };
 }
 
 function formatSceneIssues(issues: z.ZodIssue[]): string {
-  return issues.map((issue) => `${issue.path.join(".") || "scene"}: ${issue.message}`).join("\n");
+  return issues
+    .map((issue) => `${issue.path.join(".") || "scene"}: ${issue.message}`)
+    .join("\n");
 }
