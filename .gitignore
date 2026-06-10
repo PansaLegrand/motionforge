@@ -1,0 +1,8 @@
+node_modules
+dist
+.turbo
+.DS_Store
+coverage
+*.log
+*.tsbuildinfo
+apps/playground/.vite

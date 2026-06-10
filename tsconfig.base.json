@@ -1,0 +1,24 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "baseUrl": ".",
+    "paths": {
+      "@motionforge/schema": ["packages/schema/src/index.ts"],
+      "@motionforge/core": ["packages/core/src/index.ts"],
+      "@motionforge/renderer-canvas2d": ["packages/renderer-canvas2d/src/index.ts"],
+      "@motionforge/export": ["packages/export/src/index.ts"]
+    },
+    "strict": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "esModuleInterop": true,
+    "forceConsistentCasingInFileNames": true,
+    "isolatedModules": true,
+    "noUncheckedIndexedAccess": true,
+    "skipLibCheck": true
+  }
+}

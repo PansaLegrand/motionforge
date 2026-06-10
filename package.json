@@ -1,0 +1,23 @@
+{
+  "name": "motionforge",
+  "version": "0.0.0",
+  "private": true,
+  "description": "A deterministic, browser-native video scene engine for apps and coding agents.",
+  "license": "MIT",
+  "type": "module",
+  "packageManager": "pnpm@10.22.0",
+  "scripts": {
+    "build": "pnpm -r build",
+    "dev": "pnpm --filter @motionforge/playground dev",
+    "test": "pnpm -r test",
+    "typecheck": "pnpm -r typecheck",
+    "lint": "pnpm -r lint",
+    "format": "prettier --write ."
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.5",
+    "prettier": "^3.5.3",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

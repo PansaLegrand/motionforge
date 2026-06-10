@@ -1,0 +1,33 @@
+# motionforge
+
+`motionforge` is a deterministic browser-native video scene engine.
+
+## Mental Model
+
+A composition is JSON. Rendering is a pure frame-indexed operation.
+
+```txt
+Scene + frame -> resolved node styles -> layout boxes -> canvas draw calls
+```
+
+Use `@motionforge/schema` to validate scene data, `@motionforge/core` to build and evaluate scenes, and `@motionforge/renderer-canvas2d` for the first reference renderer.
+
+## Hard Rules
+
+- Do not use wall-clock time in render paths.
+- Do not use unseeded randomness in render paths.
+- Unsupported CSS-like properties should fail validation with actionable messages.
+- Prefer data keyframes over per-frame user code.
+
+## Minimal Scene
+
+```ts
+import { composition, div, text } from "@motionforge/core";
+
+const scene = composition({ width: 1080, height: 1920, fps: 30, duration: 90 })
+  .children(
+    div({ style: { display: "flex", alignItems: "center", justifyContent: "center" } })
+      .children(text("Hello motionforge", { style: { fontSize: 72, color: "#fff" } })),
+  )
+  .toJSON();
+```

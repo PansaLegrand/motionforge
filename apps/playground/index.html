@@ -1,0 +1,29 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>motionforge playground</title>
+  </head>
+  <body>
+    <main class="app">
+      <section class="preview">
+        <canvas id="preview" width="1080" height="1920"></canvas>
+      </section>
+      <aside class="panel">
+        <div>
+          <h1>motionforge</h1>
+          <p>Frame-indexed scene preview.</p>
+        </div>
+        <label>
+          Frame
+          <input id="frame" type="range" min="0" max="119" value="0" />
+        </label>
+        <output id="frame-readout">0</output>
+        <button id="play" type="button">Play</button>
+        <pre id="capability"></pre>
+      </aside>
+    </main>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
