@@ -10,6 +10,7 @@ M0 proves the thesis with the smallest useful engine.
 - The Canvas2D renderer draws the same scene used by preview.
 - The playground can scrub frames.
 - A basic browser export API exists behind capability checks.
+- Each implementation slice updates [progress.md](progress.md) and lands with tests or a documented test gap.
 
 ## Sequence
 

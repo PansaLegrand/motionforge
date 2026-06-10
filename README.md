@@ -46,3 +46,7 @@ M0 is intentionally small:
 - Add the first WebCodecs/Mediabunny export path after the render loop is stable.
 
 See [docs/m0-roadmap.md](docs/m0-roadmap.md) for the working checklist.
+
+## Working Practice
+
+Every meaningful code slice should include tests or a clear note explaining the current test gap. Progress is recorded in [docs/progress.md](docs/progress.md), and the test approach lives in [docs/testing-strategy.md](docs/testing-strategy.md).
