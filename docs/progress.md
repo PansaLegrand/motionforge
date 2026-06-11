@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (font loading — roadmap slice 2)
+
+### Changed
+
+- `@motionforge/renderer-canvas2d`: `resolveAssets()` now loads `font` assets through the same pipeline as images. Each font registers with the environment's FontFaceSet (`document.fonts` in windows, `self.fonts` in workers) under its **asset id**, so styles reference it as `fontFamily: "<asset id>"`. Registration is idempotent per (id, src) pair, and `ResolvedAssets` gained a `fonts` map.
+- Faces register with default descriptors: name font assets per family+weight (e.g. `Inter-Bold`) and reference them without `fontWeight` instead of relying on synthetic bolding.
+- Committed `tools/golden/public/fonts/inter-700-latin.woff2` (Inter Bold latin subset, OFL 1.1, 24 KB, provenance in the fonts README) as a fixture-only font — not shipped in any package.
+- New **exact-hash** golden `text-embedded-font`: the first text fixture hashed exactly rather than probed, because the embedded font removes system-font platform variance. Hash reproduces across runs.
+- Docs: scene-format asset section documents the font contract and the silent-fallback caveat for unregistered families; matrix and llms.txt updated.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`, `pnpm test`
+- `pnpm golden:test` (12 fixtures + export smoke; `text-embedded-font` exact hash stable across update/test runs)
+
+### Notes
+
+- Font descriptors (weight/style ranges per asset) are a future schema extension if scenes need multiple weights of one family; the per-weight asset-id convention covers current needs.
+- Existing text fixtures (wrap, shadow) intentionally stay probe-based: they test layout behavior against system fonts. New text fixtures should embed fonts and use exact hashes.
+
 ## 2026-06-11 (asset pipeline + image rendering — roadmap slice 1)
 
 ### Changed

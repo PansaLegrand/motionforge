@@ -510,6 +510,64 @@ export const fixtures: GoldenFixture[] = [
     },
   },
   {
+    kind: "exact",
+    id: "text-embedded-font",
+    description:
+      "Text rendered with a font asset hashes exactly: the embedded font removes system-font platform variance. The asset id is the font-family name.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {
+        GoldenSans: {
+          id: "GoldenSans",
+          type: "font",
+          // Inter Bold (latin subset), OFL 1.1 — see public/fonts/README.md.
+          // Served by the harness dev server; registered at default weight,
+          // so the fixture references it without a fontWeight.
+          src: "/fonts/inter-700-latin.woff2",
+        },
+      },
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "title",
+          type: "text",
+          text: "Forge 0123",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 0,
+            top: 60,
+            width: "100%",
+            height: 60,
+            fontFamily: "GoldenSans",
+            fontSize: 44,
+            color: "#ffd166",
+            textAlign: "center",
+            letterSpacing: 1,
+          },
+          children: [],
+        },
+      ],
+    },
+  },
+  {
     kind: "probe",
     id: "multiline-explicit-newline",
     description:

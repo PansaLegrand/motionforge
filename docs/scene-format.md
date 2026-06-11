@@ -79,7 +79,7 @@ Validation is intentionally stricter than implementation: a property may validat
 | `opacity`                                        |    ✅     |   —    |   ✅   | `0`–`1`, multiplies down the subtree                                                                                 |
 | `transform`                                      |    ✅     |   —    |   ⚠️   | `translate()`, `scale()`, `rotate()` only; pivot set by `transformOrigin`                                            |
 | `fontSize`                                       |    ✅     |   ✅   |   ✅   | also drives intrinsic text size in flex layout                                                                       |
-| `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   |                                                                                                                      |
+| `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   | font assets register under their asset id; reference as `fontFamily: "<asset id>"`                                   |
 | `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                            |
 | `textAlign`                                      |    ✅     |   —    |   ✅   | `left` (default), `center`, `right`                                                                                  |
 | `textShadow`                                     |    ✅     |   —    |   ✅   | single `x y blur color` shadow                                                                                       |
@@ -117,10 +117,11 @@ const assets = await resolveAssets(scene); // fetches + decodes scene.assets
 renderStill(context, scene, frame, { assets }); // pure given (scene, frame, assets)
 ```
 
-- `resolveAssets(scene)` fetches and decodes every `image` asset (data URLs and remote URLs alike). Call it once per scene, or whenever `scene.assets` changes; `exportVideo()` calls it internally when you don't pass `assets`.
+- `resolveAssets(scene)` fetches and decodes every `image` asset (data URLs and remote URLs alike) and loads every `font` asset. Call it once per scene, or whenever `scene.assets` changes; `exportVideo()` calls it internally when you don't pass `assets`.
+- **Font assets register under their asset id**: an asset `{ id: "Inter-Bold", type: "font", src: "..." }` is referenced from styles as `fontFamily: "Inter-Bold"`. Faces register with default descriptors, so name assets per family+weight and reference them without `fontWeight` rather than relying on synthetic bolding. If a font asset is absent or fails to load, resolution rejects; text styled with an unregistered family silently falls back to the next family in the stack (standard canvas behavior), so embed fonts whenever pixel-exact text matters.
 - Rendering a scene that draws an `img` node without resolved assets **throws** with the asset id and the fix — a frame never renders with silently missing media.
 - A failed fetch or decode rejects with the asset id and src; there is no placeholder fallback by design.
-- `video`, `audio`, and `font` assets validate today but are not yet loaded; they land through this same pipeline.
+- `video` and `audio` assets validate today but are not yet loaded; they land through this same pipeline.
 
 ## Animations
 
