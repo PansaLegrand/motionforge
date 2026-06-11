@@ -1,0 +1,21 @@
+{
+  "name": "@motionforge/agent-eval",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Mechanical eval harness for LLM scene generation and editing (RFC 0001). Not published.",
+  "type": "module",
+  "scripts": {
+    "eval": "tsx src/runner.ts",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@motionforge/schema": "workspace:*"
+  },
+  "devDependencies": {
+    "tsx": "^4.20.0",
+    "typescript": "^5.8.3",
+    "vitest": "^3.2.4"
+  }
+}

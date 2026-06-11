@@ -2,6 +2,25 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (agent-eval harness — week-3 slice 2)
+
+### Changed
+
+- New private tool `tools/agent-eval` (RFC 0001's harness): generate and edit suites scored **mechanically** — `validateScene`/`applyScenePatch` are the judge, plus per-case structural assertions including the don't-break-the-rest check (untouched nodes must stay byte-identical). No LLM judging.
+- Runner (`pnpm --filter @motionforge/agent-eval run eval`) talks to any OpenAI-compatible chat endpoint via `EVAL_BASE_URL`/`EVAL_API_KEY`/`EVAL_MODEL`, with `llms.txt` as the system prompt at temperature 0; `--suite`/`--case` filters. Exits non-zero on failures so it can gate prompt changes.
+- `extractJson()` tolerates fenced/prose-wrapped replies (what models actually emit); `scoreReply()` is pure.
+- Seven seed cases: three generate (minimal title, sequenced sections, caption styling) and four edit (resize with collateral-damage check, retime, pop-in animation, guarded removal).
+
+### Tested
+
+- 8 offline unit tests cover the scorer with canned good/bad replies per suite: fence/prose extraction, validator failures, assertion failures, wrong-node edits, misspelled-id errors surfacing closest-id hints, over-removal detection. No endpoint needed.
+- `pnpm typecheck` green; runner without env exits 2 with setup guidance.
+
+### Notes
+
+- The repair suite (invalid scene + errors → fixing patch) is designed but deliberately waits for generate/edit baselines from a real endpoint run.
+- First real-model baseline run is a maintainer task (needs an API key); the harness prints a pass table and totals.
+
 ## 2026-06-11 (open-source re-scope + playground agent console — week-3 slice 1)
 
 ### Changed
