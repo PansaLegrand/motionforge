@@ -10,7 +10,7 @@ scene JSON + frame -> parseScene -> evaluateScene (keyframes) -> layoutScene (bo
 
 - Time is integer frames at `scene.fps`, never wall-clock seconds.
 - A node is active for `[from, from + duration)` in its parent's local timeline; children's clocks restart when the parent appears.
-- Keyframe `frame` values are local to the node and must be strictly increasing (validated). Numeric values interpolate (easing: `linear`, `easeIn`, `easeOut`, `easeInOut`); color strings (`#hex`, `rgb()`, `rgba()`) interpolate in RGBA space; other strings step.
+- Keyframe `frame` values are local to the node and must be strictly increasing (validated). Numeric values interpolate; color strings (`#hex`, `rgb()`, `rgba()`) interpolate in RGBA space; transform lists (`translate`/`scale`/`rotate`) tween when function sequences and units match; other strings step. Easing: `linear`, `easeIn`, `easeOut`, `easeInOut`, `cubic-bezier(x1, y1, x2, y2)` (x1/x2 in [0,1]), or `spring(bounce)` (bounce in [0,1); may overshoot mid-tween).
 - Node `id`s are unique across the scene by contract — patch and diff scenes by id.
 
 ## Hard rules

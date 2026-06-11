@@ -2,6 +2,24 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (transform interpolation + easing expansion — roadmap slices 8 & 9)
+
+### Changed
+
+- `@motionforge/core`: transform keyframes now **tween**. `parseTransform()` normalizes `translate`/`scale`/`rotate` lists (translate → two length args, unitless = px; scale → two unitless args, sy defaults to sx; rotate → one deg arg); when two keyframes have matching function sequences and matching units per slot, every argument interpolates and the result serializes back to a transform string the renderer already parses. Mismatched sequences or unit conflicts step, like CSS. This removes the `fontSize`-pop workaround and the last ⚠️ row in the support matrix.
+- `@motionforge/schema` + `@motionforge/core`: easing widens from four names to expressions — `cubic-bezier(x1, y1, x2, y2)` (x1/x2 validated into [0, 1]; deterministic Newton + fixed-iteration bisection solver) and `spring`/`spring(bounce)` (bounce in [0, 1); 0 is critically damped with no overshoot, larger bounces overshoot and settle). `isEasingExpression()` exported from schema; `cubicBezierEasing()`/`springEasing()` exported from core.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (72 unit tests; new: transform parse/normalize/reject, tween midpoints with easing, mismatch stepping, bezier endpoints/monotonicity/linear-equivalence/symmetric midpoint, spring overshoot behavior for bounce 0 vs 0.4, schema accept/reject of easing expressions)
+- `pnpm golden:test` (15 fixtures + 11 integration checks; new exact fixture `transform-tween-easings` covers a bezier-eased scale+rotate tween, a spring translate, and a mismatched list holding its start value)
+
+### Notes
+
+- Spring easings overshoot by design; opacity driven past 1 is effectively clamped by the canvas (out-of-range `globalAlpha` assignments are ignored). Documented in scene-format.
+- The matrix has no partial rows left. Every validated property is fully implemented.
+
 ## 2026-06-11 (examples: TikTok-style captions demo)
 
 ### Changed

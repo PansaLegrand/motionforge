@@ -251,8 +251,8 @@ function evaluateNode(
 /**
  * Resolves an animated value at a node-local frame. Frames must be in strictly
  * increasing order (the schema enforces this). Numeric values interpolate;
- * string values interpolate in RGBA space when both parse as colors and step
- * otherwise.
+ * string values interpolate when both parse as colors (RGBA space) or as
+ * transform lists with matching function sequences; anything else steps.
  */
 export function evaluateKeyframes(
   frames: SceneAnimation["frames"],
@@ -296,10 +296,164 @@ export function evaluateKeyframes(
     if (from && to) {
       return mixColors(from, to, t);
     }
+
+    const fromTransform = parseTransform(prev.value);
+    const toTransform = parseTransform(next.value);
+
+    if (fromTransform && toTransform) {
+      const mixed = mixTransforms(fromTransform, toTransform, t);
+
+      if (mixed !== null) {
+        return mixed;
+      }
+    }
   }
 
   // Non-interpolatable values step at the next keyframe.
   return frame < next.frame ? prev.value : next.value;
+}
+
+export type TransformFunction = {
+  name: "translate" | "scale" | "rotate";
+  args: Array<{ value: number; unit: "px" | "%" | "deg" | "" }>;
+};
+
+/**
+ * Parses a transform list of translate()/scale()/rotate() into normalized
+ * functions: translate gets two length args (unitless = px), scale two
+ * unitless args (sy defaults to sx), rotate one deg arg. Returns null for
+ * anything that is not purely such a list, which makes the value step.
+ */
+export function parseTransform(value: string): TransformFunction[] | null {
+  const trimmed = value.trim();
+
+  if (trimmed === "") {
+    return null;
+  }
+
+  const pattern = /([a-zA-Z]+)\(([^)]*)\)/g;
+  const rest = trimmed.replace(pattern, "").trim();
+
+  if (rest !== "") {
+    return null;
+  }
+
+  const functions: TransformFunction[] = [];
+
+  for (const match of trimmed.matchAll(pattern)) {
+    const name = match[1];
+    const rawArgs = (match[2] ?? "")
+      .split(",")
+      .map((arg) => arg.trim())
+      .filter((arg) => arg !== "");
+    const args: Array<{ value: number; unit: "px" | "%" | "deg" | "" }> = [];
+
+    for (const raw of rawArgs) {
+      const parsed = raw.match(/^(-?\d+(?:\.\d+)?)(px|%|deg)?$/);
+
+      if (!parsed) {
+        return null;
+      }
+
+      args.push({
+        value: Number.parseFloat(parsed[1] ?? "0"),
+        unit: (parsed[2] ?? "") as "px" | "%" | "deg" | "",
+      });
+    }
+
+    if (name === "translate") {
+      if (args.length < 1 || args.length > 2) {
+        return null;
+      }
+
+      const x = args[0] ?? { value: 0, unit: "" as const };
+      const y = args[1] ?? { value: 0, unit: "" as const };
+      functions.push({
+        name,
+        args: [
+          { value: x.value, unit: x.unit === "" ? "px" : x.unit },
+          { value: y.value, unit: y.unit === "" ? "px" : y.unit },
+        ],
+      });
+    } else if (name === "scale") {
+      if (
+        args.length < 1 ||
+        args.length > 2 ||
+        args.some((arg) => arg.unit !== "")
+      ) {
+        return null;
+      }
+
+      const sx = args[0] ?? { value: 1, unit: "" as const };
+      const sy = args[1] ?? sx;
+      functions.push({
+        name,
+        args: [
+          { value: sx.value, unit: "" },
+          { value: sy.value, unit: "" },
+        ],
+      });
+    } else if (name === "rotate") {
+      const angle = args[0];
+
+      if (
+        args.length !== 1 ||
+        !angle ||
+        (angle.unit !== "deg" && angle.unit !== "")
+      ) {
+        return null;
+      }
+
+      functions.push({ name, args: [{ value: angle.value, unit: "deg" }] });
+    } else {
+      return null;
+    }
+  }
+
+  return functions.length > 0 ? functions : null;
+}
+
+/**
+ * Tweens two parsed transform lists. Returns null when the function
+ * sequences or units do not match slot-for-slot (mismatches step instead,
+ * like CSS between non-interpolable transforms).
+ */
+function mixTransforms(
+  from: TransformFunction[],
+  to: TransformFunction[],
+  t: number,
+): string | null {
+  if (from.length !== to.length) {
+    return null;
+  }
+
+  const parts: string[] = [];
+
+  for (let index = 0; index < from.length; index += 1) {
+    const start = from[index];
+    const end = to[index];
+
+    if (!start || !end || start.name !== end.name) {
+      return null;
+    }
+
+    const args: string[] = [];
+
+    for (let slot = 0; slot < start.args.length; slot += 1) {
+      const a = start.args[slot];
+      const b = end.args[slot];
+
+      if (!a || !b || a.unit !== b.unit) {
+        return null;
+      }
+
+      args.push(`${a.value + (b.value - a.value) * t}${a.unit}`);
+    }
+
+    parts.push(`${start.name}(${args.join(", ")})`);
+  }
+
+  return parts.join(" ");
 }
 
 export type RgbaColor = { r: number; g: number; b: number; a: number };
@@ -376,10 +530,7 @@ function mixColors(from: RgbaColor, to: RgbaColor, t: number): string {
   return `rgba(${channel(from.r, to.r)}, ${channel(from.g, to.g)}, ${channel(from.b, to.b)}, ${Number(alpha.toFixed(4))})`;
 }
 
-export function applyEasing(
-  t: number,
-  easing: "linear" | "easeIn" | "easeOut" | "easeInOut",
-): number {
+export function applyEasing(t: number, easing: string): number {
   switch (easing) {
     case "easeIn":
       return t * t;
@@ -388,9 +539,117 @@ export function applyEasing(
     case "easeInOut":
       return t < 0.5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2;
     case "linear":
-    default:
       return t;
+    default:
+      break;
   }
+
+  const bezier = easing.match(
+    /^cubic-bezier\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)$/,
+  );
+
+  if (bezier) {
+    return cubicBezierEasing(
+      t,
+      Number.parseFloat(bezier[1] ?? "0"),
+      Number.parseFloat(bezier[2] ?? "0"),
+      Number.parseFloat(bezier[3] ?? "1"),
+      Number.parseFloat(bezier[4] ?? "1"),
+    );
+  }
+
+  const spring = easing.match(/^spring(?:\(\s*(\d+(?:\.\d+)?)\s*\))?$/);
+
+  if (spring) {
+    return springEasing(
+      t,
+      spring[1] === undefined ? 0.25 : Number.parseFloat(spring[1]),
+    );
+  }
+
+  // Unknown expressions cannot pass validation; degrade to linear.
+  return t;
+}
+
+/**
+ * CSS cubic-bezier easing with control points (x1, y1) and (x2, y2):
+ * solves the curve parameter for x = t (Newton with bisection fallback,
+ * fixed iteration counts so the result is deterministic), then samples y.
+ */
+export function cubicBezierEasing(
+  t: number,
+  x1: number,
+  y1: number,
+  x2: number,
+  y2: number,
+): number {
+  if (t <= 0) {
+    return 0;
+  }
+
+  if (t >= 1) {
+    return 1;
+  }
+
+  const sample = (a: number, b: number, u: number): number =>
+    3 * (1 - u) * (1 - u) * u * a + 3 * (1 - u) * u * u * b + u * u * u;
+  const sampleDerivative = (a: number, b: number, u: number): number =>
+    3 * (1 - u) * (1 - u) * a + 6 * (1 - u) * u * (b - a) + 3 * u * u * (1 - b);
+
+  let u = t;
+
+  for (let iteration = 0; iteration < 8; iteration += 1) {
+    const error = sample(x1, x2, u) - t;
+    const slope = sampleDerivative(x1, x2, u);
+
+    if (Math.abs(error) < 1e-7 || Math.abs(slope) < 1e-7) {
+      break;
+    }
+
+    u = Math.min(1, Math.max(0, u - error / slope));
+  }
+
+  if (Math.abs(sample(x1, x2, u) - t) > 1e-7) {
+    let lower = 0;
+    let upper = 1;
+
+    for (let iteration = 0; iteration < 32; iteration += 1) {
+      u = (lower + upper) / 2;
+
+      if (sample(x1, x2, u) < t) {
+        lower = u;
+      } else {
+        upper = u;
+      }
+    }
+  }
+
+  return sample(y1, y2, u);
+}
+
+/**
+ * Deterministic spring easing. bounce = 0 is critically damped (no
+ * overshoot); larger bounce (< 1) overshoots and oscillates before settling
+ * at 1. The final keyframe value is exact because the evaluator returns it
+ * directly at and beyond the last frame.
+ */
+export function springEasing(t: number, bounce = 0.25): number {
+  if (t <= 0) {
+    return 0;
+  }
+
+  if (t >= 1) {
+    return 1;
+  }
+
+  if (bounce <= 0) {
+    const damping = 10;
+    return 1 - (1 + damping * t) * Math.exp(-damping * t);
+  }
+
+  const damping = 10 * (1 - bounce);
+  const frequency = Math.PI * (2 + 4 * bounce);
+  return 1 - Math.exp(-damping * t) * Math.cos(frequency * t);
 }
 
 export type LayoutBox = {

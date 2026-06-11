@@ -98,10 +98,54 @@ export const styleSchema = z
 
 export type SceneStyle = z.infer<typeof styleSchema>;
 
+export const namedEasings = [
+  "linear",
+  "easeIn",
+  "easeOut",
+  "easeInOut",
+] as const;
+
+/**
+ * Validates an easing expression: a named easing, `cubic-bezier(x1, y1, x2,
+ * y2)` with x1/x2 in [0, 1], or `spring`/`spring(bounce)` with bounce in
+ * [0, 1).
+ */
+export function isEasingExpression(value: string): boolean {
+  if ((namedEasings as readonly string[]).includes(value)) {
+    return true;
+  }
+
+  const bezier = value.match(
+    /^cubic-bezier\(\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*\)$/,
+  );
+
+  if (bezier) {
+    const x1 = Number.parseFloat(bezier[1] ?? "");
+    const x2 = Number.parseFloat(bezier[3] ?? "");
+    return x1 >= 0 && x1 <= 1 && x2 >= 0 && x2 <= 1;
+  }
+
+  const spring = value.match(/^spring(?:\(\s*(\d+(?:\.\d+)?)\s*\))?$/);
+
+  if (spring) {
+    const bounce =
+      spring[1] === undefined ? 0.25 : Number.parseFloat(spring[1]);
+    return bounce >= 0 && bounce < 1;
+  }
+
+  return false;
+}
+
 export const keyframeSchema = z.object({
   frame: z.number().int().nonnegative(),
   value: z.union([z.number(), z.string()]),
-  easing: z.enum(["linear", "easeIn", "easeOut", "easeInOut"]).optional(),
+  easing: z
+    .string()
+    .refine(isEasingExpression, {
+      message:
+        "Easing must be linear/easeIn/easeOut/easeInOut, cubic-bezier(x1, y1, x2, y2) with x1 and x2 in [0, 1], or spring(bounce) with bounce in [0, 1).",
+    })
+    .optional(),
 });
 
 export const animationSchema = z

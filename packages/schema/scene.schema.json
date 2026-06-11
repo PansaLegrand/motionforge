@@ -35,14 +35,23 @@
               },
               "type": {
                 "type": "string",
-                "enum": ["image", "video", "audio", "font"]
+                "enum": [
+                  "image",
+                  "video",
+                  "audio",
+                  "font"
+                ]
               },
               "src": {
                 "type": "string",
                 "minLength": 1
               }
             },
-            "required": ["id", "type", "src"],
+            "required": [
+              "id",
+              "type",
+              "src"
+            ],
             "additionalProperties": false
           },
           "default": {}
@@ -58,7 +67,13 @@
               },
               "type": {
                 "type": "string",
-                "enum": ["div", "text", "img", "video", "audio"]
+                "enum": [
+                  "div",
+                  "text",
+                  "img",
+                  "video",
+                  "audio"
+                ]
               },
               "text": {
                 "type": "string"
@@ -100,7 +115,10 @@
                   },
                   "flexDirection": {
                     "type": "string",
-                    "enum": ["row", "column"]
+                    "enum": [
+                      "row",
+                      "column"
+                    ]
                   },
                   "justifyContent": {
                     "type": "string",
@@ -113,10 +131,18 @@
                   },
                   "alignItems": {
                     "type": "string",
-                    "enum": ["flex-start", "center", "flex-end", "stretch"]
+                    "enum": [
+                      "flex-start",
+                      "center",
+                      "flex-end",
+                      "stretch"
+                    ]
                   },
                   "gap": {
-                    "type": ["number", "string"]
+                    "type": [
+                      "number",
+                      "string"
+                    ]
                   },
                   "width": {
                     "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
@@ -144,7 +170,10 @@
                   },
                   "position": {
                     "type": "string",
-                    "enum": ["relative", "absolute"]
+                    "enum": [
+                      "relative",
+                      "absolute"
+                    ]
                   },
                   "left": {
                     "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
@@ -172,7 +201,10 @@
                   },
                   "overflow": {
                     "type": "string",
-                    "enum": ["visible", "hidden"]
+                    "enum": [
+                      "visible",
+                      "hidden"
+                    ]
                   },
                   "opacity": {
                     "type": "number",
@@ -192,31 +224,50 @@
                     "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
                   },
                   "fontWeight": {
-                    "type": ["number", "string"]
+                    "type": [
+                      "number",
+                      "string"
+                    ]
                   },
                   "fontStyle": {
                     "type": "string",
-                    "enum": ["normal", "italic"]
+                    "enum": [
+                      "normal",
+                      "italic"
+                    ]
                   },
                   "color": {
                     "type": "string"
                   },
                   "lineHeight": {
-                    "type": ["number", "string"]
+                    "type": [
+                      "number",
+                      "string"
+                    ]
                   },
                   "letterSpacing": {
                     "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
                   },
                   "textAlign": {
                     "type": "string",
-                    "enum": ["left", "center", "right"]
+                    "enum": [
+                      "left",
+                      "center",
+                      "right"
+                    ]
                   },
                   "textShadow": {
                     "type": "string"
                   },
                   "objectFit": {
                     "type": "string",
-                    "enum": ["contain", "cover", "fill", "none", "scale-down"]
+                    "enum": [
+                      "contain",
+                      "cover",
+                      "fill",
+                      "none",
+                      "scale-down"
+                    ]
                   },
                   "objectPosition": {
                     "type": "string"
@@ -248,20 +299,29 @@
                             "minimum": 0
                           },
                           "value": {
-                            "type": ["number", "string"]
+                            "type": [
+                              "number",
+                              "string"
+                            ]
                           },
                           "easing": {
-                            "type": "string",
-                            "enum": ["linear", "easeIn", "easeOut", "easeInOut"]
+                            "type": "string"
                           }
                         },
-                        "required": ["frame", "value"],
+                        "required": [
+                          "frame",
+                          "value"
+                        ],
                         "additionalProperties": false
                       },
                       "minItems": 1
                     }
                   },
-                  "required": ["kind", "property", "frames"],
+                  "required": [
+                    "kind",
+                    "property",
+                    "frames"
+                  ],
                   "additionalProperties": false
                 },
                 "default": []
@@ -274,13 +334,22 @@
                 "default": []
               }
             },
-            "required": ["id", "type"],
+            "required": [
+              "id",
+              "type"
+            ],
             "additionalProperties": false
           },
           "default": []
         }
       },
-      "required": ["schemaVersion", "width", "height", "fps", "duration"],
+      "required": [
+        "schemaVersion",
+        "width",
+        "height",
+        "fps",
+        "duration"
+      ],
       "additionalProperties": false
     }
   },

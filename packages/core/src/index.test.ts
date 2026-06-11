@@ -1,12 +1,15 @@
 import { describe, expect, it } from "vitest";
 import {
   composition,
+  cubicBezierEasing,
   div,
   evaluateKeyframes,
   evaluateScene,
   layoutScene,
   parseColor,
+  parseTransform,
   sampleScene,
+  springEasing,
   text,
 } from "./index.js";
 
@@ -288,5 +291,132 @@ describe("layout", () => {
     expect(row?.children.find((child) => child.id === "fixed")?.height).toBe(
       40,
     );
+  });
+});
+
+describe("parseTransform", () => {
+  it("normalizes translate, scale, and rotate", () => {
+    expect(
+      parseTransform("translate(10px, 20%) scale(1.5) rotate(45deg)"),
+    ).toEqual([
+      {
+        name: "translate",
+        args: [
+          { value: 10, unit: "px" },
+          { value: 20, unit: "%" },
+        ],
+      },
+      {
+        name: "scale",
+        args: [
+          { value: 1.5, unit: "" },
+          { value: 1.5, unit: "" },
+        ],
+      },
+      { name: "rotate", args: [{ value: 45, unit: "deg" }] },
+    ]);
+  });
+
+  it("rejects non-transform strings", () => {
+    expect(parseTransform("#ff0000")).toBeNull();
+    expect(parseTransform("rgba(0, 0, 0, 1)")).toBeNull();
+    expect(parseTransform("matrix(1, 0, 0, 1, 0, 0)")).toBeNull();
+    expect(parseTransform("scale(1) extra")).toBeNull();
+  });
+});
+
+describe("transform keyframes", () => {
+  it("tweens matching transform lists", () => {
+    expect(
+      evaluateKeyframes(
+        [
+          { frame: 0, value: "scale(1) rotate(0deg)" },
+          { frame: 10, value: "scale(1.5) rotate(90deg)" },
+        ],
+        5,
+      ),
+    ).toBe("scale(1.25, 1.25) rotate(45deg)");
+  });
+
+  it("applies easing to transform tweens", () => {
+    // easeIn at t=0.5 -> 0.25: 0 + 100 * 0.25 = 25px.
+    expect(
+      evaluateKeyframes(
+        [
+          { frame: 0, value: "translate(0px, 0px)" },
+          { frame: 10, value: "translate(100px, 0px)", easing: "easeIn" },
+        ],
+        5,
+      ),
+    ).toBe("translate(25px, 0px)");
+  });
+
+  it("steps when function sequences or units mismatch", () => {
+    const mismatched = [
+      { frame: 0, value: "scale(1)" },
+      { frame: 10, value: "rotate(90deg)" },
+    ];
+    expect(evaluateKeyframes(mismatched, 5)).toBe("scale(1)");
+
+    const unitClash = [
+      { frame: 0, value: "translate(10px, 0px)" },
+      { frame: 10, value: "translate(50%, 0px)" },
+    ];
+    expect(evaluateKeyframes(unitClash, 5)).toBe("translate(10px, 0px)");
+  });
+});
+
+describe("easing expressions", () => {
+  it("cubic-bezier hits the endpoints and stays monotonic", () => {
+    expect(cubicBezierEasing(0, 0.25, 0.1, 0.25, 1)).toBe(0);
+    expect(cubicBezierEasing(1, 0.25, 0.1, 0.25, 1)).toBe(1);
+
+    let previous = 0;
+
+    for (let step = 1; step <= 20; step += 1) {
+      const value = cubicBezierEasing(step / 20, 0.25, 0.1, 0.25, 1);
+      expect(value).toBeGreaterThanOrEqual(previous);
+      previous = value;
+    }
+  });
+
+  it("a linear-equivalent bezier reproduces t", () => {
+    for (const t of [0.1, 0.3, 0.5, 0.7, 0.9]) {
+      expect(cubicBezierEasing(t, 0.25, 0.25, 0.75, 0.75)).toBeCloseTo(t, 5);
+    }
+  });
+
+  it("symmetric ease-in-out crosses 0.5 at the midpoint", () => {
+    expect(cubicBezierEasing(0.5, 0.42, 0, 0.58, 1)).toBeCloseTo(0.5, 5);
+  });
+
+  it("spring(0) never overshoots; spring(0.4) does", () => {
+    let calmMax = 0;
+    let bouncyMax = 0;
+
+    for (let step = 0; step <= 100; step += 1) {
+      calmMax = Math.max(calmMax, springEasing(step / 100, 0));
+      bouncyMax = Math.max(bouncyMax, springEasing(step / 100, 0.4));
+    }
+
+    expect(calmMax).toBeLessThanOrEqual(1);
+    expect(bouncyMax).toBeGreaterThan(1.05);
+    expect(springEasing(0.99, 0.4)).toBeCloseTo(1, 1);
+  });
+
+  it("evaluateKeyframes accepts expression easings", () => {
+    expect(
+      evaluateKeyframes(
+        [
+          { frame: 0, value: 0 },
+          {
+            frame: 10,
+            value: 100,
+            easing: "cubic-bezier(0.25, 0.25, 0.75, 0.75)",
+          },
+        ],
+        5,
+      ),
+    ).toBeCloseTo(50, 4);
   });
 });

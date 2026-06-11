@@ -653,6 +653,122 @@ export const fixtures: GoldenFixture[] = [
   },
   {
     kind: "exact",
+    id: "transform-tween-easings",
+    description:
+      "Transform lists with matching functions tween smoothly; cubic-bezier and spring easings shape the motion. Sampled mid-tween.",
+    frame: 8,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 16,
+      assets: {},
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 16,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "scaling",
+          type: "div",
+          from: 0,
+          duration: 16,
+          style: {
+            position: "absolute",
+            left: 30,
+            top: 60,
+            width: 60,
+            height: 60,
+            backgroundColor: "#ffd166",
+            borderRadius: 12,
+          },
+          animations: [
+            {
+              kind: "keyframes",
+              property: "transform",
+              frames: [
+                { frame: 0, value: "scale(0.5) rotate(0deg)" },
+                {
+                  frame: 15,
+                  value: "scale(1.4) rotate(90deg)",
+                  easing: "cubic-bezier(0.42, 0, 0.58, 1)",
+                },
+              ],
+            },
+          ],
+          children: [],
+        },
+        {
+          id: "sliding",
+          type: "div",
+          from: 0,
+          duration: 16,
+          style: {
+            position: "absolute",
+            left: 130,
+            top: 60,
+            width: 60,
+            height: 60,
+            backgroundColor: "#4ecdc4",
+            borderRadius: 12,
+          },
+          animations: [
+            {
+              kind: "keyframes",
+              property: "transform",
+              frames: [
+                { frame: 0, value: "translate(0px, -40px)" },
+                {
+                  frame: 15,
+                  value: "translate(0px, 40px)",
+                  easing: "spring(0.3)",
+                },
+              ],
+            },
+          ],
+          children: [],
+        },
+        {
+          id: "stepping",
+          type: "div",
+          from: 0,
+          duration: 16,
+          style: {
+            position: "absolute",
+            left: 230,
+            top: 60,
+            width: 60,
+            height: 60,
+            backgroundColor: "#ef476f",
+            borderRadius: 12,
+          },
+          animations: [
+            {
+              kind: "keyframes",
+              property: "transform",
+              // Mismatched function lists: must hold scale(0.6) until frame 15.
+              frames: [
+                { frame: 0, value: "scale(0.6)" },
+                { frame: 15, value: "rotate(45deg)" },
+              ],
+            },
+          ],
+          children: [],
+        },
+      ],
+    },
+  },
+  {
+    kind: "exact",
     id: "text-embedded-font",
     description:
       "Text rendered with a font asset hashes exactly: the embedded font removes system-font platform variance. The asset id is the font-family name.",

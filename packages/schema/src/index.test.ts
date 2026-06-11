@@ -129,6 +129,44 @@ describe("scene schema", () => {
     );
   });
 
+  it("accepts easing expressions and rejects malformed ones", () => {
+    const sceneWith = (easing: string) => ({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [
+        {
+          id: "box",
+          type: "div",
+          animations: [
+            {
+              kind: "keyframes",
+              property: "opacity",
+              frames: [
+                { frame: 0, value: 0 },
+                { frame: 10, value: 1, easing },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(validateScene(sceneWith("cubic-bezier(0.42, 0, 0.58, 1)")).ok).toBe(
+      true,
+    );
+    expect(validateScene(sceneWith("spring")).ok).toBe(true);
+    expect(validateScene(sceneWith("spring(0.4)")).ok).toBe(true);
+    // x out of range and unknown names must fail with the actionable message.
+    expect(validateScene(sceneWith("cubic-bezier(2, 0, 0.5, 1)")).ok).toBe(
+      false,
+    );
+    expect(validateScene(sceneWith("bounce")).ok).toBe(false);
+    expect(validateScene(sceneWith("spring(1)")).ok).toBe(false);
+  });
+
   it("re-parsing a parsed scene is an identity no-op", () => {
     const scene = parseScene({
       schemaVersion: 0,

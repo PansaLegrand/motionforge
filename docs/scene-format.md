@@ -96,7 +96,7 @@ Validation is intentionally stricter than implementation: a property may validat
 | `borderRadius`                                   |    ✅     |   —    |   ✅   | rounds the background fill; combine with `overflow: "hidden"` to clip children (CSS semantics)                                    |
 | `overflow`                                       |    ✅     |   —    |   ✅   | `visible` (default) or `hidden` — clips the node's content and subtree to the border box, following `borderRadius`                |
 | `opacity`                                        |    ✅     |   —    |   ✅   | `0`–`1`, multiplies down the subtree                                                                                              |
-| `transform`                                      |    ✅     |   —    |   ⚠️   | `translate()`, `scale()`, `rotate()` only; pivot set by `transformOrigin`                                                         |
+| `transform`                                      |    ✅     |   —    |   ✅   | `translate()`, `scale()`, `rotate()` lists; pivot via `transformOrigin`; keyframes with matching function sequences tween         |
 | `fontSize`                                       |    ✅     |   ✅   |   ✅   | also drives intrinsic text size in flex layout                                                                                    |
 | `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   | font assets register under their asset id; reference as `fontFamily: "<asset id>"`                                                |
 | `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                                         |
@@ -158,7 +158,10 @@ type SceneAnimation = {
   frames: Array<{
     frame: number; // node-local frame, integer >= 0
     value: number | string;
-    easing?: "linear" | "easeIn" | "easeOut" | "easeInOut";
+    // "linear" | "easeIn" | "easeOut" | "easeInOut"
+    // | "cubic-bezier(x1, y1, x2, y2)"  (x1, x2 in [0, 1])
+    // | "spring" | "spring(bounce)"      (bounce in [0, 1); 0 = no overshoot)
+    easing?: string;
   }>;
 };
 ```
@@ -166,6 +169,8 @@ type SceneAnimation = {
 - Keyframe `frame` values are local to the node's own timeline (frame 0 = the node's `from`) and must be **strictly increasing** — validation rejects unsorted or duplicate frames.
 - Numeric values interpolate; `easing` on a keyframe shapes the segment _arriving at_ that keyframe (quadratic ease curves).
 - String values that both parse as colors (`#rgb`, `#rrggbb`, `#rrggbbaa`, `rgb()`, `rgba()`) interpolate per-channel in RGBA space, emitting `rgba(...)` strings. Named colors, gradients, and other strings do not interpolate.
+- **Transform strings tween** when both keyframes are `translate`/`scale`/`rotate` lists with matching function sequences and matching units per slot (`scale(1) → scale(1.4)`, `translate(0px, -40px) → translate(0px, 40px)`). Mismatched sequences or unit conflicts (e.g. `px` → `%`) step instead, like CSS.
+- `spring` easings may overshoot past the target value mid-tween (that is the point); the final keyframe value is always exact.
 - Other string values step: the value changes exactly at the next keyframe's frame.
 - Before the first keyframe the first value holds; after the last keyframe the last value holds.
 - The animated value overrides the node's static `style` value for that property at that frame.
