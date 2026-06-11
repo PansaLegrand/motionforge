@@ -1,5 +1,6 @@
 import { detectExportCapability, exportVideo } from "@motionforge/export";
 import { createPlayer, type Player } from "@motionforge/player";
+import { applyScenePatch, validateScene } from "@motionforge/schema";
 import {
   disposeAssets,
   resolveAssets,
@@ -31,6 +32,11 @@ const playButton = requiredElement<HTMLButtonElement>("#play");
 const exportButton = requiredElement<HTMLButtonElement>("#export");
 const exportStatus = requiredElement<HTMLOutputElement>("#export-status");
 const capability = requiredElement<HTMLPreElement>("#capability");
+const agentInput = requiredElement<HTMLTextAreaElement>("#agent-input");
+const agentApply = requiredElement<HTMLButtonElement>("#agent-apply");
+const agentLoad = requiredElement<HTMLButtonElement>("#agent-load");
+const agentCopy = requiredElement<HTMLButtonElement>("#agent-copy");
+const agentOutput = requiredElement<HTMLPreElement>("#agent-output");
 
 const context = canvas.getContext("2d");
 
@@ -42,6 +48,9 @@ const renderContext = context;
 const capabilityResult = detectExportCapability();
 
 let current = showcaseScenes[0] as ShowcaseScene;
+// The document on screen. Starts as a showcase scene; the agent console can
+// patch it or replace it entirely.
+let currentDoc: unknown = current.scene;
 let assets: ResolvedAssets | undefined;
 let player: Player | undefined;
 let loadVersion = 0;
@@ -106,7 +115,7 @@ async function runExport(): Promise<void> {
 
   try {
     const { blob, codec, totalFrames } = await exportVideo({
-      scene: current.scene,
+      scene: currentDoc as Parameters<typeof exportVideo>[0]["scene"],
       assets,
       onProgress: ({ frameIndex, totalFrames: total }) => {
         exportStatus.value = `Encoding frame ${frameIndex + 1}/${total}`;
@@ -133,11 +142,8 @@ function downloadBlob(blob: Blob, filename: string): void {
 }
 
 async function loadScene(entry: ShowcaseScene): Promise<void> {
-  const version = ++loadVersion;
-  player?.dispose();
-  player = undefined;
-  playButton.textContent = "Play";
   current = entry;
+  currentDoc = entry.scene;
   sceneSelect.value = entry.id;
   sceneTitle.textContent = entry.title;
   sceneDescription.textContent = entry.description;
@@ -149,11 +155,27 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
     }),
   );
 
-  canvas.width = entry.scene.width;
-  canvas.height = entry.scene.height;
-  slider.max = String(entry.scene.duration - 1);
-  const posterFrame = Math.min(entry.posterFrame, entry.scene.duration - 1);
-  showFrame(posterFrame);
+  await loadSceneDoc(entry.scene, entry.posterFrame);
+}
+
+/** Loads any validated scene document into the canvas/player lifecycle. */
+async function loadSceneDoc(
+  sceneDoc: ShowcaseScene["scene"],
+  posterFrame?: number,
+): Promise<void> {
+  const version = ++loadVersion;
+  player?.dispose();
+  player = undefined;
+  playButton.textContent = "Play";
+
+  canvas.width = sceneDoc.width;
+  canvas.height = sceneDoc.height;
+  slider.max = String(sceneDoc.duration - 1);
+  const landingFrame = Math.min(
+    posterFrame ?? Number(slider.value),
+    sceneDoc.duration - 1,
+  );
+  showFrame(landingFrame);
   exportButton.disabled = true;
   exportStatus.value = "Loading scene assets...";
 
@@ -162,7 +184,7 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
   renderContext.clearRect(0, 0, canvas.width, canvas.height);
 
   try {
-    const resolved = await resolveAssets(entry.scene);
+    const resolved = await resolveAssets(sceneDoc);
 
     if (version !== loadVersion) {
       disposeAssets(resolved);
@@ -176,7 +198,7 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
     // gets them pre-resolved and never disposes them itself.
     const created = await createPlayer({
       context: renderContext,
-      scene: entry.scene,
+      scene: sceneDoc,
       assets,
       loop: true,
     });
@@ -199,5 +221,84 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+// Agent console: the chat loop minus the LLM. Paste what an agent would emit
+// (a patch op list or a whole scene), apply it through the same public APIs
+// an agent uses, and read the same errors an agent would read.
+
+function agentReport(lines: string[], isError: boolean): void {
+  agentOutput.textContent = lines.join("\n");
+  agentOutput.classList.toggle("agent-error", isError);
+}
+
+function parseAgentJson(): unknown | undefined {
+  try {
+    return JSON.parse(agentInput.value);
+  } catch (error) {
+    agentReport(
+      [`Not valid JSON: ${error instanceof Error ? error.message : error}`],
+      true,
+    );
+    return undefined;
+  }
+}
+
+agentApply.addEventListener("click", () => {
+  const patch = parseAgentJson();
+
+  if (patch === undefined) {
+    return;
+  }
+
+  const result = applyScenePatch(currentDoc, patch);
+
+  if (!result.ok) {
+    // Messages already carry their op index / path.
+    agentReport(
+      result.errors.map((e) => e.message),
+      true,
+    );
+    return;
+  }
+
+  currentDoc = result.scene;
+  const ops = Array.isArray(patch) ? patch.length : 0;
+  agentReport([`✓ patch applied (${ops} op${ops === 1 ? "" : "s"})`], false);
+  void loadSceneDoc(result.scene);
+});
+
+agentLoad.addEventListener("click", () => {
+  const doc = parseAgentJson();
+
+  if (doc === undefined) {
+    return;
+  }
+
+  const result = validateScene(doc);
+
+  if (!result.ok) {
+    agentReport(result.errors, true);
+    return;
+  }
+
+  currentDoc = result.scene;
+  sceneTitle.textContent = "Custom scene";
+  sceneDescription.textContent = "Loaded from the agent console.";
+  sceneProves.replaceChildren();
+  agentReport(["✓ scene is valid — loaded"], false);
+  void loadSceneDoc(result.scene, 0);
+});
+
+agentCopy.addEventListener("click", () => {
+  const json = JSON.stringify(currentDoc, null, 2);
+  void navigator.clipboard
+    .writeText(json)
+    .then(() => agentReport(["✓ scene JSON copied to clipboard"], false))
+    .catch(() => {
+      agentInput.value = json;
+      agentReport(["Clipboard unavailable — scene JSON placed in the box."], true);
+    });
+});
 
 void loadScene(current);

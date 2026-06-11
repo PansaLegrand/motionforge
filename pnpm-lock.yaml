@@ -38,6 +38,9 @@ importers:
       '@motionforge/renderer-canvas2d':
         specifier: workspace:*
         version: link:../../packages/renderer-canvas2d
+      '@motionforge/schema':
+        specifier: workspace:*
+        version: link:../../packages/schema
       '@motionforge/showcase':
         specifier: workspace:*
         version: link:../../packages/showcase

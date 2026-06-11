@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (open-source re-scope + playground agent console — week-3 slice 1)
+
+### Changed
+
+- **Plan re-scope:** downstream-editor integration dropped from the roadmap (the maintainer's products consume motionforge on their own schedule); weeks 3–5 now target the open-source project itself — agent loop tangibility, capabilities, robustness, launch surface.
+- Playground gains an **agent console**: paste a scene document or a patch op list, apply it through the exact public APIs an agent uses (`validateScene` / `applyScenePatch`), watch the preview update, read the same errors an agent reads. Plus one-click "Copy scene JSON" for the copy → prompt → paste loop. This is the chat loop minus the LLM.
+- Playground refactor: scene loading split into `loadScene(showcaseEntry)` and `loadSceneDoc(anySceneDoc)`, so patched/custom documents share the full asset/player/export lifecycle. Export now exports the *current* (possibly patched) document.
+- Patch error display no longer double-prefixes op indexes (messages already carry them).
+- README hero regenerated; it now shows the console.
+
+### Tested
+
+- Playwright drive of the real console: misspelled id surfaces the closest-id suggestion; a two-op patch (`setText` + `setStyle` with a null-delete) applies and the canvas pixel-verifies the new background; malformed JSON reports cleanly; a pasted custom scene loads (canvas resizes, pixel-verified). No console errors.
+- `pnpm build`, `pnpm typecheck` green.
+
+### Notes
+
+- The test run itself caught a real UX subtlety: patching `backgroundColor` under an existing `background` gradient is silently shadowed (CSS-correct, but surprising). Worth a future validator hint when both are set.
+- Next agent-layer step: the eval harness runner (`tools/agent-eval`), which scores generate/edit suites against these same APIs.
+
 ## 2026-06-11 (player audio preview — week-2 slice 3)
 
 ### Changed

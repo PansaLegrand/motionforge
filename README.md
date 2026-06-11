@@ -85,6 +85,8 @@ This project treats LLM agents as first-class users:
 - [`docs/scene-format.md`](docs/scene-format.md) — the full format spec with a property-by-property support matrix.
 - [`packages/schema/scene.schema.json`](packages/schema/scene.schema.json) — JSON Schema (draft-07) for validating scenes without running any code.
 - Validation errors are written to be actionable: they name the path, the problem, and what to do instead. Node ids are unique by contract, so agents can patch scenes by id.
+- **Scene patches** ([RFC 0001](docs/rfcs/0001-scene-patch-ops.md)): `applyScenePatch(scene, ops)` applies id-addressed, transactional edits — the API a chat loop drives. Misspelled ids get closest-match suggestions in the error.
+- **Try the loop by hand**: the playground's *Agent console* lets you paste a scene or a patch, applies it through these exact APIs, and shows you the same errors an agent would read.
 
 ## Quickstart
 

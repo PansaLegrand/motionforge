@@ -164,3 +164,52 @@ pre {
     order: -1;
   }
 }
+
+.agent-console {
+  border: 1px solid #2a3744;
+  border-radius: 8px;
+  padding: 0.6rem 0.8rem;
+}
+
+.agent-console summary {
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.agent-hint {
+  font-size: 0.78rem;
+  opacity: 0.75;
+  margin: 0.5rem 0;
+}
+
+.agent-console textarea {
+  width: 100%;
+  box-sizing: border-box;
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 0.78rem;
+  background: #0b1118;
+  color: #dce6f2;
+  border: 1px solid #2a3744;
+  border-radius: 6px;
+  padding: 0.5rem;
+  resize: vertical;
+}
+
+.agent-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0.5rem 0;
+  flex-wrap: wrap;
+}
+
+#agent-output {
+  white-space: pre-wrap;
+  font-size: 0.75rem;
+  max-height: 10rem;
+  overflow: auto;
+  margin: 0;
+}
+
+#agent-output.agent-error {
+  color: #ef9aa9;
+}

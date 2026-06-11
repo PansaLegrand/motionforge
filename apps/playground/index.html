@@ -32,6 +32,31 @@
         <button id="play" type="button">Play</button>
         <button id="export" type="button" class="secondary">Export MP4</button>
         <output id="export-status"></output>
+        <details class="agent-console" open>
+          <summary>Agent console</summary>
+          <p class="agent-hint">
+            Paste a scene document or a patch (an array of ops like
+            <code>[{"op":"setText","id":"…","text":"…"}]</code>). The same
+            APIs an agent uses: <code>validateScene</code> /
+            <code>applyScenePatch</code>.
+          </p>
+          <textarea
+            id="agent-input"
+            rows="6"
+            spellcheck="false"
+            placeholder='[{ "op": "setStyle", "id": "node-id", "style": { "color": "#ffd166" } }]'
+          ></textarea>
+          <div class="agent-buttons">
+            <button id="agent-apply" type="button">Apply patch</button>
+            <button id="agent-load" type="button" class="secondary">
+              Load as scene
+            </button>
+            <button id="agent-copy" type="button" class="secondary">
+              Copy scene JSON
+            </button>
+          </div>
+          <pre id="agent-output" aria-live="polite"></pre>
+        </details>
         <pre id="capability"></pre>
       </aside>
     </main>
