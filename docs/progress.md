@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (audio — roadmap slice 6)
+
+### Changed
+
+- `@motionforge/schema`: new `audio` node type. Placement uses the standard `from`/`duration` frame semantics; fields are `audioStartTime` (source trim, seconds) and `volume` (0–1). Audio nodes are not visual, so `style`, `children`, and `animations` are rejected with actionable messages (volume keyframes can lift the animations restriction later). The audio-only fields reject on other node types.
+- `@motionforge/core`: `audio()` builder.
+- `@motionforge/renderer-canvas2d`: audio assets open through mediabunny (`Input` + `AudioBufferSink`) in `resolveAssets()`; `disposeAssets()` releases them.
+- `@motionforge/export`: `exportVideo()` mixes every audible node into one stereo 48 kHz track and muxes it into the MP4, negotiating the audio codec per browser (AAC in Chromium). The mix is **pure and unit-tested**: `collectAudioPlacements()` mirrors the evaluator's timing semantics to compute absolute audible windows (ancestor-clipped), and `mixAudioSegments()` does linear resampling, mono fan-out, volume, overlap summing, and final clamping — chosen over OfflineAudioContext so the math is deterministic and node-testable. Trimming past the clip end yields silence, not an error. `ExportVideoResult` gains `audioCodec`.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (61 unit tests; new: placement windows through nested/clipped parents, mixer offset+volume, resampling, overlap clamping, schema accept/reject)
+- `pnpm golden:test` — new in-browser audio checks: a synthesized 440 Hz WAV placed at frame 15 of a 45-frame scene exports to MP4 with an AAC track; decoding the file back measures RMS 0.0000 before 0.5 s (alignment exact) and RMS 0.2809 in the tone window vs 0.283 theoretical for 0.5 amp × 0.8 volume (volume math survives the full encode/decode loop). 45-frame export with mixed audio: 50 ms.
+
+### Notes
+
+- Video nodes do not yet contribute their own audio tracks; an explicit audio node is required. Documented; candidate follow-up.
+- Audio preview playback in the playground is not wired; the exported file is the audio source of truth for now.
+- The mixed track is built as a single AudioBuffer (fine for short scenes); long scenes may want chunked `AudioBufferSource.add()` calls later.
+
 ## 2026-06-11 (video clips — roadmap slice 5)
 
 ### Changed

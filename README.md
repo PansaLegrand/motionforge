@@ -119,7 +119,7 @@ renderStill(canvasContext, scene, 30); // any frame, any time, same pixels
 
 ## Status and M0 scope
 
-All M0 roadmap items have landed: schema validation, deterministic builder, keyframe evaluation, the full layout property set, Canvas2D still rendering with multi-line text and color keyframes, playground scrubbing, and in-browser MP4 export through WebCodecs (the playground's "Export MP4" button downloads a real video). Not yet there: image/video asset drawing, font loading/embedding, and audio.
+M0 is complete and the engine now renders **all four media types**: schema validation, deterministic builder, keyframe evaluation (numbers and colors), the full layout and paint property set, multi-line text with embedded fonts, images with `objectFit`, frame-accurate video clips with trim and playback rate, and audio nodes mixed into the export — all through one in-browser pipeline (the playground's "Export MP4" button downloads a real video). Not yet there: audio preview playback in the playground (the exported file is the audio source of truth) and video nodes contributing their own audio tracks.
 
 See [docs/roadmap.md](docs/roadmap.md) for the post-M0 plan, [docs/m0-roadmap.md](docs/m0-roadmap.md) for the completed M0 checklist, and [docs/progress.md](docs/progress.md) for the change log.
 

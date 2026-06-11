@@ -29,6 +29,13 @@ export type VideoNodeOptions = NodeOptions & {
   playbackRate?: number;
 };
 
+export type AudioNodeOptions = Omit<NodeOptions, "style"> & {
+  /** Source trim offset in seconds. */
+  audioStartTime?: number;
+  /** Gain from 0 (silent) to 1 (natural), default 1. */
+  volume?: number;
+};
+
 type IdCounter = { next: number };
 
 export class SceneBuilder {
@@ -72,6 +79,8 @@ export class NodeBuilder {
   private readonly assetId?: string;
   private readonly videoStartTime?: number;
   private readonly playbackRate?: number;
+  private readonly audioStartTime?: number;
+  private readonly volume?: number;
   private from: number;
   private duration?: number;
   private readonly style: SceneStyle;
@@ -80,7 +89,8 @@ export class NodeBuilder {
 
   constructor(
     type: SceneNode["type"],
-    options: VideoNodeOptions & { text?: string } = {},
+    options: VideoNodeOptions &
+      AudioNodeOptions & { text?: string; style?: SceneStyle } = {},
   ) {
     this.type = type;
     this.id = options.id;
@@ -88,6 +98,8 @@ export class NodeBuilder {
     this.assetId = options.assetId;
     this.videoStartTime = options.videoStartTime;
     this.playbackRate = options.playbackRate;
+    this.audioStartTime = options.audioStartTime;
+    this.volume = options.volume;
     this.from = options.from ?? 0;
     this.duration = options.duration;
     this.style = options.style ?? {};
@@ -132,6 +144,8 @@ export class NodeBuilder {
       assetId: this.assetId,
       videoStartTime: this.videoStartTime,
       playbackRate: this.playbackRate,
+      audioStartTime: this.audioStartTime,
+      volume: this.volume,
       from: this.from,
       duration: this.duration,
       style: this.style,
@@ -162,6 +176,13 @@ export function video(
   options: VideoNodeOptions = {},
 ): NodeBuilder {
   return new NodeBuilder("video", { ...options, assetId });
+}
+
+export function audio(
+  assetId: string,
+  options: AudioNodeOptions = {},
+): NodeBuilder {
+  return new NodeBuilder("audio", { ...options, assetId });
 }
 
 export type ResolvedNode = Omit<SceneNode, "children"> & {

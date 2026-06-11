@@ -71,7 +71,8 @@
                   "div",
                   "text",
                   "img",
-                  "video"
+                  "video",
+                  "audio"
                 ]
               },
               "text": {
@@ -87,6 +88,15 @@
               "playbackRate": {
                 "type": "number",
                 "exclusiveMinimum": 0
+              },
+              "audioStartTime": {
+                "type": "number",
+                "minimum": 0
+              },
+              "volume": {
+                "type": "number",
+                "minimum": 0,
+                "maximum": 1
               },
               "from": {
                 "type": "integer",

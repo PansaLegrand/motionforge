@@ -29,11 +29,13 @@ type Asset = {
 ```ts
 type SceneNode = {
   id: string; // unique across the whole scene
-  type: "div" | "text" | "img" | "video";
+  type: "div" | "text" | "img" | "video" | "audio";
   text?: string; // required when type is "text"
-  assetId?: string; // required when type is "img" or "video"
+  assetId?: string; // required when type is "img", "video", or "audio"
   videoStartTime?: number; // video nodes only: source trim offset in seconds (default 0)
   playbackRate?: number; // video nodes only: speed multiplier (default 1)
+  audioStartTime?: number; // audio nodes only: source trim offset in seconds (default 0)
+  volume?: number; // audio nodes only: gain 0..1 (default 1)
   from?: number; // start frame, relative to the parent (default 0)
   duration?: number; // frames the node is active (default: parent's duration)
   style?: SceneStyle; // curated CSS-like subset, see the matrix below
@@ -51,6 +53,10 @@ sourceTime = videoStartTime + (localFrame / scene.fps) * playbackRate
 ```
 
 The renderer draws the last source frame at or before that timestamp. When the scene outlasts the clip, the last frame holds. `videoStartTime` and `playbackRate` validate only on video nodes.
+
+### Audio
+
+Audio nodes place sound on the timeline with the same `from`/`duration` frame semantics as every other node — they are not visual, so `style`, `children`, and `animations` are rejected on them. During export, every audible node is decoded, trimmed by `audioStartTime`, scaled by `volume`, and mixed (overlaps sum, the final mix clamps) into one stereo 48 kHz track muxed into the MP4. An audio node trimmed past the end of its clip contributes silence, not an error. Video nodes do not yet contribute their own audio tracks — place an explicit audio node for that.
 
 ### Timing model
 
@@ -140,8 +146,8 @@ renderStill(context, scene, frame, { assets }); // pure given (scene, frame, ass
 - **Video assets** open through mediabunny for frame-accurate decoding (no `<video>` element seeking). Because decoding is asynchronous and rendering is synchronous, video frames are staged per scene frame: `await prepareFrame(scene, frame, assets)` decodes what every active video node needs, then `renderStill` draws synchronously. `renderFrameSequence`/`exportVideo` call it automatically. Rendering a video node without a staged frame — or with one staged for a different scene frame — **throws**.
 - Rendering a scene that draws an `img` node without resolved assets **throws** with the asset id and the fix — a frame never renders with silently missing media.
 - A failed fetch or decode rejects with the asset id and src; there is no placeholder fallback by design.
-- Call `disposeAssets(assets)` when done with a scene to release video decoder resources.
-- `audio` assets validate today but are not yet loaded; they land through this same pipeline (roadmap slice 6).
+- **Audio assets** open the same way (mediabunny decode); the export mixer pulls PCM from them. Preview playback in the playground is not wired yet — the exported file is the source of truth for audio.
+- Call `disposeAssets(assets)` when done with a scene to release video and audio decoder resources.
 
 ## Animations
 

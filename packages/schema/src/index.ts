@@ -137,13 +137,17 @@ export type SceneAsset = z.infer<typeof assetSchema>;
 
 type SceneNodeInput = {
   id: string;
-  type: "div" | "text" | "img" | "video";
+  type: "div" | "text" | "img" | "video" | "audio";
   text?: string;
   assetId?: string;
   /** Video nodes: source trim offset in seconds (source footage has its own timebase, independent of scene fps). */
   videoStartTime?: number;
   /** Video nodes: playback speed multiplier (1 = natural speed). */
   playbackRate?: number;
+  /** Audio nodes: source trim offset in seconds. */
+  audioStartTime?: number;
+  /** Audio nodes: gain from 0 (silent) to 1 (natural), default 1. */
+  volume?: number;
   from?: number;
   duration?: number;
   style?: SceneStyle;
@@ -157,11 +161,13 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
   z
     .object({
       id: z.string().min(1),
-      type: z.enum(["div", "text", "img", "video"]),
+      type: z.enum(["div", "text", "img", "video", "audio"]),
       text: z.string().optional(),
       assetId: z.string().optional(),
       videoStartTime: z.number().nonnegative().optional(),
       playbackRate: z.number().positive().optional(),
+      audioStartTime: z.number().nonnegative().optional(),
+      volume: z.number().min(0).max(1).optional(),
       from: z.number().int().default(0),
       duration: z.number().int().positive().optional(),
       style: styleSchema.default({}),
@@ -177,7 +183,12 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
         });
       }
 
-      if ((node.type === "img" || node.type === "video") && !node.assetId) {
+      if (
+        (node.type === "img" ||
+          node.type === "video" ||
+          node.type === "audio") &&
+        !node.assetId
+      ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: ["assetId"],
@@ -194,6 +205,44 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
               message: `${field} only applies to video nodes; remove it from this ${node.type} node.`,
             });
           }
+        }
+      }
+
+      if (node.type !== "audio") {
+        for (const field of ["audioStartTime", "volume"] as const) {
+          if (node[field] !== undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [field],
+              message: `${field} only applies to audio nodes; remove it from this ${node.type} node.`,
+            });
+          }
+        }
+      } else {
+        if (Object.keys(node.style ?? {}).length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["style"],
+            message:
+              "Audio nodes are not visual; remove style (timeline placement uses from/duration).",
+          });
+        }
+
+        if ((node.children ?? []).length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["children"],
+            message: "Audio nodes cannot have children.",
+          });
+        }
+
+        if ((node.animations ?? []).length > 0) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["animations"],
+            message:
+              "Audio nodes do not support animations yet; use the static volume field.",
+          });
         }
       }
     }),

@@ -6,7 +6,13 @@ import {
   resolveAssets,
 } from "@motionforge/renderer-canvas2d";
 import type { Scene } from "@motionforge/schema";
-import { ALL_FORMATS, BlobSource, CanvasSink, Input } from "mediabunny";
+import {
+  ALL_FORMATS,
+  AudioBufferSink,
+  BlobSource,
+  CanvasSink,
+  Input,
+} from "mediabunny";
 
 export type RenderedFrame = {
   width: number;
@@ -34,6 +40,7 @@ declare global {
     renderGoldenFrame: (scene: Scene, frame: number) => Promise<RenderedFrame>;
     renderGoldenExport: (scene: Scene) => Promise<ExportedVideo>;
     runGoldenVideoChecks: () => Promise<VideoCheck[]>;
+    runGoldenAudioChecks: () => Promise<VideoCheck[]>;
   }
 }
 
@@ -306,4 +313,164 @@ window.renderGoldenExport = async (scene: Scene): Promise<ExportedVideo> => {
     totalFrames,
     header: Array.from(bytes.slice(0, 12)),
   };
+};
+
+/** Builds a mono 16-bit PCM WAV containing a sine tone. */
+function buildToneWav(
+  seconds: number,
+  frequency: number,
+  sampleRate = 48_000,
+  amplitude = 0.5,
+): Blob {
+  const samples = Math.round(seconds * sampleRate);
+  const view = new DataView(new ArrayBuffer(44 + samples * 2));
+  const writeAscii = (offset: number, value: string): void => {
+    for (let index = 0; index < value.length; index += 1) {
+      view.setUint8(offset + index, value.charCodeAt(index));
+    }
+  };
+
+  writeAscii(0, "RIFF");
+  view.setUint32(4, 36 + samples * 2, true);
+  writeAscii(8, "WAVE");
+  writeAscii(12, "fmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, sampleRate, true);
+  view.setUint32(28, sampleRate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(36, "data");
+  view.setUint32(40, samples * 2, true);
+
+  for (let index = 0; index < samples; index += 1) {
+    const value =
+      Math.sin((2 * Math.PI * frequency * index) / sampleRate) * amplitude;
+    view.setInt16(44 + index * 2, Math.round(value * 32767), true);
+  }
+
+  return new Blob([view.buffer], { type: "audio/wav" });
+}
+
+/**
+ * End-to-end audio check: a 1s sine WAV placed at scene frame 15 (0.5s) with
+ * volume 0.8 exports into the MP4's audio track — silent before 0.5s, tone
+ * after, verified by decoding the exported file and measuring RMS windows.
+ */
+window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
+  const checks: VideoCheck[] = [];
+  const toneUrl = URL.createObjectURL(buildToneWav(1.0, 440));
+
+  const scene: Scene = {
+    schemaVersion: 0,
+    width: 320,
+    height: 180,
+    fps: 30,
+    duration: 45,
+    assets: {
+      tone: { id: "tone", type: "audio", src: toneUrl },
+    },
+    nodes: [
+      {
+        id: "background",
+        type: "div",
+        from: 0,
+        duration: 45,
+        style: { width: "100%", height: "100%", backgroundColor: "#101820" },
+        children: [],
+      },
+      {
+        id: "track",
+        type: "audio",
+        assetId: "tone",
+        from: 15,
+        duration: 30,
+        volume: 0.8,
+      },
+    ],
+  };
+
+  const assets = await resolveAssets(scene);
+  const exportStart = performance.now();
+  const { blob, audioCodec } = await exportVideo({ scene, assets });
+  const exportMs = performance.now() - exportStart;
+
+  checks.push({
+    label: "audio: export negotiates an MP4 audio codec",
+    pass: audioCodec !== null,
+    detail: String(audioCodec),
+  });
+
+  const input = new Input({
+    formats: ALL_FORMATS,
+    source: new BlobSource(blob),
+  });
+  const track = await input.getPrimaryAudioTrack();
+
+  checks.push({
+    label: "audio: exported MP4 contains an audio track",
+    pass: track !== null,
+    detail: track
+      ? `${track.numberOfChannels}ch @ ${track.sampleRate}Hz`
+      : "no track",
+  });
+
+  if (track) {
+    const duration = await input.computeDuration([track]);
+    checks.push({
+      label: "audio: track covers the scene duration (1.5s)",
+      pass: Math.abs(duration - 1.5) < 0.15,
+      detail: `${duration.toFixed(3)}s`,
+    });
+
+    const sink = new AudioBufferSink(track);
+    const rmsOver = async (start: number, end: number): Promise<number> => {
+      let sumSquares = 0;
+      let count = 0;
+
+      for await (const wrapped of sink.buffers(start, end)) {
+        const data = wrapped.buffer.getChannelData(0);
+
+        for (let index = 0; index < data.length; index += 1) {
+          const at = wrapped.timestamp + index / wrapped.buffer.sampleRate;
+
+          if (at >= start && at < end) {
+            sumSquares += (data[index] ?? 0) ** 2;
+            count += 1;
+          }
+        }
+      }
+
+      return count === 0 ? 0 : Math.sqrt(sumSquares / count);
+    };
+
+    // Margins around the 0.5s boundary absorb encoder priming/padding.
+    const silentRms = await rmsOver(0.05, 0.4);
+    const toneRms = await rmsOver(0.6, 1.4);
+
+    checks.push({
+      label: "audio: silent before the node starts at frame 15",
+      pass: silentRms < 0.02,
+      detail: `rms ${silentRms.toFixed(4)}`,
+    });
+    checks.push({
+      label: "audio: tone plays after frame 15 (0.5 amp x 0.8 volume)",
+      // Expected RMS of a 0.4-amplitude sine is ~0.283.
+      pass: toneRms > 0.15 && toneRms < 0.4,
+      detail: `rms ${toneRms.toFixed(4)}`,
+    });
+  }
+
+  checks.push({
+    label: "audio: timing baseline",
+    pass: true,
+    detail: `45-frame export with mixed audio: ${exportMs.toFixed(0)}ms`,
+  });
+
+  input.dispose();
+  disposeAssets(assets);
+  URL.revokeObjectURL(toneUrl);
+
+  return checks;
 };

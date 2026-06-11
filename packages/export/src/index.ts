@@ -2,16 +2,20 @@ import {
   prepareFrame,
   renderStill,
   resolveAssets,
+  type AudioClip,
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
-import type { Scene } from "@motionforge/schema";
+import type { Scene, SceneNode } from "@motionforge/schema";
 import {
+  AudioBufferSource,
   BufferTarget,
   CanvasSource,
+  getFirstEncodableAudioCodec,
   getFirstEncodableVideoCodec,
   Mp4OutputFormat,
   Output,
   QUALITY_HIGH,
+  type AudioCodec,
   type Quality,
   type VideoCodec,
 } from "mediabunny";
@@ -50,8 +54,135 @@ export type ExportVideoOptions = {
 export type ExportVideoResult = {
   blob: Blob;
   codec: VideoCodec;
+  /** Audio codec of the mixed track, or null when the scene has no audio. */
+  audioCodec: AudioCodec | null;
   totalFrames: number;
 };
+
+/** An audio node's absolute active window in scene frames, ancestors applied. */
+export type AudioPlacement = {
+  node: SceneNode;
+  /** First scene frame the node is audible (inclusive). */
+  startFrame: number;
+  /** Scene frame the node stops being audible (exclusive). */
+  endFrame: number;
+};
+
+/**
+ * Walks the scene tree and returns every audio node with its absolute active
+ * window, mirroring the evaluator's timing semantics (parent-relative `from`,
+ * duration defaulting to the parent's, clipped by ancestor windows).
+ */
+export function collectAudioPlacements(scene: Scene): AudioPlacement[] {
+  const placements: AudioPlacement[] = [];
+
+  const visit = (
+    nodes: SceneNode[],
+    origin: number,
+    windowStart: number,
+    windowEnd: number,
+    parentDuration: number,
+  ): void => {
+    for (const node of nodes) {
+      const from = node.from ?? 0;
+      const duration = node.duration ?? parentDuration;
+      const start = origin + from;
+      const activeStart = Math.max(windowStart, start);
+      const activeEnd = Math.min(windowEnd, start + duration);
+
+      if (activeStart >= activeEnd) {
+        continue;
+      }
+
+      if (node.type === "audio") {
+        placements.push({ node, startFrame: activeStart, endFrame: activeEnd });
+      }
+
+      visit(node.children ?? [], start, activeStart, activeEnd, duration);
+    }
+  };
+
+  visit(scene.nodes, 0, 0, scene.duration, scene.duration);
+  return placements;
+}
+
+/** Source PCM positioned on the output timeline, ready for mixing. */
+export type AudioSegment = {
+  /** One Float32Array per source channel. */
+  channels: Float32Array[];
+  sampleRate: number;
+  /** Seconds from the start of the mix where this segment begins. */
+  startTime: number;
+  /** Gain 0..1. */
+  volume: number;
+};
+
+/**
+ * Mixes segments into output PCM (one Float32Array per channel) using linear
+ * resampling. Mono segments fan out to every output channel; overlapping
+ * segments sum and the final mix clamps to [-1, 1]. Pure and deterministic.
+ */
+export function mixAudioSegments(
+  segments: AudioSegment[],
+  durationSeconds: number,
+  sampleRate = 48_000,
+  channelCount = 2,
+): Float32Array<ArrayBuffer>[] {
+  const length = Math.max(1, Math.round(durationSeconds * sampleRate));
+  const output = Array.from(
+    { length: channelCount },
+    () => new Float32Array(length),
+  );
+
+  for (const segment of segments) {
+    const sourceLength = segment.channels[0]?.length ?? 0;
+
+    if (sourceLength === 0 || segment.channels.length === 0) {
+      continue;
+    }
+
+    const startIndex = Math.round(segment.startTime * sampleRate);
+    const outSamples = Math.ceil(
+      (sourceLength / segment.sampleRate) * sampleRate,
+    );
+
+    for (let channel = 0; channel < channelCount; channel += 1) {
+      const target = output[channel];
+      const source =
+        segment.channels[Math.min(channel, segment.channels.length - 1)];
+
+      if (!target || !source) {
+        continue;
+      }
+
+      for (let index = 0; index < outSamples; index += 1) {
+        const outIndex = startIndex + index;
+
+        if (outIndex < 0 || outIndex >= length) {
+          continue;
+        }
+
+        const sourcePosition = (index / sampleRate) * segment.sampleRate;
+        const lower = Math.floor(sourcePosition);
+        const upper = Math.min(sourceLength - 1, lower + 1);
+        const t = sourcePosition - lower;
+        const lowerValue = source[lower] ?? 0;
+        const upperValue = source[upper] ?? 0;
+        target[outIndex] =
+          (target[outIndex] ?? 0) +
+          (lowerValue + (upperValue - lowerValue) * t) * segment.volume;
+      }
+    }
+  }
+
+  for (const channel of output) {
+    for (let index = 0; index < channel.length; index += 1) {
+      channel[index] = Math.min(1, Math.max(-1, channel[index] ?? 0));
+    }
+  }
+
+  return output;
+}
 
 export type RenderFrameSequenceProgress = {
   frame: number;
@@ -193,6 +324,37 @@ export async function exportVideo(
     bitrate: options.bitrate ?? QUALITY_HIGH,
   });
   output.addVideoTrack(source, { frameRate: scene.fps });
+
+  // Mix the scene's audio before starting the output: tracks can only be
+  // added while the output is pending.
+  const startFrame = options.startFrame ?? 0;
+  const endFrame = options.endFrame ?? scene.duration - 1;
+  const mixedAudio = await buildMixedAudio(scene, assets, startFrame, endFrame);
+  let audioSource: AudioBufferSource | null = null;
+  let audioCodec: AudioCodec | null = null;
+
+  if (mixedAudio) {
+    audioCodec = await getFirstEncodableAudioCodec(
+      format.getSupportedAudioCodecs(),
+      {
+        numberOfChannels: mixedAudio.numberOfChannels,
+        sampleRate: mixedAudio.sampleRate,
+      },
+    );
+
+    if (!audioCodec) {
+      throw new Error(
+        "The scene has audio nodes but this browser cannot encode any MP4-compatible audio codec.",
+      );
+    }
+
+    audioSource = new AudioBufferSource({
+      codec: audioCodec,
+      bitrate: QUALITY_HIGH,
+    });
+    output.addAudioTrack(audioSource);
+  }
+
   await output.start();
 
   const frameDuration = 1 / scene.fps;
@@ -214,6 +376,10 @@ export async function exportVideo(
       onProgress: options.onProgress,
     });
 
+    if (audioSource && mixedAudio) {
+      await audioSource.add(mixedAudio);
+    }
+
     await output.finalize();
   } catch (error) {
     try {
@@ -234,8 +400,143 @@ export async function exportVideo(
   return {
     blob: new Blob([buffer], { type: format.mimeType }),
     codec,
+    audioCodec,
     totalFrames: result.totalFrames,
   };
+}
+
+const MIX_SAMPLE_RATE = 48_000;
+const MIX_CHANNELS = 2;
+
+/**
+ * Decodes and mixes every audible audio node into a single AudioBuffer
+ * covering the export range, or null when the scene has none.
+ */
+async function buildMixedAudio(
+  scene: Scene,
+  assets: ResolvedAssets,
+  startFrame: number,
+  endFrame: number,
+): Promise<AudioBuffer | null> {
+  const placements = collectAudioPlacements(scene);
+
+  if (placements.length === 0) {
+    return null;
+  }
+
+  const segments: AudioSegment[] = [];
+
+  for (const placement of placements) {
+    const assetId = placement.node.assetId ?? "";
+    const clip = assets.audio.get(assetId);
+
+    if (!clip) {
+      throw new Error(
+        `Audio node "${placement.node.id}" references asset "${assetId}" which is not in the resolved assets. Call resolveAssets(scene) first.`,
+      );
+    }
+
+    // Intersect the node's audible window with the export range.
+    const audibleStart = Math.max(placement.startFrame, startFrame);
+    const audibleEnd = Math.min(placement.endFrame, endFrame + 1);
+
+    if (audibleStart >= audibleEnd) {
+      continue;
+    }
+
+    const trimOffset =
+      (placement.node.audioStartTime ?? 0) +
+      (audibleStart - placement.startFrame) / scene.fps;
+    const sourceEnd = Math.min(
+      clip.duration,
+      trimOffset + (audibleEnd - audibleStart) / scene.fps,
+    );
+
+    if (trimOffset >= sourceEnd) {
+      // Trimmed past the end of the clip: silence, not an error.
+      continue;
+    }
+
+    segments.push({
+      channels: await decodeAudioRange(clip, trimOffset, sourceEnd),
+      sampleRate: clip.sampleRate,
+      startTime: (audibleStart - startFrame) / scene.fps,
+      volume: placement.node.volume ?? 1,
+    });
+  }
+
+  if (segments.length === 0) {
+    return null;
+  }
+
+  const durationSeconds = (endFrame - startFrame + 1) / scene.fps;
+  const mixed = mixAudioSegments(
+    segments,
+    durationSeconds,
+    MIX_SAMPLE_RATE,
+    MIX_CHANNELS,
+  );
+  const length = mixed[0]?.length ?? 0;
+
+  if (length === 0) {
+    return null;
+  }
+
+  const buffer = new AudioBuffer({
+    numberOfChannels: MIX_CHANNELS,
+    length,
+    sampleRate: MIX_SAMPLE_RATE,
+  });
+
+  mixed.forEach((data, channel) => {
+    buffer.copyToChannel(data, channel);
+  });
+
+  return buffer;
+}
+
+/**
+ * Decodes a source range into per-channel PCM at the clip's sample rate,
+ * positioning decoded packets at exact sample offsets relative to `start`.
+ */
+async function decodeAudioRange(
+  clip: AudioClip,
+  start: number,
+  end: number,
+): Promise<Float32Array[]> {
+  const totalSamples = Math.max(1, Math.ceil((end - start) * clip.sampleRate));
+  const channels = Array.from(
+    { length: Math.max(1, clip.numberOfChannels) },
+    () => new Float32Array(totalSamples),
+  );
+
+  for await (const wrapped of clip.sink.buffers(start, end)) {
+    const offsetSamples = Math.round(
+      (wrapped.timestamp - start) * clip.sampleRate,
+    );
+
+    for (let channel = 0; channel < channels.length; channel += 1) {
+      const target = channels[channel];
+
+      if (!target) {
+        continue;
+      }
+
+      const data = wrapped.buffer.getChannelData(
+        Math.min(channel, wrapped.buffer.numberOfChannels - 1),
+      );
+
+      for (let index = 0; index < data.length; index += 1) {
+        const targetIndex = offsetSamples + index;
+
+        if (targetIndex >= 0 && targetIndex < totalSamples) {
+          target[targetIndex] = data[index] ?? 0;
+        }
+      }
+    }
+  }
+
+  return channels;
 }
 
 function createExportCanvas(

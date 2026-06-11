@@ -1,9 +1,11 @@
 import { describe, expect, it } from "vitest";
 import type { Scene } from "@motionforge/schema";
 import {
+  collectAudioPlacements,
   detectExportCapability,
   exportVideo,
   frameToTimestampUs,
+  mixAudioSegments,
   renderFrameSequence,
 } from "./index.js";
 
@@ -213,5 +215,103 @@ describe("exportVideo", () => {
     await expect(exportVideo({ scene })).rejects.toThrow(
       /VideoEncoder.*detectExportCapability/,
     );
+  });
+});
+
+describe("collectAudioPlacements", () => {
+  it("returns absolute windows clipped by ancestors", () => {
+    const placements = collectAudioPlacements({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 90,
+      assets: { tone: { id: "tone", type: "audio", src: "tone.wav" } },
+      nodes: [
+        { id: "track", type: "audio", assetId: "tone", from: 12, duration: 30 },
+        {
+          id: "group",
+          type: "div",
+          from: 10,
+          duration: 40,
+          children: [
+            // Wants 100 frames from local frame 5, but the parent window
+            // [10, 50) clips it to [15, 50).
+            {
+              id: "nested",
+              type: "audio",
+              assetId: "tone",
+              from: 5,
+              duration: 100,
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(
+      placements.map(({ node, startFrame, endFrame }) => [
+        node.id,
+        startFrame,
+        endFrame,
+      ]),
+    ).toEqual([
+      ["track", 12, 42],
+      ["nested", 15, 50],
+    ]);
+  });
+});
+
+describe("mixAudioSegments", () => {
+  it("places segments at the right offset with volume applied", () => {
+    const mixed = mixAudioSegments(
+      [
+        {
+          channels: [new Float32Array([1, 1])],
+          sampleRate: 4,
+          startTime: 0.5,
+          volume: 0.5,
+        },
+      ],
+      1,
+      4,
+      2,
+    );
+
+    // 4 samples of output; the segment lands on samples 2 and 3 at gain 0.5,
+    // fanned out from mono to both channels.
+    expect(Array.from(mixed[0] ?? [])).toEqual([0, 0, 0.5, 0.5]);
+    expect(Array.from(mixed[1] ?? [])).toEqual([0, 0, 0.5, 0.5]);
+  });
+
+  it("resamples to the output rate", () => {
+    const mixed = mixAudioSegments(
+      [
+        {
+          channels: [new Float32Array([1, 1, 1, 1])],
+          sampleRate: 4,
+          startTime: 0,
+          volume: 1,
+        },
+      ],
+      1,
+      8,
+      1,
+    );
+
+    // 1s of constant 1.0 at 4 Hz should cover all 8 output samples.
+    expect(Array.from(mixed[0] ?? [])).toEqual([1, 1, 1, 1, 1, 1, 1, 1]);
+  });
+
+  it("sums overlapping segments and clamps the final mix", () => {
+    const loud = {
+      channels: [new Float32Array([0.8, 0.8])],
+      sampleRate: 2,
+      startTime: 0,
+      volume: 1,
+    };
+    const mixed = mixAudioSegments([loud, loud], 1, 2, 1);
+
+    expect(Array.from(mixed[0] ?? [])).toEqual([1, 1]);
   });
 });

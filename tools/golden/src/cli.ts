@@ -111,6 +111,7 @@ async function run(currentMode: GoldenMode): Promise<void> {
 
     failures.push(...(await runExportSmokeTest(page)));
     failures.push(...(await runVideoChecks(page)));
+    failures.push(...(await runAudioChecks(page)));
 
     if (failures.length > 0) {
       throw new Error(`Golden failures:\n${failures.join("\n\n")}`);
@@ -180,6 +181,26 @@ async function runVideoChecks(page: Page): Promise<string[]> {
       console.log(`ok video: ${check.label} (${check.detail})`);
     } else {
       failures.push(`video: ${check.label} failed — ${check.detail}`);
+    }
+  }
+
+  return failures;
+}
+
+/**
+ * Audio integration checks: a synthesized WAV tone placed mid-timeline must
+ * export into the MP4's audio track, silent before its start frame and
+ * audible after, verified by decoding the exported file.
+ */
+async function runAudioChecks(page: Page): Promise<string[]> {
+  const checks = await page.evaluate(() => window.runGoldenAudioChecks());
+  const failures: string[] = [];
+
+  for (const check of checks) {
+    if (check.pass) {
+      console.log(`ok audio: ${check.label} (${check.detail})`);
+    } else {
+      failures.push(`audio: ${check.label} failed — ${check.detail}`);
     }
   }
 
