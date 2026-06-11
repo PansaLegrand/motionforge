@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (video nodes contribute audio — week-2 slice 2)
+
+### Changed
+
+- `@motionforge/schema`: `volume` now validates on video nodes too (still rejected elsewhere); `audioStartTime` stays audio-only — video trims picture and sound together via `videoStartTime`, and the rejection message says so.
+- `@motionforge/renderer-canvas2d`: `openVideoClip()` probes the clip's audio track on the same input and exposes it as `VideoClip.audio` (`duration`/`sampleRate`/`numberOfChannels`/`AudioBufferSink`). Silent clips simply have no `audio`; `disposeAssets()` is unchanged because the sink shares the clip's input.
+- `@motionforge/export`: `collectAudioPlacements()` now returns video nodes as well, plus a new `framesIntoNode` field (head clipping by ancestor windows). The mix maps a video window to source time exactly like the renderer's `videoSourceTime` (`videoStartTime + (localFrame / fps) × playbackRate`), so exported sound stays aligned with previewed picture; `playbackRate` retimes audio by declaring the segment at rate × native sample rate — varispeed semantics (pitch shifts; no time-stretch), documented.
+- Alignment fix that fell out of `framesIntoNode`: audio nodes whose *head* is clipped by an ancestor window now start that many frames into their source instead of restarting from 0 — matching the evaluator's `localFrame = absoluteFrame − from` everywhere.
+
+### Tested
+
+- `pnpm test` (122 unit tests; new: volume accept/reject matrix per node type, video placements with `framesIntoNode` under clipped ancestors, varispeed mixer math via a rate-scaled segment)
+- `pnpm golden:test` — new in-browser round trip: a 1 s MP4 with an AAC tone soundtrack is synthesized via `exportVideo`, placed as a **video node** (frame 15, volume 0.8) in a composite, exported, and decoded back: silence before 0.5 s (rms 0.0000), tone window rms 0.2815 vs ≈0.283 theoretical through **two** AAC encode passes.
+- `pnpm build`, `pnpm typecheck`
+
+### Notes
+
+- Pitch-preserving time-stretch for rate ≠ 1 audio is explicitly out of scope (varispeed is the documented contract); revisit only if a real consumer needs broadcast-style retiming.
+- The player's audio preview (next slice) reuses these exact placements/mix functions, so video-node audio will be audible in preview with no extra engine work.
+
 ## 2026-06-11 (scene patch ops — RFC 0001 implemented; week-2 slice 1)
 
 ### Changed

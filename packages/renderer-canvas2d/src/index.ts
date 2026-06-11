@@ -30,6 +30,13 @@ export type VideoClip = {
   sink: CanvasSink;
   /** Underlying input; closed by disposeAssets(). */
   input: Input;
+  /** The clip's own audio track, when it has one (mixed into exports). */
+  audio?: {
+    duration: number;
+    sampleRate: number;
+    numberOfChannels: number;
+    sink: AudioBufferSink;
+  };
 };
 
 /** A decodable audio clip opened by resolveAssets(). */
@@ -169,6 +176,18 @@ async function openVideoClip(src: string): Promise<VideoClip> {
 
   const duration = await input.computeDuration([track]);
 
+  // Silent clips are normal; only wire audio when a track exists. The audio
+  // sink shares the clip's input, so disposeAssets() releases both at once.
+  const audioTrack = await input.getPrimaryAudioTrack();
+  const audio = audioTrack
+    ? {
+        duration: await input.computeDuration([audioTrack]),
+        sampleRate: audioTrack.sampleRate,
+        numberOfChannels: audioTrack.numberOfChannels,
+        sink: new AudioBufferSink(audioTrack),
+      }
+    : undefined;
+
   return {
     duration,
     width: track.displayWidth,
@@ -177,6 +196,7 @@ async function openVideoClip(src: string): Promise<VideoClip> {
     // prepareFrame() call, so each decode gets its own canvas.
     sink: new CanvasSink(track),
     input,
+    ...(audio ? { audio } : {}),
   };
 }
 

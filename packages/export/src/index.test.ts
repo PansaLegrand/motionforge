@@ -260,6 +260,84 @@ describe("collectAudioPlacements", () => {
       ["nested", 15, 50],
     ]);
   });
+
+  it("includes video nodes and reports head clipping via framesIntoNode", () => {
+    const placements = collectAudioPlacements({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 90,
+      assets: { clip: { id: "clip", type: "video", src: "clip.mp4" } },
+      nodes: [
+        {
+          id: "group",
+          type: "div",
+          from: 10,
+          duration: 40,
+          children: [
+            // Starts at local frame -5 relative to the parent window via the
+            // grandparent clip: parent window [10, 50), node start 10 + 5 = 15
+            // here is NOT clipped; use a deeper case below for clipping.
+            { id: "shot", type: "video", assetId: "clip", from: 5, duration: 20 },
+          ],
+        },
+        {
+          id: "outer",
+          type: "div",
+          from: 20,
+          duration: 30,
+          children: [
+            {
+              id: "inner",
+              type: "div",
+              from: -10,
+              duration: 60,
+              children: [
+                // Node starts at scene frame 10, but the ancestor window
+                // starts at 20 — ten frames of the node's head are clipped,
+                // so its audio must start ten frames into the source.
+                { id: "late", type: "video", assetId: "clip", duration: 60 },
+              ],
+            },
+          ],
+        },
+      ],
+    });
+
+    expect(
+      placements.map(({ node, startFrame, endFrame, framesIntoNode }) => [
+        node.id,
+        startFrame,
+        endFrame,
+        framesIntoNode,
+      ]),
+    ).toEqual([
+      ["shot", 15, 35, 0],
+      ["late", 20, 50, 10],
+    ]);
+  });
+});
+
+describe("mixAudioSegments with rate-scaled segments", () => {
+  it("a segment declared at 2x sample rate occupies half the output time", () => {
+    // 100 source samples captured at a native 100 Hz (1 s of source).
+    // Declared at 2 x 100 = 200 Hz, the mixer plays them in 0.5 s of output —
+    // the playbackRate varispeed trick used for video clip audio.
+    const source = new Float32Array(100).fill(0.5);
+    const [channel] = mixAudioSegments(
+      [{ channels: [source], sampleRate: 200, startTime: 0, volume: 1 }],
+      1,
+      100,
+      1,
+    );
+
+    const firstHalf = Array.from(channel?.slice(0, 50) ?? []);
+    const secondHalf = Array.from(channel?.slice(51, 100) ?? []);
+
+    expect(firstHalf.every((v) => Math.abs(v - 0.5) < 1e-6)).toBe(true);
+    expect(secondHalf.every((v) => v === 0)).toBe(true);
+  });
 });
 
 describe("mixAudioSegments", () => {

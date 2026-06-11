@@ -155,6 +155,53 @@ describe("scene schema", () => {
     );
   });
 
+  it("accepts volume on video nodes, rejects audio-only fields correctly", () => {
+    const valid = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      assets: { clip: { id: "clip", type: "video", src: "clip.mp4" } },
+      nodes: [
+        { id: "shot", type: "video", assetId: "clip", volume: 0.5 },
+      ],
+    });
+
+    expect(valid.ok).toBe(true);
+
+    const audioTrimOnVideo = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      assets: { clip: { id: "clip", type: "video", src: "clip.mp4" } },
+      nodes: [
+        { id: "shot", type: "video", assetId: "clip", audioStartTime: 1 },
+      ],
+    });
+
+    expect(audioTrimOnVideo.ok).toBe(false);
+    expect(
+      audioTrimOnVideo.ok ? [] : audioTrimOnVideo.errors.join("\n"),
+    ).toContain("videoStartTime");
+
+    const volumeOnDiv = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [{ id: "box", type: "div", volume: 1 }],
+    });
+
+    expect(volumeOnDiv.ok).toBe(false);
+    expect(volumeOnDiv.ok ? [] : volumeOnDiv.errors.join("\n")).toContain(
+      "audio and video nodes",
+    );
+  });
+
   it("accepts easing expressions and rejects malformed ones", () => {
     const sceneWith = (easing: string) => ({
       schemaVersion: 0,

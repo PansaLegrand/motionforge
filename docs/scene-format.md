@@ -35,7 +35,7 @@ type SceneNode = {
   videoStartTime?: number; // video nodes only: source trim offset in seconds (default 0)
   playbackRate?: number; // video nodes only: speed multiplier (default 1)
   audioStartTime?: number; // audio nodes only: source trim offset in seconds (default 0)
-  volume?: number; // audio nodes only: gain 0..1 (default 1)
+  volume?: number; // audio and video nodes: gain 0..1 (default 1)
   from?: number; // start frame, relative to the parent (default 0)
   duration?: number; // frames the node is active (default: parent's duration)
   style?: SceneStyle; // curated CSS-like subset, see the matrix below
@@ -54,9 +54,11 @@ sourceTime = videoStartTime + (localFrame / scene.fps) * playbackRate
 
 The renderer draws the last source frame at or before that timestamp. When the scene outlasts the clip, the last frame holds. `videoStartTime` and `playbackRate` validate only on video nodes.
 
+Video nodes with a soundtrack contribute it to the export: the clip's audio plays in the node's window at `volume` (default 1), trimmed by `videoStartTime` — picture and sound trim together. `playbackRate` retimes the sound like a varispeed deck (pitch shifts; there is no time-stretch). Silent clips contribute nothing. `audioStartTime` stays audio-only.
+
 ### Audio
 
-Audio nodes place sound on the timeline with the same `from`/`duration` frame semantics as every other node — they are not visual, so `style`, `children`, and `animations` are rejected on them. During export, every audible node is decoded, trimmed by `audioStartTime`, scaled by `volume`, and mixed (overlaps sum, the final mix clamps) into one stereo 48 kHz track muxed into the MP4. An audio node trimmed past the end of its clip contributes silence, not an error. Video nodes do not yet contribute their own audio tracks — place an explicit audio node for that.
+Audio nodes place sound on the timeline with the same `from`/`duration` frame semantics as every other node — they are not visual, so `style`, `children`, and `animations` are rejected on them. During export, every audible node is decoded, trimmed by `audioStartTime`, scaled by `volume`, and mixed (overlaps sum, the final mix clamps) into one stereo 48 kHz track muxed into the MP4. An audio node trimmed past the end of its clip contributes silence, not an error. Video nodes with their own soundtrack join this mix automatically (see the video section).
 
 ### Timing model
 

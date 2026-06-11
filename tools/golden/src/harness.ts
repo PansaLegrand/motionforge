@@ -480,6 +480,133 @@ window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
 
   input.dispose();
   disposeAssets(assets);
+
+  // --- video nodes contribute their own clip audio ------------------------
+  // Synthesize a 1s source MP4 whose soundtrack is the tone, place it as a
+  // *video* node at frame 15 with volume 0.8, and verify the composite's
+  // audio: silent head, tone in the clip's window. The video node is the
+  // only audio source in the composite scene.
+  const sourceScene: Scene = {
+    schemaVersion: 0,
+    width: 320,
+    height: 180,
+    fps: 30,
+    duration: 30,
+    assets: { tone: { id: "tone", type: "audio", src: toneUrl } },
+    nodes: [
+      {
+        id: "bg",
+        type: "div",
+        from: 0,
+        duration: 30,
+        style: { width: "100%", height: "100%", backgroundColor: "#aa2200" },
+        children: [],
+      },
+      { id: "sound", type: "audio", assetId: "tone", from: 0, duration: 30 },
+    ],
+  };
+
+  const sourceAssets = await resolveAssets(sourceScene);
+  const { blob: clipBlob } = await exportVideo({
+    scene: sourceScene,
+    assets: sourceAssets,
+  });
+  disposeAssets(sourceAssets);
+  const clipUrl = URL.createObjectURL(clipBlob);
+
+  const compositeScene: Scene = {
+    schemaVersion: 0,
+    width: 320,
+    height: 180,
+    fps: 30,
+    duration: 45,
+    assets: { clip: { id: "clip", type: "video", src: clipUrl } },
+    nodes: [
+      {
+        id: "bg",
+        type: "div",
+        from: 0,
+        duration: 45,
+        style: { width: "100%", height: "100%", backgroundColor: "#101820" },
+        children: [],
+      },
+      {
+        id: "shot",
+        type: "video",
+        assetId: "clip",
+        from: 15,
+        duration: 30,
+        volume: 0.8,
+        style: { width: "100%", height: "100%" },
+        children: [],
+      },
+    ],
+  };
+
+  const compositeAssets = await resolveAssets(compositeScene);
+  const { blob: compositeBlob, audioCodec: compositeAudioCodec } =
+    await exportVideo({ scene: compositeScene, assets: compositeAssets });
+
+  checks.push({
+    label: "audio: video node's clip soundtrack reaches the export",
+    pass: compositeAudioCodec !== null,
+    detail: String(compositeAudioCodec),
+  });
+
+  const compositeInput = new Input({
+    formats: ALL_FORMATS,
+    source: new BlobSource(compositeBlob),
+  });
+  const compositeTrack = await compositeInput.getPrimaryAudioTrack();
+
+  if (compositeTrack) {
+    const sink = new AudioBufferSink(compositeTrack);
+    const rmsOver = async (start: number, end: number): Promise<number> => {
+      let sumSquares = 0;
+      let count = 0;
+
+      for await (const wrapped of sink.buffers(start, end)) {
+        const data = wrapped.buffer.getChannelData(0);
+
+        for (let index = 0; index < data.length; index += 1) {
+          const at = wrapped.timestamp + index / wrapped.buffer.sampleRate;
+
+          if (at >= start && at < end) {
+            sumSquares += (data[index] ?? 0) ** 2;
+            count += 1;
+          }
+        }
+      }
+
+      return count === 0 ? 0 : Math.sqrt(sumSquares / count);
+    };
+
+    const headRms = await rmsOver(0.05, 0.4);
+    const clipRms = await rmsOver(0.6, 1.4);
+
+    checks.push({
+      label: "audio: silent before the video node starts",
+      pass: headRms < 0.02,
+      detail: `rms ${headRms.toFixed(4)}`,
+    });
+    checks.push({
+      label:
+        "audio: video clip audio plays in its window (0.5 amp x 0.8 volume)",
+      // Source tone (0.5 amp) x volume 0.8 ≈ rms 0.283 through two AAC passes.
+      pass: clipRms > 0.15 && clipRms < 0.4,
+      detail: `rms ${clipRms.toFixed(4)}`,
+    });
+  } else {
+    checks.push({
+      label: "audio: silent before the video node starts",
+      pass: false,
+      detail: "no audio track in composite export",
+    });
+  }
+
+  compositeInput.dispose();
+  disposeAssets(compositeAssets);
+  URL.revokeObjectURL(clipUrl);
   URL.revokeObjectURL(toneUrl);
 
   return checks;

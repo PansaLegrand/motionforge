@@ -59,19 +59,28 @@ export type ExportVideoResult = {
   totalFrames: number;
 };
 
-/** An audio node's absolute active window in scene frames, ancestors applied. */
+/** An audible node's absolute active window in scene frames, ancestors applied. */
 export type AudioPlacement = {
   node: SceneNode;
   /** First scene frame the node is audible (inclusive). */
   startFrame: number;
   /** Scene frame the node stops being audible (exclusive). */
   endFrame: number;
+  /**
+   * Frames between the node's own start and the audible window's start
+   * (nonzero when an ancestor window clips the node's head). Needed to map
+   * the window back to source time for video nodes, whose source clock runs
+   * from the node's start, not the window's.
+   */
+  framesIntoNode: number;
 };
 
 /**
- * Walks the scene tree and returns every audio node with its absolute active
- * window, mirroring the evaluator's timing semantics (parent-relative `from`,
- * duration defaulting to the parent's, clipped by ancestor windows).
+ * Walks the scene tree and returns every audible node — audio nodes and
+ * video nodes (whose clips may carry their own soundtrack) — with its
+ * absolute active window, mirroring the evaluator's timing semantics
+ * (parent-relative `from`, duration defaulting to the parent's, clipped by
+ * ancestor windows).
  */
 export function collectAudioPlacements(scene: Scene): AudioPlacement[] {
   const placements: AudioPlacement[] = [];
@@ -94,8 +103,13 @@ export function collectAudioPlacements(scene: Scene): AudioPlacement[] {
         continue;
       }
 
-      if (node.type === "audio") {
-        placements.push({ node, startFrame: activeStart, endFrame: activeEnd });
+      if (node.type === "audio" || node.type === "video") {
+        placements.push({
+          node,
+          startFrame: activeStart,
+          endFrame: activeEnd,
+          framesIntoNode: activeStart - start,
+        });
       }
 
       visit(node.children ?? [], start, activeStart, activeEnd, duration);
@@ -428,13 +442,29 @@ async function buildMixedAudio(
 
   for (const placement of placements) {
     const assetId = placement.node.assetId ?? "";
-    const clip = assets.audio.get(assetId);
+    const isVideo = placement.node.type === "video";
+    const clip = isVideo
+      ? assets.videos.get(assetId)?.audio
+      : assets.audio.get(assetId);
 
     if (!clip) {
+      if (isVideo) {
+        // Silent video clips are normal.
+        if (assets.videos.has(assetId)) {
+          continue;
+        }
+      }
+
       throw new Error(
-        `Audio node "${placement.node.id}" references asset "${assetId}" which is not in the resolved assets. Call resolveAssets(scene) first.`,
+        `${isVideo ? "Video" : "Audio"} node "${placement.node.id}" references asset "${assetId}" which is not in the resolved assets. Call resolveAssets(scene) first.`,
       );
     }
+
+    // Video clips retime sound with playbackRate: the source range stretches
+    // by the rate, and declaring the segment at rate × sampleRate makes the
+    // mixer's resampler play it back in window time (pitch shifts, like a
+    // varispeed deck — no time-stretch).
+    const rate = isVideo ? (placement.node.playbackRate ?? 1) : 1;
 
     // Intersect the node's audible window with the export range.
     const audibleStart = Math.max(placement.startFrame, startFrame);
@@ -444,12 +474,15 @@ async function buildMixedAudio(
       continue;
     }
 
-    const trimOffset =
-      (placement.node.audioStartTime ?? 0) +
-      (audibleStart - placement.startFrame) / scene.fps;
+    const nodeTrim = isVideo
+      ? (placement.node.videoStartTime ?? 0)
+      : (placement.node.audioStartTime ?? 0);
+    const framesIntoSource =
+      placement.framesIntoNode + (audibleStart - placement.startFrame);
+    const trimOffset = nodeTrim + (framesIntoSource / scene.fps) * rate;
     const sourceEnd = Math.min(
       clip.duration,
-      trimOffset + (audibleEnd - audibleStart) / scene.fps,
+      trimOffset + ((audibleEnd - audibleStart) / scene.fps) * rate,
     );
 
     if (trimOffset >= sourceEnd) {
@@ -459,7 +492,7 @@ async function buildMixedAudio(
 
     segments.push({
       channels: await decodeAudioRange(clip, trimOffset, sourceEnd),
-      sampleRate: clip.sampleRate,
+      sampleRate: clip.sampleRate * rate,
       startTime: (audibleStart - startFrame) / scene.fps,
       volume: placement.node.volume ?? 1,
     });
@@ -500,7 +533,7 @@ async function buildMixedAudio(
  * positioning decoded packets at exact sample offsets relative to `start`.
  */
 async function decodeAudioRange(
-  clip: AudioClip,
+  clip: Pick<AudioClip, "sampleRate" | "numberOfChannels" | "sink">,
   start: number,
   end: number,
 ): Promise<Float32Array[]> {

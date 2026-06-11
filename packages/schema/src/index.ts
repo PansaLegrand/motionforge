@@ -239,7 +239,11 @@ export type SceneNodeInput = {
   playbackRate?: number;
   /** Audio nodes: source trim offset in seconds. */
   audioStartTime?: number;
-  /** Audio nodes: gain from 0 (silent) to 1 (natural), default 1. */
+  /**
+   * Audio and video nodes: gain from 0 (silent) to 1 (natural), default 1.
+   * A video node's clip audio is mixed into the export at this gain;
+   * playbackRate also retimes the sound (pitch shifts — no time-stretch).
+   */
   volume?: number;
   from?: number;
   duration?: number;
@@ -301,17 +305,27 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
         }
       }
 
-      if (node.type !== "audio") {
-        for (const field of ["audioStartTime", "volume"] as const) {
-          if (node[field] !== undefined) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: [field],
-              message: `${field} only applies to audio nodes; remove it from this ${node.type} node.`,
-            });
-          }
-        }
-      } else {
+      if (node.type !== "audio" && node.audioStartTime !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["audioStartTime"],
+          message: `audioStartTime only applies to audio nodes; video nodes trim picture and sound together via videoStartTime. Remove it from this ${node.type} node.`,
+        });
+      }
+
+      if (
+        node.type !== "audio" &&
+        node.type !== "video" &&
+        node.volume !== undefined
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["volume"],
+          message: `volume only applies to audio and video nodes; remove it from this ${node.type} node.`,
+        });
+      }
+
+      if (node.type === "audio") {
         if (Object.keys(node.style ?? {}).length > 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
