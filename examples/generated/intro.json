@@ -1,0 +1,124 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 120,
+  "assets": {
+    "badge": {
+      "id": "badge",
+      "type": "image",
+      "src": "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNjAiIGhlaWdodD0iMTYwIiB2aWV3Qm94PSIwIDAgMTYwIDE2MCI+PGNpcmNsZSBjeD0iODAiIGN5PSI4MCIgcj0iNzIiIGZpbGw9IiNmZmQxNjYiLz48Y2lyY2xlIGN4PSI4MCIgY3k9IjgwIiByPSI1NiIgZmlsbD0iIzEwMTgyMCIvPjxwYXRoIGQ9Ik01MiA5NiA4MCA0NGwyOCA1Mkg5MmwtMTItMjQtMTIgMjR6IiBmaWxsPSIjZmZkMTY2Ii8+PC9zdmc+"
+    }
+  },
+  "nodes": [
+    {
+      "id": "background",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #101820 0%, #244f46 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "badge-mark",
+      "type": "img",
+      "assetId": "badge",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 160,
+        "height": 160,
+        "position": "absolute",
+        "left": 460,
+        "top": 360,
+        "objectFit": "contain"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 18,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "subtitle-wrap",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "display": "flex",
+        "justifyContent": "center",
+        "alignItems": "center",
+        "height": 180,
+        "padding": 32,
+        "position": "absolute",
+        "left": 64,
+        "right": 64,
+        "bottom": 160
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "subtitle",
+          "type": "text",
+          "text": "Forge motion in the browser",
+          "from": 0,
+          "duration": 120,
+          "style": {
+            "fontFamily": "Inter, system-ui, sans-serif",
+            "fontSize": 76,
+            "fontWeight": 800,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "textShadow": "0 6px 28px rgba(0,0,0,0.45)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "opacity",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": 0
+                },
+                {
+                  "frame": 12,
+                  "value": 1,
+                  "easing": "easeOut"
+                },
+                {
+                  "frame": 100,
+                  "value": 1
+                },
+                {
+                  "frame": 119,
+                  "value": 0,
+                  "easing": "easeIn"
+                }
+              ]
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  ]
+}

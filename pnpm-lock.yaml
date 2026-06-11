@@ -29,9 +29,15 @@ importers:
       '@motionforge/export':
         specifier: workspace:*
         version: link:../../packages/export
+      '@motionforge/presets':
+        specifier: workspace:*
+        version: link:../../packages/presets
       '@motionforge/renderer-canvas2d':
         specifier: workspace:*
         version: link:../../packages/renderer-canvas2d
+      '@motionforge/showcase':
+        specifier: workspace:*
+        version: link:../../packages/showcase
       vite:
         specifier: ^7.0.0
         version: 7.3.5(@types/node@20.19.42)(tsx@4.22.4)
@@ -108,6 +114,22 @@ importers:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@20.19.42)(tsx@4.22.4)
 
+  packages/showcase:
+    dependencies:
+      '@motionforge/core':
+        specifier: workspace:*
+        version: link:../core
+      '@motionforge/presets':
+        specifier: workspace:*
+        version: link:../presets
+      '@motionforge/schema':
+        specifier: workspace:*
+        version: link:../schema
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@20.19.42)(tsx@4.22.4)
+
   tools/golden:
     dependencies:
       '@motionforge/core':
@@ -116,12 +138,18 @@ importers:
       '@motionforge/export':
         specifier: workspace:*
         version: link:../../packages/export
+      '@motionforge/presets':
+        specifier: workspace:*
+        version: link:../../packages/presets
       '@motionforge/renderer-canvas2d':
         specifier: workspace:*
         version: link:../../packages/renderer-canvas2d
       '@motionforge/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      '@motionforge/showcase':
+        specifier: workspace:*
+        version: link:../../packages/showcase
       mediabunny:
         specifier: ^1.46.0
         version: 1.46.0

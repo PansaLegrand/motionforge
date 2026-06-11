@@ -18,6 +18,14 @@ const server = await createServer({
     alias: {
       "@motionforge/schema": resolve(rootDir, "packages/schema/src/index.ts"),
       "@motionforge/core": resolve(rootDir, "packages/core/src/index.ts"),
+      "@motionforge/presets": resolve(
+        rootDir,
+        "packages/presets/src/index.ts",
+      ),
+      "@motionforge/showcase": resolve(
+        rootDir,
+        "packages/showcase/src/index.ts",
+      ),
       "@motionforge/renderer-canvas2d": resolve(
         rootDir,
         "packages/renderer-canvas2d/src/index.ts",

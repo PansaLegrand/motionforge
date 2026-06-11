@@ -1,25 +1,28 @@
 {
-  "name": "@motionforge/playground",
+  "name": "@motionforge/showcase",
   "version": "0.0.0",
   "private": true,
   "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
   "scripts": {
-    "build": "tsc -p tsconfig.json && vite build",
-    "dev": "vite --host 0.0.0.0",
+    "build": "tsc -p tsconfig.json",
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@motionforge/core": "workspace:*",
-    "@motionforge/export": "workspace:*",
     "@motionforge/presets": "workspace:*",
-    "@motionforge/renderer-canvas2d": "workspace:*",
-    "@motionforge/showcase": "workspace:*",
-    "vite": "^7.0.0"
+    "@motionforge/schema": "workspace:*"
   },
   "devDependencies": {
-    "typescript": "^5.8.3",
     "vitest": "^3.2.4"
   }
 }

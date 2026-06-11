@@ -10,7 +10,9 @@
   "references": [
     { "path": "../../packages/schema" },
     { "path": "../../packages/core" },
+    { "path": "../../packages/presets" },
     { "path": "../../packages/renderer-canvas2d" },
-    { "path": "../../packages/export" }
+    { "path": "../../packages/export" },
+    { "path": "../../packages/showcase" }
   ]
 }

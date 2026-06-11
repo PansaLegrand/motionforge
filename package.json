@@ -11,6 +11,7 @@
     "dev": "pnpm --filter @motionforge/playground dev",
     "golden:test": "pnpm --filter @motionforge/golden run golden:test",
     "golden:update": "pnpm --filter @motionforge/golden run update",
+    "showcase:generate": "node examples/generate-showcase.mjs",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "lint": "pnpm -r lint",

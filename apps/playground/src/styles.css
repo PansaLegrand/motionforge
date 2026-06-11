@@ -67,6 +67,58 @@ label {
   font-weight: 650;
 }
 
+select,
+input[type="range"] {
+  width: 100%;
+}
+
+select {
+  min-height: 38px;
+  border: 1px solid #b9c3bd;
+  border-radius: 6px;
+  padding: 0 10px;
+  color: #17201d;
+  background: #f7faf4;
+  font: inherit;
+}
+
+.scene-info {
+  display: grid;
+  gap: 8px;
+  padding: 12px;
+  border: 1px solid #c7d0ca;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.45);
+}
+
+h2 {
+  margin: 0;
+  font-size: 17px;
+}
+
+.scene-info p {
+  font-size: 14px;
+  line-height: 1.4;
+}
+
+.scene-info ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.scene-info li {
+  padding: 4px 8px;
+  border-radius: 6px;
+  color: #244f46;
+  background: #d8e6df;
+  font-size: 12px;
+  font-weight: 700;
+}
+
 button {
   min-height: 40px;
   border: 0;

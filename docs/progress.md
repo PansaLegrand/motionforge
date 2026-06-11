@@ -2,6 +2,34 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (showcase launch surface — open-source demo slice)
+
+### Changed
+
+- Added private workspace package `@motionforge/showcase`: three shared, schema-valid demo scenes (`intro`, `tiktok-captions`, `karaoke-captions`) used by the playground and generated examples.
+- Playground now has a scene picker with per-scene descriptions/proof tags; each selected scene can be scrubbed, played, and exported to MP4.
+- Added `pnpm showcase:generate`, which writes the shared showcase scenes to `examples/generated/*.json` for people who want to inspect or render raw scene documents.
+- Added README showcase gallery, `docs/showcase.md`, and poster images for the three demos.
+- Updated the roadmap to defer dojo integration until the open-source demo surface is stronger.
+
+### Tested
+
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test` (90 unit tests)
+- `pnpm golden:test`
+- `pnpm showcase:generate`
+- Rendered all three generated scenes through the browser harness to MP4 plus poster PNGs:
+  - `intro` frame 40
+  - `tiktok-captions` frame 60
+  - `karaoke-captions` frame 78
+- Browser smoke at `http://localhost:5173/`: the scene picker lists all three showcases, switching scenes updates the metadata/poster frame, export stays enabled, and no console errors were reported.
+
+### Notes
+
+- The showcase package is private by design for now. It is launch/documentation surface, not a published runtime package.
+- Next follow-up after verification: deploy the playground to GitHub Pages and add a live demo link.
+
 ## 2026-06-11 (caption-grade text — roadmap slice 12)
 
 ### Changed

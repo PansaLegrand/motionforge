@@ -9,6 +9,20 @@
 
 ![motionforge playground previewing the sample scene](docs/assets/playground.png)
 
+## Showcases
+
+The current engine can already turn plain scene JSON into real MP4s in the browser. These demos are shared between the playground and docs, so the screenshots below come from the same scene data users can scrub and export.
+
+| Engine intro | TikTok captions | Karaoke captions |
+| --- | --- | --- |
+| <img src="docs/assets/showcase/intro.png" alt="Engine intro" width="220"> | <img src="docs/assets/showcase/tiktok-captions.png" alt="TikTok captions" width="220"> | <img src="docs/assets/showcase/karaoke-captions.png" alt="Karaoke captions" width="220"> |
+
+- **Engine intro:** gradients, image assets, text layout, opacity keyframes.
+- **TikTok captions:** ASR word timestamps → springy one-word captions with strokes and measured highlight pills.
+- **Karaoke captions:** full-line captions with per-word color ramps driven by spoken timestamps.
+
+Try them locally with `pnpm dev`; the playground scene picker can scrub, play, and export each showcase to MP4. See [docs/showcase.md](docs/showcase.md) for source links and render commands.
+
 ## The bet
 
 The canonical video is a **serializable scene document**, and preview and export share the **same renderer**. JSX, React, MCP tools, editors, and desktop apps can all sit above that data layer, but the render path stays pure — the same scene JSON and frame number always produce the same pixels:

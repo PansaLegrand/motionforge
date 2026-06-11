@@ -1,0 +1,327 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 135,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #17202a 0%, #4e342e 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "stage",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "height": 520,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 560,
+        "background": "linear-gradient(135deg, rgba(78,205,196,0.22) 0%, rgba(255,209,102,0.14) 100%)",
+        "borderRadius": 36
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "scale(0.96)"
+            },
+            {
+              "frame": 18,
+              "value": "scale(1)",
+              "easing": "spring(0.2)"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "KARAOKE CAPTIONS",
+      "from": 0,
+      "style": {
+        "height": 90,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 430,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 46,
+        "fontWeight": 800,
+        "color": "#4ecdc4",
+        "letterSpacing": 3,
+        "textAlign": "center"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 16,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "karaoke",
+      "type": "div",
+      "from": 15,
+      "duration": 108,
+      "style": {
+        "display": "flex",
+        "justifyContent": "center",
+        "alignItems": "center",
+        "gap": 19,
+        "width": "100%",
+        "height": 170,
+        "position": "absolute",
+        "left": 0,
+        "top": 760
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "karaoke-w0",
+          "type": "text",
+          "text": "JSON",
+          "from": 0,
+          "style": {
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 54,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "textShadow": "0 10 32 rgba(0,0,0,0.45)",
+            "textStroke": "5px #000000"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "color",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 1,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 18,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 21,
+                  "value": "#ffffff"
+                }
+              ]
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "karaoke-w1",
+          "type": "text",
+          "text": "BECOMES",
+          "from": 0,
+          "style": {
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 54,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "textShadow": "0 10 32 rgba(0,0,0,0.45)",
+            "textStroke": "5px #000000"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "color",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 15,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 18,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 41,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 44,
+                  "value": "#ffffff"
+                }
+              ]
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "karaoke-w2",
+          "type": "text",
+          "text": "VIDEO",
+          "from": 0,
+          "style": {
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 54,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "textShadow": "0 10 32 rgba(0,0,0,0.45)",
+            "textStroke": "5px #000000"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "color",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 38,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 41,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 63,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 66,
+                  "value": "#ffffff"
+                }
+              ]
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "karaoke-w3",
+          "type": "text",
+          "text": "IN",
+          "from": 0,
+          "style": {
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 54,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "textShadow": "0 10 32 rgba(0,0,0,0.45)",
+            "textStroke": "5px #000000"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "color",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 60,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 63,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 77,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 80,
+                  "value": "#ffffff"
+                }
+              ]
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "karaoke-w4",
+          "type": "text",
+          "text": "BROWSER",
+          "from": 0,
+          "style": {
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 54,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "textShadow": "0 10 32 rgba(0,0,0,0.45)",
+            "textStroke": "5px #000000"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "color",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 74,
+                  "value": "#ffffff"
+                },
+                {
+                  "frame": 77,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 108,
+                  "value": "#ffd166"
+                },
+                {
+                  "frame": 111,
+                  "value": "#ffffff"
+                }
+              ]
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -43,7 +43,7 @@ This is simultaneously the agent-facing animation vocabulary and the compiler th
 
 ## Week 4 — dojo readiness
 
-Status: slice 12 is complete; slice 13 is next.
+Status: slice 12 is complete. The next project priority is the showcase/playground launch surface; slice 13 is intentionally deferred until the open-source project is easier to understand and demo.
 
 ### Slice 12: Caption-grade text (1 day)
 

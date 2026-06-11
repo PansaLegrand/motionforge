@@ -15,8 +15,10 @@
   "dependencies": {
     "@motionforge/core": "workspace:*",
     "@motionforge/export": "workspace:*",
+    "@motionforge/presets": "workspace:*",
     "@motionforge/renderer-canvas2d": "workspace:*",
     "@motionforge/schema": "workspace:*",
+    "@motionforge/showcase": "workspace:*",
     "mediabunny": "^1.46.0",
     "playwright": "^1.60.0",
     "tsx": "^4.22.4",

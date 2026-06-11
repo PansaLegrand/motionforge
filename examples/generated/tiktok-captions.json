@@ -1,0 +1,453 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 150,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #101820 0%, #244f46 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "glass-panel",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "height": 760,
+        "position": "absolute",
+        "left": 90,
+        "right": 90,
+        "top": 540,
+        "background": "linear-gradient(160deg, rgba(255,255,255,0.16) 0%, rgba(255,255,255,0.05) 100%)",
+        "borderRadius": 42
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "caption",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": 360,
+        "position": "absolute",
+        "left": 0,
+        "top": 760
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "caption-w0",
+          "type": "div",
+          "from": 24,
+          "duration": 24,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "caption-w0-text",
+              "type": "text",
+              "text": "FORGE",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 112,
+                "fontWeight": 800,
+                "color": "#ffffff",
+                "textAlign": "center",
+                "textShadow": "0 10 40 rgba(0,0,0,0.55)",
+                "textStroke": "8px #000000"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "scale(0.7)"
+                    },
+                    {
+                      "frame": 5,
+                      "value": "scale(1)",
+                      "easing": "spring(0.3)"
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 3,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "caption-w1",
+          "type": "div",
+          "from": 48,
+          "duration": 24,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "caption-w1-text",
+              "type": "text",
+              "text": "MOTION",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 112,
+                "fontWeight": 800,
+                "color": "#ffd166",
+                "textAlign": "center",
+                "textShadow": "0 10 40 rgba(0,0,0,0.55)",
+                "textStroke": "8px #000000",
+                "textBackgroundColor": "rgba(255, 209, 102, 0.16)",
+                "textBackgroundPaddingX": 56,
+                "textBackgroundPaddingY": 25,
+                "textBackgroundRadius": 36
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "scale(0.7)"
+                    },
+                    {
+                      "frame": 5,
+                      "value": "scale(1)",
+                      "easing": "spring(0.3)"
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 3,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "caption-w2",
+          "type": "div",
+          "from": 72,
+          "duration": 24,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "caption-w2-text",
+              "type": "text",
+              "text": "IN",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 112,
+                "fontWeight": 800,
+                "color": "#ffffff",
+                "textAlign": "center",
+                "textShadow": "0 10 40 rgba(0,0,0,0.55)",
+                "textStroke": "8px #000000"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "scale(0.7)"
+                    },
+                    {
+                      "frame": 5,
+                      "value": "scale(1)",
+                      "easing": "spring(0.3)"
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 3,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "caption-w3",
+          "type": "div",
+          "from": 96,
+          "duration": 24,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "caption-w3-text",
+              "type": "text",
+              "text": "THE",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 112,
+                "fontWeight": 800,
+                "color": "#ffffff",
+                "textAlign": "center",
+                "textShadow": "0 10 40 rgba(0,0,0,0.55)",
+                "textStroke": "8px #000000"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "scale(0.7)"
+                    },
+                    {
+                      "frame": 5,
+                      "value": "scale(1)",
+                      "easing": "spring(0.3)"
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 3,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "caption-w4",
+          "type": "div",
+          "from": 120,
+          "duration": 30,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "caption-w4-text",
+              "type": "text",
+              "text": "BROWSER",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 112,
+                "fontWeight": 800,
+                "color": "#ffd166",
+                "textAlign": "center",
+                "textShadow": "0 10 40 rgba(0,0,0,0.55)",
+                "textStroke": "8px #000000",
+                "textBackgroundColor": "rgba(255, 209, 102, 0.16)",
+                "textBackgroundPaddingX": 56,
+                "textBackgroundPaddingY": 25,
+                "textBackgroundRadius": 36
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "scale(0.7)"
+                    },
+                    {
+                      "frame": 5,
+                      "value": "scale(1)",
+                      "easing": "spring(0.3)"
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 3,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "progress-track",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "height": 14,
+        "position": "absolute",
+        "left": 120,
+        "right": 120,
+        "top": 1320,
+        "backgroundColor": "rgba(255,255,255,0.22)",
+        "borderRadius": 12,
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "progress-fill",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "backgroundColor": "#ffd166",
+            "transform": "translate(-100%, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "translate(-100%, 0px)"
+                },
+                {
+                  "frame": 149,
+                  "value": "translate(0%, 0px)",
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  ]
+}

@@ -3,11 +3,23 @@
 Scene documents that produce real videos. Render any of them with:
 
 ```sh
+pnpm build
+pnpm showcase:generate
 pnpm --filter @motionforge/golden exec playwright install chromium  # once
-pnpm --filter @motionforge/golden run example examples/tiktok-captions.json out.mp4 60
+pnpm --filter @motionforge/golden run example examples/generated/tiktok-captions.json out.mp4 60
 ```
 
 The trailing numbers are optional frame indices written as PNGs next to the MP4.
+
+## generated/
+
+`examples/generated/*.json` is produced from the shared showcase scenes:
+
+```sh
+pnpm showcase:generate
+```
+
+Those scenes also power the playground scene picker, so docs, examples, and preview stay aligned.
 
 ## tiktok-captions.json
 
