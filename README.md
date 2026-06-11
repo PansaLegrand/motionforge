@@ -43,13 +43,14 @@ flowchart TB
     R2D --> EXPORT["<b>@motionforge/export</b><br/>frame sequence loop → WebCodecs"]
 ```
 
-| Package                                                        | What it does                                   | Status     |
-| -------------------------------------------------------------- | ---------------------------------------------- | ---------- |
-| [`@motionforge/schema`](packages/schema)                       | Scene format, validation, JSON Schema export   | ✅ working |
-| [`@motionforge/core`](packages/core)                           | Builder API, keyframe evaluator, layout pass   | ✅ working |
-| [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                    | ✅ working |
-| [`@motionforge/export`](packages/export)                       | In-browser MP4 export (WebCodecs + mediabunny) | ✅ working |
-| [`apps/playground`](apps/playground)                           | Vite preview with frame scrubbing              | ✅ working |
+| Package                                                        | What it does                                        | Status     |
+| -------------------------------------------------------------- | --------------------------------------------------- | ---------- |
+| [`@motionforge/schema`](packages/schema)                       | Scene format, validation, JSON Schema export        | ✅ working |
+| [`@motionforge/core`](packages/core)                           | Builder API, keyframe evaluator, layout pass        | ✅ working |
+| [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                         | ✅ working |
+| [`@motionforge/export`](packages/export)                       | In-browser MP4 export (WebCodecs + mediabunny)      | ✅ working |
+| [`@motionforge/presets`](packages/presets)                     | Animation presets + caption generators → scene data | ✅ working |
+| [`apps/playground`](apps/playground)                           | Vite preview with frame scrubbing                   | ✅ working |
 
 ## Why not Remotion?
 

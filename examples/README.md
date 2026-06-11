@@ -20,3 +20,15 @@ asset — all from one JSON document, no code.
 | frame 30                             | frame 60                             | frame 135                              |
 | ------------------------------------ | ------------------------------------ | -------------------------------------- |
 | ![frame 30](tiktok-captions-f30.png) | ![frame 60](tiktok-captions-f60.png) | ![frame 135](tiktok-captions-f135.png) |
+
+## generate-tiktok.mjs
+
+The same caption track, generated instead of hand-written: one
+`tiktokCaptions(words, { fps, highlightIndices })` call from
+[`@motionforge/presets`](../packages/presets) replaces ~300 lines of JSON.
+
+```sh
+pnpm build
+node examples/generate-tiktok.mjs > /tmp/tiktok-presets.json
+pnpm --filter @motionforge/golden run example /tmp/tiktok-presets.json out.mp4 50
+```

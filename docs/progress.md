@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (@motionforge/presets — roadmap slice 10)
+
+### Changed
+
+- New package `@motionforge/presets`: pure functions that compile animation intent into scene data (depends only on `@motionforge/schema`; no runtime, no rendering).
+  - Motion presets: `popIn`, `fadeUp`, `slideIn(direction)`, `pulse` — each takes `durationInFrames`/`delay`/`easing`, returns keyframe arrays using real transform tweens (`scale(0.8) → scale(1)`) and the new spring/bezier easings. `delay` holds the start value from frame 0 so keyframes stay strictly increasing.
+  - Caption generators from ASR-style word timestamps (`{ word, startMs, endMs }[]`): `tiktokCaptions` (one word at a time, pop entrance, optional highlight pills, words hold until the next starts) and `karaokeCaptions` (whole line visible, per-word color ramps to the highlight during its spoken span).
+- `examples/generate-tiktok.mjs`: regenerates the TikTok example's caption track from one `tiktokCaptions()` call — the roadmap acceptance criterion ("~10 lines of preset calls") met and visually verified by rendering the generated scene.
+- README package table, llms.txt (agents are pointed at presets instead of hand-writing animation JSON), and examples README updated.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (80 unit tests; presets: schema validity of every preset, delay hold semantics, transform-tween usage, ms→frame mapping, pill/highlight structure, karaoke color ramp values, line span math)
+- Rendered the generated scene end-to-end: 150 frames at 1080×1920 in ~1.3 s; frame 50 visually matches the hand-written example's highlight-pill style.
+
+### Notes
+
+- Caption pill widths derive from character count (no text measurement in data land); good enough visually, revisit when text-fitted backgrounds land in slice 12.
+- These presets are the compilation target dojo's named enter/exit overlay animations will map onto in the adapter.
+
 ## 2026-06-11 (transform interpolation + easing expansion — roadmap slices 8 & 9)
 
 ### Changed
