@@ -228,7 +228,7 @@ export const assetSchema = z.object({
 
 export type SceneAsset = z.infer<typeof assetSchema>;
 
-type SceneNodeInput = {
+export type SceneNodeInput = {
   id: string;
   type: "div" | "text" | "img" | "video" | "audio";
   text?: string;
@@ -457,3 +457,14 @@ export function sceneJsonSchema(): Record<string, unknown> {
     target: "jsonSchema7",
   }) as Record<string, unknown>;
 }
+
+export {
+  applyScenePatch,
+  closestIds,
+  sceneOpSchema,
+  scenePatchSchema,
+  type ApplyScenePatchResult,
+  type SceneOp,
+  type ScenePatch,
+  type ScenePatchError,
+} from "./patch.js";

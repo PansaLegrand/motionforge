@@ -2,6 +2,24 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (scene patch ops — RFC 0001 implemented; week-2 slice 1)
+
+### Changed
+
+- `@motionforge/schema` gains `src/patch.ts`: `applyScenePatch(scene, patch)`, `scenePatchSchema`/`sceneOpSchema` (zod), and `closestIds()`. All ten RFC ops implemented with the RFC's semantics: id-addressed, transactional (any failing op rejects the whole patch), pure/copy-on-write (input never mutated), `setStyle` merges with null-deletes, `setAnimations` replaces as a unit, `insertNode` requires caller-supplied unique ids, `removeAsset` is guarded by reference checks, `moveNode` refuses own-subtree cycles, and the final document fully revalidates so cross-field invariants hold after every patch.
+- Error model per RFC: `{opIndex, message}` with path/problem/fix phrasing; missing node ids get closest-id suggestions via edit distance (`closestIds` exported for reuse by future tooling).
+- `llms.txt` now tells agents to patch rather than re-emit documents, with the full op vocabulary inline. RFC 0001 status flipped to implemented.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema test` (28 tests; 17 new: merge/null-delete, input immutability, transactionality, closest-id hints, per-op type guards, style/keyframe validation through patches, insert positioning, duplicate-id rejection, subtree removal, move-into-own-subtree rejection, guarded asset removal, meta updates, malformed-patch op indexes, cross-field revalidation, edit-distance ranking)
+- `pnpm build`, `pnpm typecheck`
+
+### Notes
+
+- Patch ops intentionally have no JSON-Pointer escape hatch; the closed vocabulary is the contract. If a real consumer needs an op we don't have, add an op, not a pointer.
+- The eval harness (RFC's generate/edit/repair suites) remains the next agent-layer step; `applyScenePatch` is its scoring function for the edit suite.
+
 ## 2026-06-11 (patch-ops RFC, getting-started guide, 5-week roadmap)
 
 ### Changed

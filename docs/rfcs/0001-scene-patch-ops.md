@@ -1,6 +1,6 @@
 # RFC 0001: Scene patch operations
 
-**Status:** proposed (week-1 deliverable; implementation scheduled week 2)
+**Status:** implemented (`@motionforge/schema` — `applyScenePatch`, `scenePatchSchema`, `sceneOpSchema`, `closestIds`; see `packages/schema/src/patch.ts`)
 **Owner:** agent-layer workstream
 **Consumers:** chat-driven editing (a chat UI), any tool that edits scenes incrementally
 
