@@ -1,6 +1,6 @@
 # Lottie node spike — findings and integration design
 
-**Date:** 2026-06-11 · **Status:** complete · **Spike code:** `tools/spike-lottie` (throwaway — this document is the deliverable)
+**Date:** 2026-06-11 · **Status:** complete — **implemented** (lottie asset/node types shipped per this design) · **Spike code:** `tools/spike-lottie` (throwaway — this document is the deliverable)
 **Question:** can Lottie animations render as deterministic, frame-exact pixels inside motionforge's pure `(scene, frame)` contract?
 
 ## Verdict: yes — green-light the `lottie` node

@@ -202,6 +202,46 @@ describe("scene schema", () => {
     );
   });
 
+  it("validates lottie nodes: assetId required, playbackRate allowed", () => {
+    const base = {
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      assets: {
+        sticker: { id: "sticker", type: "lottie", src: "sticker.json" },
+      },
+    };
+
+    expect(
+      validateScene({
+        ...base,
+        nodes: [
+          { id: "s", type: "lottie", assetId: "sticker", playbackRate: 2 },
+        ],
+      }).ok,
+    ).toBe(true);
+
+    const missingAsset = validateScene({
+      ...base,
+      nodes: [{ id: "s", type: "lottie" }],
+    });
+    expect(missingAsset.ok).toBe(false);
+    expect(missingAsset.ok ? [] : missingAsset.errors.join("\n")).toContain(
+      "lottie nodes require an assetId",
+    );
+
+    const rateOnDiv = validateScene({
+      ...base,
+      nodes: [{ id: "d", type: "div", playbackRate: 2 }],
+    });
+    expect(rateOnDiv.ok).toBe(false);
+    expect(rateOnDiv.ok ? [] : rateOnDiv.errors.join("\n")).toContain(
+      "video and lottie nodes",
+    );
+  });
+
   it("accepts easing expressions and rejects malformed ones", () => {
     const sceneWith = (easing: string) => ({
       schemaVersion: 0,

@@ -51,6 +51,22 @@ export type AudioClip = {
   input: Input;
 };
 
+/** A loaded Lottie animation opened by resolveAssets(). */
+export type LottieClip = {
+  /** Lottie frame rate (independent of scene fps). */
+  fr: number;
+  /** First/last animation frames (op is exclusive, per the Lottie format). */
+  ip: number;
+  op: number;
+  /** Natural size of the animation document. */
+  width: number;
+  height: number;
+  /** The lottie-web player, seeked by prepareFrame(); destroyed on dispose. */
+  animation: { goToAndStop(value: number, isFrame?: boolean): void; destroy(): void };
+  /** The canvas the player renders into; copied into per-node staging. */
+  canvas: HTMLCanvasElement;
+};
+
 /** A decoded video frame staged for one scene frame by prepareFrame(). */
 export type PreparedVideoFrame = {
   image: HTMLCanvasElement | OffscreenCanvas;
@@ -75,6 +91,10 @@ export type ResolvedAssets = {
   videoFrames: Map<string, PreparedVideoFrame>;
   /** Opened audio clips, keyed by asset id. */
   audio: Map<string, AudioClip>;
+  /** Loaded Lottie animations, keyed by asset id. */
+  lotties: Map<string, LottieClip>;
+  /** Lottie frames staged by prepareFrame(), keyed by lottie node id. */
+  lottieFrames: Map<string, PreparedVideoFrame>;
 };
 
 // Fonts registered with the environment's FontFaceSet, keyed by id + src, so
@@ -93,6 +113,7 @@ export async function resolveAssets(scene: Scene): Promise<ResolvedAssets> {
   const fonts = new Map<string, FontFace>();
   const videos = new Map<string, VideoClip>();
   const audio = new Map<string, AudioClip>();
+  const lotties = new Map<string, LottieClip>();
 
   await Promise.all(
     Object.values(parsed.assets).map(async (asset) => {
@@ -106,6 +127,8 @@ export async function resolveAssets(scene: Scene): Promise<ResolvedAssets> {
           videos.set(asset.id, await openVideoClip(asset.src));
         } else if (asset.type === "audio") {
           audio.set(asset.id, await openAudioClip(asset.src));
+        } else if (asset.type === "lottie") {
+          lotties.set(asset.id, await openLottieClip(asset.src));
         }
       } catch (cause) {
         throw new Error(
@@ -116,7 +139,15 @@ export async function resolveAssets(scene: Scene): Promise<ResolvedAssets> {
     }),
   );
 
-  return { images, fonts, videos, videoFrames: new Map(), audio };
+  return {
+    images,
+    fonts,
+    videos,
+    videoFrames: new Map(),
+    audio,
+    lotties,
+    lottieFrames: new Map(),
+  };
 }
 
 /**
@@ -132,9 +163,15 @@ export function disposeAssets(assets: ResolvedAssets): void {
     clip.input.dispose();
   }
 
+  for (const clip of assets.lotties.values()) {
+    clip.animation.destroy();
+  }
+
   assets.videos.clear();
   assets.videoFrames.clear();
   assets.audio.clear();
+  assets.lotties.clear();
+  assets.lottieFrames.clear();
 }
 
 async function openAudioClip(src: string): Promise<AudioClip> {
@@ -229,7 +266,7 @@ export async function prepareFrame(
 ): Promise<void> {
   const parsed = parseScene(scene);
 
-  if (assets.videos.size === 0) {
+  if (assets.videos.size === 0 && assets.lotties.size === 0) {
     return;
   }
 
@@ -273,6 +310,46 @@ export async function prepareFrame(
       );
     }
 
+    if (node.type === "lottie" && node.assetId) {
+      const assetId = node.assetId;
+      const clip = assets.lotties.get(assetId);
+
+      if (!clip) {
+        throw new Error(
+          `Lottie node "${node.id}" references asset "${assetId}" which is not in the resolved assets. Call resolveAssets(scene) first.`,
+        );
+      }
+
+      // Seeking is synchronous; the staged copy isolates this node from
+      // other nodes sharing the same animation instance at other times.
+      clip.animation.goToAndStop(
+        lottieSourceFrame(
+          node.localFrame,
+          parsed.fps,
+          node.playbackRate ?? 1,
+          clip,
+        ),
+        true,
+      );
+
+      const staged = document.createElement("canvas");
+      staged.width = clip.width;
+      staged.height = clip.height;
+      const stagedContext = staged.getContext("2d");
+
+      if (!stagedContext) {
+        throw new Error("Canvas2D unavailable for lottie staging.");
+      }
+
+      stagedContext.drawImage(clip.canvas, 0, 0);
+      assets.lottieFrames.set(node.id, {
+        image: staged,
+        width: clip.width,
+        height: clip.height,
+        sceneFrame: resolved.frame,
+      });
+    }
+
     for (const child of node.children) {
       visit(child);
     }
@@ -283,6 +360,165 @@ export async function prepareFrame(
   }
 
   await Promise.all(tasks);
+}
+
+/**
+ * Maps a lottie node's local frame to an animation frame offset (relative to
+ * the document's in-point): (localFrame / fps) x playbackRate x lottie.fr,
+ * clamped so scenes outlasting the animation hold its last frame —
+ * lottie-web does NOT clamp out-of-range seeks itself (verified in the
+ * spike). Fractional frames are fine; lottie interpolates deterministically.
+ */
+export function lottieSourceFrame(
+  localFrame: number,
+  fps: number,
+  playbackRate: number,
+  clip: Pick<LottieClip, "fr" | "ip" | "op">,
+): number {
+  const raw = (localFrame / fps) * playbackRate * clip.fr;
+  const lastFrame = Math.max(0, clip.op - clip.ip - 0.001);
+  return Math.min(Math.max(0, raw), lastFrame);
+}
+
+/**
+ * Determinism and self-containment guards for a Lottie document. Returns
+ * problem strings (empty = acceptable). Rejection beats nondeterministic
+ * rendering:
+ * - expressions are JavaScript and may call Date/random;
+ * - image layers reference external bitmaps (v0 accepts vectors only).
+ */
+export function validateLottieDocument(document: unknown): string[] {
+  const problems: string[] = [];
+
+  if (typeof document !== "object" || document === null) {
+    return ["not a JSON object"];
+  }
+
+  const doc = document as {
+    layers?: unknown[];
+    assets?: Array<{ p?: unknown; u?: unknown; layers?: unknown[] }>;
+    fr?: unknown;
+    op?: unknown;
+  };
+
+  if (typeof doc.fr !== "number" || typeof doc.op !== "number") {
+    problems.push("missing fr/op — not a Lottie animation document");
+    return problems;
+  }
+
+  for (const asset of doc.assets ?? []) {
+    if (typeof asset?.p === "string" && asset.p.length > 0) {
+      problems.push(
+        `references external image "${asset.p}" — v0 supports self-contained vector documents only`,
+      );
+    }
+  }
+
+  const layerLists = [
+    doc.layers ?? [],
+    ...(doc.assets ?? []).map((asset) => asset?.layers ?? []),
+  ];
+
+  for (const layers of layerLists) {
+    for (const layer of layers as Array<{ ty?: unknown }>) {
+      if (layer?.ty === 2) {
+        problems.push("contains an image layer (ty 2) — vectors only in v0");
+      }
+    }
+  }
+
+  if (containsExpression(document)) {
+    problems.push(
+      "contains expressions (string-valued \"x\") — expressions are JavaScript and may break determinism",
+    );
+  }
+
+  return problems;
+}
+
+function containsExpression(value: unknown): boolean {
+  if (Array.isArray(value)) {
+    return value.some(containsExpression);
+  }
+
+  if (typeof value === "object" && value !== null) {
+    for (const [key, child] of Object.entries(value)) {
+      if (key === "x" && typeof child === "string") {
+        return true;
+      }
+
+      if (containsExpression(child)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
+
+async function openLottieClip(src: string): Promise<LottieClip> {
+  const response = await fetchAsset(src);
+  const data = (await response.json()) as {
+    fr: number;
+    ip?: number;
+    op: number;
+    w?: number;
+    h?: number;
+  };
+
+  const problems = validateLottieDocument(data);
+
+  if (problems.length > 0) {
+    throw new Error(problems.join("; "));
+  }
+
+  let imported: unknown;
+
+  try {
+    imported = await import("lottie-web");
+  } catch {
+    throw new Error(
+      "the scene uses a lottie asset but lottie-web is not installed. Add the optional peer dependency: npm install lottie-web",
+    );
+  }
+
+  const lottie = ((imported as { default?: unknown }).default ?? imported) as {
+    loadAnimation(options: unknown): unknown;
+  };
+  const width = data.w ?? 512;
+  const height = data.h ?? 512;
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas2D unavailable for the lottie player.");
+  }
+
+  const animation = lottie.loadAnimation({
+    renderer: "canvas",
+    loop: false,
+    autoplay: false,
+    animationData: data,
+    rendererSettings: { context, clearCanvas: true },
+  } as never) as unknown as LottieClip["animation"] & {
+    addEventListener(name: string, handler: () => void): void;
+  };
+
+  await new Promise<void>((resolve) => {
+    animation.addEventListener("DOMLoaded", () => resolve());
+  });
+
+  return {
+    fr: data.fr,
+    ip: data.ip ?? 0,
+    op: data.op,
+    width,
+    height,
+    animation,
+    canvas,
+  };
 }
 
 async function fetchAsset(src: string): Promise<Response> {
@@ -445,6 +681,10 @@ function drawBox(
     drawVideo(context, box, node, style, assets, sceneFrame);
   }
 
+  if (node.type === "lottie" && node.assetId) {
+    drawLottie(context, box, node, style, assets, sceneFrame);
+  }
+
   drawBorder(context, box, style);
 
   for (const child of sortByZIndex(box.children)) {
@@ -577,6 +817,31 @@ function drawVideo(
   if (prepared.sceneFrame !== sceneFrame) {
     throw new Error(
       `Video node "${node.id}" has a frame staged for scene frame ${prepared.sceneFrame}, but frame ${sceneFrame} is being rendered. Await prepareFrame(scene, ${sceneFrame}, assets) first.`,
+    );
+  }
+
+  drawMedia(context, box, style, prepared.image, prepared);
+}
+
+function drawLottie(
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  box: LayoutBox,
+  node: LayoutBox["node"],
+  style: SceneStyle,
+  assets: ResolvedAssets | undefined,
+  sceneFrame: number,
+): void {
+  const prepared = assets?.lottieFrames.get(node.id);
+
+  if (!prepared) {
+    throw new Error(
+      `Scene draws lottie node "${node.id}" but no frame was staged for it. Await prepareFrame(scene, frame, assets) before renderStill.`,
+    );
+  }
+
+  if (prepared.sceneFrame !== sceneFrame) {
+    throw new Error(
+      `Lottie node "${node.id}" has a frame staged for scene frame ${prepared.sceneFrame}, but frame ${sceneFrame} is being rendered. Await prepareFrame(scene, ${sceneFrame}, assets) first.`,
     );
   }
 

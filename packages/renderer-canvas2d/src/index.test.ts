@@ -2,12 +2,14 @@ import { describe, expect, it } from "vitest";
 import { sampleScene } from "@motionforge/core";
 import {
   computeObjectFit,
+  lottieSourceFrame,
   parseBorder,
   parseBoxShadow,
   parseLinearGradient,
   parseTextBackground,
   parseTextStroke,
   renderStill,
+  validateLottieDocument,
   videoSourceTime,
   wrapTextLines,
 } from "./index.js";
@@ -418,5 +420,69 @@ describe("zIndex paint order", () => {
     renderStill(context, scene as never, 0);
 
     expect(fills).toEqual(["#00bb00", "#0000cc", "#dd00dd", "#aa0000"]);
+  });
+});
+
+describe("lottieSourceFrame", () => {
+  const clip = { fr: 60, ip: 0, op: 120 };
+
+  it("maps scene-local frames through fps, rate, and lottie frame rate", () => {
+    expect(lottieSourceFrame(0, 30, 1, clip)).toBe(0);
+    expect(lottieSourceFrame(15, 30, 1, clip)).toBe(30); // 0.5s x 60fr
+    expect(lottieSourceFrame(15, 30, 2, clip)).toBe(60);
+  });
+
+  it("clamps to the last frame — lottie-web does not clamp itself", () => {
+    expect(lottieSourceFrame(900, 30, 1, clip)).toBeCloseTo(119.999, 3);
+    expect(lottieSourceFrame(-5, 30, 1, clip)).toBe(0);
+  });
+
+  it("respects a nonzero in-point when clamping", () => {
+    expect(lottieSourceFrame(900, 30, 1, { fr: 30, ip: 20, op: 50 })).toBeCloseTo(
+      29.999,
+      3,
+    );
+  });
+});
+
+describe("validateLottieDocument", () => {
+  const minimal = { v: "5.7.4", fr: 30, ip: 0, op: 60, w: 100, h: 100, layers: [{ ty: 4 }] };
+
+  it("accepts a self-contained vector document", () => {
+    expect(validateLottieDocument(minimal)).toEqual([]);
+  });
+
+  it("rejects non-lottie JSON and external images", () => {
+    expect(validateLottieDocument({ hello: 1 })).toContain(
+      "missing fr/op — not a Lottie animation document",
+    );
+    expect(
+      validateLottieDocument({
+        ...minimal,
+        assets: [{ id: "img_0", p: "image.png", u: "images/" }],
+      }).join(" "),
+    ).toContain('external image "image.png"');
+  });
+
+  it("rejects image layers and expressions", () => {
+    expect(
+      validateLottieDocument({ ...minimal, layers: [{ ty: 2 }] }).join(" "),
+    ).toContain("image layer");
+
+    const withExpression = {
+      ...minimal,
+      layers: [
+        { ty: 4, ks: { p: { a: 0, k: [0, 0], x: "var $bm_rt = wiggle(2, 30);" } } },
+      ],
+    };
+    expect(validateLottieDocument(withExpression).join(" ")).toContain(
+      "expressions",
+    );
+    // bezier easing objects use numeric/array "x" — those must pass
+    const withEasing = {
+      ...minimal,
+      layers: [{ ty: 4, ks: { p: { a: 1, k: [{ t: 0, i: { x: [0.5], y: [0.5] } }] } } }],
+    };
+    expect(validateLottieDocument(withEasing)).toEqual([]);
   });
 });

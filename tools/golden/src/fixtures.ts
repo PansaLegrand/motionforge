@@ -6,6 +6,67 @@ import type { Scene } from "@motionforge/schema";
 const quadrantsPng =
   "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAYAAAAf8/9hAAAAIUlEQVR42mP4z8DwHx8mAo4aMAwMIKAfCBjw4lEDhoUBAFfoPd+JcsLjAAAAAElFTkSuQmCC";
 
+
+// Minimal self-contained Lottie document (the spike's): a teal rounded
+// rectangle translating left-to-right while rotating, 60 frames @ 30fps,
+// 200x200. Inlined as a data URL so the fixture needs no network.
+const lottieRectJson = JSON.stringify({
+  v: "5.7.4",
+  fr: 30,
+  ip: 0,
+  op: 60,
+  w: 200,
+  h: 200,
+  nm: "golden",
+  ddd: 0,
+  assets: [],
+  layers: [
+    {
+      ddd: 0,
+      ind: 1,
+      ty: 4,
+      nm: "rect",
+      sr: 1,
+      ks: {
+        o: { a: 0, k: 100 },
+        r: {
+          a: 1,
+          k: [
+            { t: 0, s: [0], e: [180], i: { x: [0.5], y: [0.5] }, o: { x: [0.5], y: [0.5] } },
+            { t: 60, s: [180] },
+          ],
+        },
+        p: {
+          a: 1,
+          k: [
+            { t: 0, s: [40, 100, 0], e: [160, 100, 0], i: { x: 0.5, y: 0.5 }, o: { x: 0.5, y: 0.5 } },
+            { t: 60, s: [160, 100, 0] },
+          ],
+        },
+        a: { a: 0, k: [0, 0, 0] },
+        s: { a: 0, k: [100, 100, 100] },
+      },
+      ao: 0,
+      shapes: [
+        {
+          ty: "gr",
+          nm: "group",
+          it: [
+            { ty: "rc", nm: "box", d: 1, s: { a: 0, k: [60, 60] }, p: { a: 0, k: [0, 0] }, r: { a: 0, k: 8 } },
+            { ty: "fl", nm: "fill", c: { a: 0, k: [0.4, 0.96, 0.84, 1] }, o: { a: 0, k: 100 } },
+            { ty: "tr", p: { a: 0, k: [0, 0] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] }, r: { a: 0, k: 0 }, o: { a: 0, k: 100 } },
+          ],
+        },
+      ],
+      ip: 0,
+      op: 60,
+      st: 0,
+    },
+  ],
+});
+
+const lottieRectDataUrl = `data:application/json,${encodeURIComponent(lottieRectJson)}`;
+
 export type ExactGoldenFixture = {
   kind: "exact";
   id: string;
@@ -1207,6 +1268,74 @@ export const fixtures: GoldenFixture[] = [
             width: 64,
             height: 64,
             objectFit: "fill",
+          },
+          children: [],
+        },
+      ],
+    },
+  },
+  {
+    kind: "exact",
+    id: "lottie-frame-seek",
+    description:
+      "A lottie node renders frame-exact: at scene frame 20 the document's rectangle is mid-travel and mid-rotation, drawn under objectFit contain; a second node at 2x rate shows a later animation frame at the same scene frame.",
+    frame: 20,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 40,
+      assets: {
+        sticker: {
+          id: "sticker",
+          type: "lottie",
+          src: lottieRectDataUrl,
+        },
+      },
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 40,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "natural-rate",
+          type: "lottie",
+          assetId: "sticker",
+          from: 0,
+          duration: 40,
+          style: {
+            position: "absolute",
+            left: 10,
+            top: 20,
+            width: 140,
+            height: 140,
+            objectFit: "contain",
+          },
+          children: [],
+        },
+        {
+          id: "double-rate",
+          type: "lottie",
+          assetId: "sticker",
+          playbackRate: 2,
+          from: 0,
+          duration: 40,
+          style: {
+            position: "absolute",
+            left: 170,
+            top: 20,
+            width: 140,
+            height: 140,
+            objectFit: "contain",
           },
           children: [],
         },

@@ -39,7 +39,8 @@
                   "image",
                   "video",
                   "audio",
-                  "font"
+                  "font",
+                  "lottie"
                 ]
               },
               "src": {
@@ -72,7 +73,8 @@
                   "text",
                   "img",
                   "video",
-                  "audio"
+                  "audio",
+                  "lottie"
                 ]
               },
               "text": {

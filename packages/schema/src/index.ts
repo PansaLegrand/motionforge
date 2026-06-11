@@ -222,7 +222,7 @@ export type SceneAnimation = z.infer<typeof animationSchema>;
 
 export const assetSchema = z.object({
   id: z.string().min(1),
-  type: z.enum(["image", "video", "audio", "font"]),
+  type: z.enum(["image", "video", "audio", "font", "lottie"]),
   src: z.string().min(1),
 });
 
@@ -230,12 +230,12 @@ export type SceneAsset = z.infer<typeof assetSchema>;
 
 export type SceneNodeInput = {
   id: string;
-  type: "div" | "text" | "img" | "video" | "audio";
+  type: "div" | "text" | "img" | "video" | "audio" | "lottie";
   text?: string;
   assetId?: string;
   /** Video nodes: source trim offset in seconds (source footage has its own timebase, independent of scene fps). */
   videoStartTime?: number;
-  /** Video nodes: playback speed multiplier (1 = natural speed). */
+  /** Video and lottie nodes: playback speed multiplier (1 = natural speed). */
   playbackRate?: number;
   /** Audio nodes: source trim offset in seconds. */
   audioStartTime?: number;
@@ -258,7 +258,7 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
   z
     .object({
       id: z.string().min(1),
-      type: z.enum(["div", "text", "img", "video", "audio"]),
+      type: z.enum(["div", "text", "img", "video", "audio", "lottie"]),
       text: z.string().optional(),
       assetId: z.string().optional(),
       videoStartTime: z.number().nonnegative().optional(),
@@ -283,7 +283,8 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
       if (
         (node.type === "img" ||
           node.type === "video" ||
-          node.type === "audio") &&
+          node.type === "audio" ||
+          node.type === "lottie") &&
         !node.assetId
       ) {
         ctx.addIssue({
@@ -293,16 +294,24 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
         });
       }
 
-      if (node.type !== "video") {
-        for (const field of ["videoStartTime", "playbackRate"] as const) {
-          if (node[field] !== undefined) {
-            ctx.addIssue({
-              code: z.ZodIssueCode.custom,
-              path: [field],
-              message: `${field} only applies to video nodes; remove it from this ${node.type} node.`,
-            });
-          }
-        }
+      if (node.type !== "video" && node.videoStartTime !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["videoStartTime"],
+          message: `videoStartTime only applies to video nodes; remove it from this ${node.type} node.`,
+        });
+      }
+
+      if (
+        node.type !== "video" &&
+        node.type !== "lottie" &&
+        node.playbackRate !== undefined
+      ) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["playbackRate"],
+          message: `playbackRate only applies to video and lottie nodes; remove it from this ${node.type} node.`,
+        });
       }
 
       if (node.type !== "audio" && node.audioStartTime !== undefined) {

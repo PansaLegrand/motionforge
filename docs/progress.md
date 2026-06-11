@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (lottie node — week-4 slice 6, the launch headline feature)
+
+### Changed
+
+- `@motionforge/schema`: new asset type `"lottie"` and node type `lottie` (requires `assetId`; `playbackRate` now validates on video **and** lottie nodes with an updated message; `videoStartTime` stays video-only).
+- `@motionforge/renderer-canvas2d`: lottie assets load through `resolveAssets()` (fetch JSON → determinism guards → lottie-web canvas player with `autoplay: false`); `prepareFrame()` seeks each active lottie node via `goToAndStop(lottieSourceFrame(...), true)` and stages a per-node canvas copy (two nodes can share one asset at different frames); `renderStill()` draws staged frames through the shared objectFit path with the same stale-frame errors video has; `disposeAssets()` destroys players.
+- Determinism guards per the spike: `validateLottieDocument()` (exported, pure) rejects documents with JS expressions (string-valued `"x"` — may call `Date`/`random`) or image layers/external images; `lottieSourceFrame()` (exported, pure) clamps to `op − ip − 1` because lottie-web does not clamp out-of-range seeks.
+- **lottie-web is an optional peer dependency** of the renderer, dynamically imported only when a scene actually contains a lottie asset; missing install produces an actionable error. Scenes without Lottie pay zero bytes.
+- Docs: scene-format Lottie section, llms.txt node-type entry, spike doc flipped to implemented.
+
+### Tested
+
+- 12 new unit tests: `lottieSourceFrame` mapping (fps/rate/lottie-fr, clamping both ends, nonzero in-point), `validateLottieDocument` (accepts self-contained vectors **and bezier easings whose `x` is numeric**, rejects non-lottie JSON, external images, image layers, expressions), schema accept/reject matrix for the new node type. 159 unit tests total.
+- New exact golden `lottie-frame-seek`: two lottie nodes sharing one data-URL asset — natural rate and 2× rate at scene frame 20 — hash recorded, re-verified, and the rendered frame visually confirmed (two rects at different rotations/positions). 35 golden checks green.
+
+### Notes
+
+- Export and player needed **zero changes** — both already await `prepareFrame()` per frame, so lottie nodes export and preview automatically.
+- Worker/OffscreenCanvas rendering of lottie is unverified (lottie-web touches `document`); fine while export runs on the main thread.
+
 ## 2026-06-11 (chunked audio mixing — week-4 slice 5)
 
 ### Changed

@@ -19,7 +19,7 @@ type Scene = {
 
 type Asset = {
   id: string; // must equal its key in scene.assets
-  type: "image" | "video" | "audio" | "font";
+  type: "image" | "video" | "audio" | "font" | "lottie";
   src: string;
 };
 ```
@@ -29,7 +29,7 @@ type Asset = {
 ```ts
 type SceneNode = {
   id: string; // unique across the whole scene
-  type: "div" | "text" | "img" | "video" | "audio";
+  type: "div" | "text" | "img" | "video" | "audio" | "lottie";
   text?: string; // required when type is "text"
   assetId?: string; // required when type is "img", "video", or "audio"
   videoStartTime?: number; // video nodes only: source trim offset in seconds (default 0)
@@ -55,6 +55,16 @@ sourceTime = videoStartTime + (localFrame / scene.fps) * playbackRate
 The renderer draws the last source frame at or before that timestamp. When the scene outlasts the clip, the last frame holds. `videoStartTime` and `playbackRate` validate only on video nodes.
 
 Video nodes with a soundtrack contribute it to the export: the clip's audio plays in the node's window at `volume` (default 1), trimmed by `videoStartTime` — picture and sound trim together. `playbackRate` retimes the sound like a varispeed deck (pitch shifts; there is no time-stretch). Silent clips contribute nothing. `audioStartTime` stays audio-only.
+
+### Lottie
+
+A `lottie` node draws a [Lottie](https://airbnb.io/lottie/) vector animation (a `lottie` asset: the animation's JSON document) with the same `objectFit`/`objectPosition` semantics as images and video. Frame mapping mirrors video and is frame-exact and deterministic:
+
+```txt
+lottieFrame = clamp((localFrame / scene.fps) * playbackRate * doc.fr, 0, doc.op - doc.ip - 1)
+```
+
+Scenes outlasting the animation hold its last frame. Two guards enforce the determinism contract at asset load: documents containing **expressions** (embedded JavaScript; may call `Date`/`random`) or **image layers / external images** are rejected with the reason — v0 renders self-contained vector documents only. Rendering lottie assets requires the optional peer dependency `lottie-web` (scenes without lottie assets never load it).
 
 ### Audio
 
