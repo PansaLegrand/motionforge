@@ -431,3 +431,10 @@ export function karaokeCaptions(
     children,
   };
 }
+
+export {
+  timeline,
+  Timeline,
+  type StaggerOptions,
+  type TimelinePosition,
+} from "./timeline.js";

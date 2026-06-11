@@ -44,6 +44,30 @@ scene.nodes.push(track); // one-word-at-a-time style with pop + measured highlig
 
 `tiktokCaptions` renders one word at a time (each word holds until the next starts); highlighted words use `textBackgroundColor`/padding/radius on the text node itself, so pill widths come from the renderer's font measurement instead of character-count guesses. Caption presets also apply `textStroke` by default. `karaokeCaptions` keeps the whole line visible and ramps each word's color while it is spoken.
 
+## Timeline choreography
+
+Sequencing several nodes means deriving frame offsets from other durations — the arithmetic both humans and LLMs get wrong. `timeline()` owns it:
+
+```ts
+import { timeline, popIn, fadeUp, slideIn } from "@motionforge/presets";
+
+const tl = timeline()
+  .add("title", popIn({ durationInFrames: 12 }))                       // starts at 0
+  .add("subtitle", fadeUp(), { after: "title", overlap: 4 })           // starts at 12 - 4 = 8
+  .stagger(["card-1", "card-2", "card-3"], slideIn("left"), { every: 5 });
+
+const animations = tl.compile();      // Record<nodeId, SceneAnimation[]>
+node.animations = animations["title"];
+
+// or emit RFC 0001 patch ops directly:
+applyScenePatch(scene, tl.compileToPatch());
+```
+
+- Entries default to starting **when the previous entry ends** (the GSAP timeline default); `at` positions absolutely, `after: "<id>"` targets an earlier entry, `overlap`/`gap` nudge from there, `stagger` spaces a group `every` N frames.
+- Offsets compile to a frame-0 hold of each preset's first value, so an entrance's held `opacity: 0` keeps the node invisible until its slot — no node retiming involved.
+- Pure and deterministic; the output round-trips `validateScene`. Choreographed nodes are assumed to share the same `from` (keyframes run on each node's local clock).
+- `tl.durationInFrames` reports where the last entry ends.
+
 ## License
 
 MIT

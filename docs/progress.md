@@ -2,6 +2,25 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (timeline/stagger choreography — week-4 slice 3)
+
+### Changed
+
+- `@motionforge/presets` gains `timeline()` — the GSAP extraction without GSAP (license + runtime philosophy ruled the library out; the timeline/stagger/position vocabulary is the part worth having). Pure builder: `.add(id, preset, { at | after: id, overlap, gap })`, `.stagger(ids, preset | (index) => preset, { every })`, `.compile()` → per-node keyframe lists, `.compileToPatch()` → ready-to-apply RFC 0001 `setAnimations` ops, `.durationInFrames`.
+- Semantics: entries default to starting when the previous one ends; offsets compile to frame-0 holds of each preset's first value, so an entrance's held `opacity: 0` keeps the node invisible until its slot — choreography never retimes nodes. Negative computed starts clamp to 0 (GSAP behavior); duplicate ids, unknown `after` targets, and negative nudges throw actionable errors.
+- `llms.txt` hard rule added: never hand-compute cross-node frame offsets — use `timeline()`. Presets README documents the API.
+
+### Tested
+
+- 9 new unit tests (17 total in presets): default sequencing, `after`+`overlap` independence from interleaved `at` entries, hold-from-frame-0 invisibility, stagger spacing + whole-group positioning + `durationInFrames`, per-index preset factories, overlap clamping, error cases, `validateScene` round-trip, `compileToPatch` through `applyScenePatch`.
+- Visual proof: a five-node demo (title pop → subtitle overlap → three staggered cards) rendered through the harness; frames 14/24 confirm the declared sequencing (no cards at 14; card-1 settled, card-2 mid-slide at 24).
+- `pnpm build`, `pnpm typecheck`, full `pnpm test` green.
+
+### Notes
+
+- The timeline assumes choreographed nodes share a `from`; a future option could emit `retime` ops instead of holds for nodes that should not exist before their slot.
+- Decision recorded: GSAP itself stays out (proprietary license, imperative runtime); a GSAP-code *baking adapter* remains explicitly deferred unless real users ask.
+
 ## 2026-06-11 (Lottie spike — week-4 slice 2)
 
 ### Changed
