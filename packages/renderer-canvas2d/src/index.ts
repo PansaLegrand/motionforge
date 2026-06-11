@@ -688,6 +688,14 @@ function drawText(
     context.shadowColor = shadow.color;
   }
 
+  const stroke = parseTextStroke(style.textStroke, fontSize);
+  if (stroke) {
+    context.lineWidth = stroke.width;
+    context.strokeStyle = stroke.color;
+    context.lineJoin = "round";
+    context.miterLimit = 2;
+  }
+
   const x =
     style.textAlign === "center"
       ? box.x + box.width / 2
@@ -708,7 +716,13 @@ function drawText(
 
   lines.forEach((line, index) => {
     if (line !== "") {
-      context.fillText(line, x, firstLineY + index * lineHeight, box.width);
+      const y = firstLineY + index * lineHeight;
+
+      if (stroke) {
+        context.strokeText(line, x, y, box.width);
+      }
+
+      context.fillText(line, x, y, box.width);
     }
   });
 }
@@ -978,6 +992,32 @@ function parseTextShadow(
     y: Number.parseFloat(match[2] ?? "0"),
     blur: Number.parseFloat(match[3] ?? "0"),
     color: match[4] ?? "rgba(0,0,0,0.4)",
+  };
+}
+
+export function parseTextStroke(
+  value: string | undefined,
+  fontSize = 24,
+): { width: number; color: string } | null {
+  if (!value) {
+    return null;
+  }
+
+  const match = value.trim().match(/^(\S+)\s+(.+)$/);
+
+  if (!match) {
+    return null;
+  }
+
+  const width = readLength(match[1], fontSize, Number.NaN);
+
+  if (!Number.isFinite(width) || width <= 0) {
+    return null;
+  }
+
+  return {
+    width,
+    color: match[2]?.trim() || "#000000",
   };
 }
 

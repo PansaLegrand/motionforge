@@ -40,6 +40,28 @@ describe("scene schema", () => {
     );
   });
 
+  it("accepts textStroke shorthand", () => {
+    const result = validateScene({
+      schemaVersion: 0,
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      duration: 90,
+      nodes: [
+        {
+          id: "caption",
+          type: "text",
+          text: "Hello",
+          style: {
+            textStroke: "6px #000000",
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+  });
+
   it("rejects duplicate node ids anywhere in the tree", () => {
     const result = validateScene({
       schemaVersion: 0,

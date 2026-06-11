@@ -37,6 +37,7 @@ export const supportedStyleKeys = [
   "letterSpacing",
   "textAlign",
   "textShadow",
+  "textStroke",
   "objectFit",
   "objectPosition",
 ] as const;
@@ -86,6 +87,7 @@ export const styleSchema = z
     letterSpacing: lengthValueSchema.optional(),
     textAlign: z.enum(["left", "center", "right"]).optional(),
     textShadow: z.string().optional(),
+    textStroke: z.string().optional(),
     objectFit: z
       .enum(["contain", "cover", "fill", "none", "scale-down"])
       .optional(),

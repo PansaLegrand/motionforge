@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (caption-grade text: text stroke — roadmap slice 12, part 1)
+
+### Changed
+
+- `@motionforge/schema`: added `textStroke` to the supported style contract and regenerated `scene.schema.json`.
+- `@motionforge/renderer-canvas2d`: text nodes now parse `textStroke` as a compact `<width> <color>` shorthand, resolve numeric/`px`/`%` widths against `fontSize`, and paint the outline before the fill.
+- Added an exact embedded-font golden fixture, `text-stroke-embedded-font`, so stroked glyph pixels are covered deterministically.
+- Updated the scene-format support matrix and `llms.txt` so the public contract and agent-facing crib sheet match the implementation.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema test`
+- `pnpm --filter @motionforge/renderer-canvas2d test`
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test` (85 unit tests)
+- `pnpm golden:test` (16 golden fixtures, export smoke, video/audio integration checks)
+
+### Notes
+
+- Slice 12 is intentionally not marked complete yet. Fitted per-line caption backgrounds and preset integration are the next small step.
+
 ## 2026-06-11 (0.2.0 publish prep — roadmap slice 11, credential steps pending)
 
 ### Changed

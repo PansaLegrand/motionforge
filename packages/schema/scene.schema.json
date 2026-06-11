@@ -259,6 +259,9 @@
                   "textShadow": {
                     "type": "string"
                   },
+                  "textStroke": {
+                    "type": "string"
+                  },
                   "objectFit": {
                     "type": "string",
                     "enum": [

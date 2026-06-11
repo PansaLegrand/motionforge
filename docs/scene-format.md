@@ -102,6 +102,7 @@ Validation is intentionally stricter than implementation: a property may validat
 | `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                                         |
 | `textAlign`                                      |    ✅     |   —    |   ✅   | `left` (default), `center`, `right`                                                                                               |
 | `textShadow`                                     |    ✅     |   —    |   ✅   | single `x y blur color` shadow                                                                                                    |
+| `textStroke`                                     |    ✅     |   —    |   ✅   | single `<width> <color>` outline; width accepts number, `px`, or `%` of `fontSize`; stroke paints before fill                     |
 | `fontStyle`                                      |    ✅     |   —    |   ✅   | `normal` (default) or `italic`                                                                                                    |
 | `lineHeight`                                     |    ✅     |   ✅   |   ✅   | unitless number = multiplier of `fontSize` (CSS semantics); `px`/`%` lengths also accepted; default `1.25`                        |
 | `letterSpacing`                                  |    ✅     |   —    |   ✅   | number or `px`; uses the Canvas2D `letterSpacing` API (Chromium-class browsers)                                                   |
@@ -121,6 +122,7 @@ Validation is intentionally stricter than implementation: a property may validat
 - Words wrap when a line would exceed the node's box width, measured with the resolved font (including `letterSpacing`). Runs of whitespace collapse to single spaces, like HTML text.
 - A single word wider than the box gets its own line and is horizontally condensed to fit rather than overflowing.
 - Lines are spaced by `lineHeight` and the whole line block is centered vertically in the node's box. `textAlign` positions each line horizontally.
+- `textStroke` uses a compact shorthand such as `"6px #000000"` or `"10% rgba(0,0,0,0.8)"`. Invalid or non-positive strokes are ignored rather than failing the render.
 - Wrapping happens at render time using real font metrics, so flex layout's intrinsic text sizing still uses the heuristic estimate documented above; give text nodes an explicit `width`/`height` when exact geometry matters.
 
 Anything not in this table is rejected at validation time with an actionable message. Silent visual drift is treated as a bug; if you find a property behaving differently than this table says, file an issue.

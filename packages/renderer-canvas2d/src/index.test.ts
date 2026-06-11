@@ -3,6 +3,7 @@ import { sampleScene } from "@motionforge/core";
 import {
   computeObjectFit,
   parseLinearGradient,
+  parseTextStroke,
   renderStill,
   videoSourceTime,
   wrapTextLines,
@@ -213,6 +214,33 @@ describe("parseLinearGradient", () => {
     );
 
     expect(parsed?.stops.map((stop) => stop.offset)).toEqual([0.6, 0.6, 1]);
+  });
+});
+
+describe("parseTextStroke", () => {
+  it("returns null when no stroke is provided", () => {
+    expect(parseTextStroke(undefined)).toBeNull();
+    expect(parseTextStroke("")).toBeNull();
+  });
+
+  it("parses width and color shorthand", () => {
+    expect(parseTextStroke("4px #000000", 40)).toEqual({
+      width: 4,
+      color: "#000000",
+    });
+  });
+
+  it("resolves percentages against font size and preserves color strings", () => {
+    expect(parseTextStroke("10% rgba(0, 0, 0, 0.8)", 40)).toEqual({
+      width: 4,
+      color: "rgba(0, 0, 0, 0.8)",
+    });
+  });
+
+  it("ignores malformed and non-positive strokes", () => {
+    expect(parseTextStroke("nope")).toBeNull();
+    expect(parseTextStroke("0px #000000")).toBeNull();
+    expect(parseTextStroke("-2px #000000")).toBeNull();
   });
 });
 

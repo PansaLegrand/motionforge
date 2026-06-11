@@ -826,6 +826,61 @@ export const fixtures: GoldenFixture[] = [
     },
   },
   {
+    kind: "exact",
+    id: "text-stroke-embedded-font",
+    description:
+      "Stroked text paints the outline before the fill using an embedded font.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {
+        GoldenSans: {
+          id: "GoldenSans",
+          type: "font",
+          src: "/fonts/inter-700-latin.woff2",
+        },
+      },
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "title",
+          type: "text",
+          text: "STROKE",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 0,
+            top: 58,
+            width: "100%",
+            height: 64,
+            fontFamily: "GoldenSans",
+            fontSize: 44,
+            color: "#ffd166",
+            textAlign: "center",
+            textStroke: "6px #000000",
+          },
+          children: [],
+        },
+      ],
+    },
+  },
+  {
     kind: "probe",
     id: "multiline-explicit-newline",
     description:
