@@ -45,9 +45,11 @@ This is simultaneously the agent-facing animation vocabulary and the compiler th
 
 Slice 12 landed: `textStroke` and text-fitted per-line backgrounds, with exact goldens; `tiktokCaptions()` emits measured background styles.
 
-## The 5-week integration plan (current)
+## The 5-week plan (current — open-source first)
 
-Ultimate goal: a user chats, uploads media, and gets a video — previewed and exported in the browser. Five workstreams: **A** engine, **B** player/perf, **C** the editor adapter, **D** agent layer, **E** launch/DX. Publishing (npm scope, GitHub push, Pages deploy) is owned by the maintainer and slots in when ready — everything else is sequenced not to block on it.
+Ultimate goal: a user chats, uploads media, and gets a video — previewed and exported in the browser. motionforge is the open-source engine that makes that product *assemblable*: deterministic rendering, an agent-native scene contract, and in-browser export. Downstream products (commercial or otherwise) are consumers we learn requirements from, not work items here.
+
+Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX. Publishing (npm scope, GitHub push, Pages deploy) is owned by the maintainer and slots in when ready — everything else is sequenced not to block on it.
 
 ### Week 1 — measure the real gap, ship the skeleton ✅ complete
 
@@ -62,27 +64,29 @@ Ultimate goal: a user chats, uploads media, and gets a video — previewed and e
 - ✅ **A**: video nodes contribute their clip audio to exports (`volume` on video nodes; placements track head clipping; `playbackRate` retimes audio varispeed-style, RMS-verified through two AAC passes).
 - ✅ **B**: player audio preview — `WebAudioPreview` plays the exact export mix (`mixSceneAudio` now public) through one cached buffer + `AudioBufferSourceNode`; audio is the master clock (frame clock re-anchors on drift); injectable `AudioPreview` keeps tests deterministic.
 - ✅ **D**: `applyScenePatch`/`scenePatchSchema` implemented per RFC 0001 (ten transactional id-addressed ops, closest-id hints, full revalidation); `llms.txt` teaches patching over re-emission.
-- ◻ **C**: adapter productionization lives in the downstream editor's own repo (font manifest, animation-name coverage, unit normalization, `translateX` rewrites) — next up, outside this codebase.
-- ◻ **D**: eval harness runner (generate suite) — pending.
-- ◻ **E**: docs site skeleton — pending; `docs/guides/getting-started.md` is the seed content.
-- ◻ **B**: thin React wrapper — deferred until the editor integration consumes it.
+- Editor-adapter productionization: **dropped from this plan** (2026-06-11 re-scope) — integration work belongs to downstream consumers, on their schedule. The spike doc remains the reference for anyone writing such an adapter.
+- ◻ **D**: eval harness runner (generate suite) — moved to week 3.
+- ◻ **E**: docs site skeleton — moved to week 5; `docs/guides/getting-started.md` is the seed content.
 
-### Week 3 — integration behind a flag, chat loop v1
+### Week 3 — make the agent loop tangible
 
-- **C+B**: the editor editor preview renders supported compositions through motionforge behind a feature flag, Remotion fallback otherwise; in-browser export button.
-- **D**: chat loop v1 in a chat UI — message + scene → patch → validate → live preview.
-- **C**: caption overlays → caption presets mapping (the 14 the editor caption templates become preset option bundles).
-- **A**: Lottie node spike (also covers the editor stickers).
-- **B**: worker-parallel export; 1080p real-footage benchmark.
+- **D**: playground **agent console** — paste a scene document or a patch op list into the playground, apply it live (`validateScene`/`applyScenePatch`), see the preview update, read the validator's errors. This is the chat loop minus the LLM: it proves the contract, demos it to strangers, and dogfoods the patch API in a UI.
+- **D**: eval harness runner (`tools/agent-eval`, not shipped): generate + edit suites scored mechanically per RFC 0001; provider-agnostic (any chat endpoint via env), cases and assertions are the asset.
+- **E**: robustness — pixel-diff artifacts written next to golden failures (the spike's inverted-paint-order bug argued for this).
 
-### Week 4 — the end-to-end demo (all hands)
+### Week 4 — capability depth
 
-Target scenario in the editor: upload a video → "add TikTok-style subtitles and a title that pops in" → ASR → caption presets → live preview with audio → in-browser MP4 export. Plus: GSAP-to-keyframes baking spike (build-time only, never a runtime dependency).
+- **A**: Lottie node spike (the biggest visual-capability draw for an open-source audience; baked deterministic frame-seek, never a runtime script dependency).
+- **A**: audio showcase scene in the playground (first eared end-to-end check of audio preview + export).
+- **B**: 1080p real-footage benchmark; chunked audio mixing for long scenes; worker-parallel export if the benchmark demands it.
+- **A**: GSAP-to-keyframes baking spike (build-time only) — stretch.
 
-### Week 5 — harden and launch
+### Week 5 — harden and launch surface
 
-Golden coverage for all new features; bug bash on real downstream-editor projects; 0.3.0 publish (player, filter/zIndex/border/boxShadow, patch ops); the editor flag rollout to a user slice; public launch with the live playground.
+- Golden coverage for everything new; Playwright E2E for the playground controls; lint rule banning wall-clock/randomness in render packages.
+- Docs site (seeded from the guides), examples gallery growth, README polish.
+- 0.3.0 release prep: changelog, version bumps, `npm pack` checks — maintainer publishes (npm scope, GitHub push, Pages deploy) when ready.
 
 ## Explicitly deferred (unchanged)
 
-React/JSX authoring adapter, CanvasKit renderer, Tauri desktop, MCP server (wraps patch ops once they exist), streaming video sources, visualizer overlays, CRDT/concurrent editing.
+React/JSX authoring adapter, editor-product integrations, CanvasKit renderer, Tauri desktop, MCP server (wraps patch ops once they exist), streaming video sources, visualizer overlays, CRDT/concurrent editing.
