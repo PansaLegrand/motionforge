@@ -1,6 +1,43 @@
 # Changelog
 
-All publishable packages (`@motionforge/schema`, `@motionforge/core`, `@motionforge/renderer-canvas2d`, `@motionforge/export`, `@motionforge/presets`) version together.
+All publishable packages (`@motionforge/schema`, `@motionforge/core`, `@motionforge/renderer-canvas2d`, `@motionforge/export`, `@motionforge/presets`, `@motionforge/player`) version together.
+
+## 0.3.0 — 2026-06-11
+
+The agent-loop and playback release: scenes are now editable by patch, playable in real time with sound, and can carry Lottie vector animations.
+
+### @motionforge/schema
+
+- **Scene patch ops (RFC 0001)**: `applyScenePatch(scene, patch)` applies id-addressed, transactional edits — `setStyle` (merge, null deletes), `setText`, `retime`, `setAnimations`, `insertNode`/`removeNode`/`moveNode`, `setAsset`/`removeAsset` (guarded by references), `setSceneMeta`. Pure: a failing op rejects the whole patch and never mutates the input; misspelled ids get closest-match suggestions. `scenePatchSchema`/`sceneOpSchema` exported.
+- New style properties: `filter` (validated brightness/contrast/saturate/grayscale/sepia/invert/opacity/hue-rotate/blur chains), `zIndex`, `border`, `boxShadow`.
+- New node/asset type `lottie`; `volume` now validates on video nodes; `playbackRate` on video and lottie nodes.
+
+### @motionforge/player (new package)
+
+- Real-time playback: deterministic `FrameClock` (wall-clock time exists only here), play/pause/seek/loop, latest-frame-wins decode policy, `frame`/`play`/`pause`/`ended` events.
+- Audio preview: scenes with audible nodes play sound via one cached buffer mixed by the exact export functions; audio is the master clock (frame clock re-anchors on drift). Injectable `AudioPreview`/`now`/scheduler keep everything unit-testable.
+
+### @motionforge/renderer-canvas2d
+
+- `filter` chains (Canvas2D `context.filter`), `zIndex` sibling paint order, `border` strokes, `boxShadow` on background fills.
+- **Lottie nodes**: self-contained vector Lottie documents render frame-exactly (clamped seek, per-node staging, `objectFit`). Documents with JS expressions or external images are rejected — determinism contract. lottie-web is an optional peer dependency, loaded only when a scene uses it.
+- Video clips expose their own audio track (`VideoClip.audio`).
+
+### @motionforge/export
+
+- Video nodes contribute their clip soundtrack to the export at `volume`, trimmed with the picture; `playbackRate` retimes audio varispeed-style.
+- Audio mixes in fixed windows (`audioChunkSeconds`, default 10 s) — flat memory at any scene length. `mixSceneAudio`, `audioChunkRanges` exported.
+- Benchmarked: 1080p two-decoder export beats realtime (see `docs/benchmarks.md`).
+
+### @motionforge/presets
+
+- **`timeline()` choreography**: `.add(id, preset, { at | after | overlap | gap })`, `.stagger(ids, preset, { every })`, `.compile()` per-node keyframes or `.compileToPatch()` ready-to-apply patch ops. Frame-0 holds keep entrances hidden until their slot.
+
+### Tooling and docs
+
+- Playground: agent console (paste a scene or patch, applied via the public APIs, agent-grade errors), six showcase scenes including audio and Lottie demos.
+- Golden harness: committed baseline PNGs with received/diff artifacts on mismatch; 1080p benchmark; Playwright E2E (`pnpm e2e`); determinism lint (`scripts/check-determinism.mjs`).
+- `tools/agent-eval`: mechanical LLM eval harness for scene generation/editing.
 
 ## 0.2.0 — 2026-06-11
 

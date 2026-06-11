@@ -1044,6 +1044,192 @@ export function audioSyncPulseScene(): Scene {
   });
 }
 
+/**
+ * A hand-written, self-contained Lottie document: a pulsing teal ring behind
+ * a spinning gold star. 90 frames @ 30 fps, 400x400 — vectors only, no
+ * expressions, exactly what the determinism guards accept.
+ */
+export function lottieBadgeDataUrl(): string {
+  const doc = {
+    v: "5.7.4",
+    fr: 30,
+    ip: 0,
+    op: 90,
+    w: 400,
+    h: 400,
+    nm: "badge",
+    ddd: 0,
+    assets: [],
+    layers: [
+      {
+        ddd: 0,
+        ind: 1,
+        ty: 4,
+        nm: "star",
+        sr: 1,
+        ks: {
+          o: { a: 0, k: 100 },
+          r: {
+            a: 1,
+            k: [
+              { t: 0, s: [0], e: [360], i: { x: [0.4], y: [0.4] }, o: { x: [0.6], y: [0.6] } },
+              { t: 90, s: [360] },
+            ],
+          },
+          p: { a: 0, k: [200, 200, 0] },
+          a: { a: 0, k: [0, 0, 0] },
+          s: { a: 0, k: [100, 100, 100] },
+        },
+        ao: 0,
+        shapes: [
+          {
+            ty: "gr",
+            nm: "star-group",
+            it: [
+              {
+                ty: "sr",
+                nm: "star-shape",
+                sy: 1,
+                d: 1,
+                pt: { a: 0, k: 5 },
+                p: { a: 0, k: [0, 0] },
+                r: { a: 0, k: 0 },
+                ir: { a: 0, k: 45 },
+                is: { a: 0, k: 0 },
+                or: { a: 0, k: 100 },
+                os: { a: 0, k: 0 },
+              },
+              { ty: "fl", nm: "fill", c: { a: 0, k: [1, 0.82, 0.4, 1] }, o: { a: 0, k: 100 } },
+              { ty: "tr", p: { a: 0, k: [0, 0] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] }, r: { a: 0, k: 0 }, o: { a: 0, k: 100 } },
+            ],
+          },
+        ],
+        ip: 0,
+        op: 90,
+        st: 0,
+      },
+      {
+        ddd: 0,
+        ind: 2,
+        ty: 4,
+        nm: "ring",
+        sr: 1,
+        ks: {
+          o: { a: 0, k: 60 },
+          r: { a: 0, k: 0 },
+          p: { a: 0, k: [200, 200, 0] },
+          a: { a: 0, k: [0, 0, 0] },
+          s: {
+            a: 1,
+            k: [
+              { t: 0, s: [80, 80, 100], e: [110, 110, 100], i: { x: [0.4], y: [0.4] }, o: { x: [0.6], y: [0.6] } },
+              { t: 45, s: [110, 110, 100], e: [80, 80, 100], i: { x: [0.4], y: [0.4] }, o: { x: [0.6], y: [0.6] } },
+              { t: 90, s: [80, 80, 100] },
+            ],
+          },
+        },
+        ao: 0,
+        shapes: [
+          {
+            ty: "gr",
+            nm: "ring-group",
+            it: [
+              { ty: "el", nm: "circle", d: 1, s: { a: 0, k: [320, 320] }, p: { a: 0, k: [0, 0] } },
+              { ty: "st", nm: "stroke", c: { a: 0, k: [0.4, 0.96, 0.84, 1] }, o: { a: 0, k: 100 }, w: { a: 0, k: 16 }, lc: 2, lj: 2 },
+              { ty: "tr", p: { a: 0, k: [0, 0] }, a: { a: 0, k: [0, 0] }, s: { a: 0, k: [100, 100] }, r: { a: 0, k: 0 }, o: { a: 0, k: 100 } },
+            ],
+          },
+        ],
+        ip: 0,
+        op: 90,
+        st: 0,
+      },
+    ],
+  };
+
+  return `data:application/json,${encodeURIComponent(JSON.stringify(doc))}`;
+}
+
+export function lottieStickerScene(): Scene {
+  return parseScene({
+    schemaVersion: 0,
+    width: 720,
+    height: 720,
+    fps: 30,
+    duration: 90,
+    assets: {
+      badge: { id: "badge", type: "lottie", src: lottieBadgeDataUrl() },
+    },
+    nodes: [
+      {
+        id: "background",
+        type: "div",
+        from: 0,
+        duration: 90,
+        style: {
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(160deg, #101820 0%, #1d2c3a 100%)",
+        },
+        children: [],
+      },
+      {
+        id: "badge-main",
+        type: "lottie",
+        assetId: "badge",
+        from: 0,
+        duration: 90,
+        style: {
+          position: "absolute",
+          left: 180,
+          top: 120,
+          width: 360,
+          height: 360,
+          objectFit: "contain",
+        },
+        children: [],
+      },
+      {
+        id: "badge-echo",
+        type: "lottie",
+        assetId: "badge",
+        playbackRate: 2,
+        from: 0,
+        duration: 90,
+        style: {
+          position: "absolute",
+          left: 60,
+          top: 480,
+          width: 140,
+          height: 140,
+          objectFit: "contain",
+          opacity: 0.55,
+        },
+        children: [],
+      },
+      {
+        id: "lottie-caption",
+        type: "text",
+        text: "LOTTIE FILES AS TIMELINE CITIZENS",
+        from: 0,
+        duration: 90,
+        style: {
+          position: "absolute",
+          left: 60,
+          right: 60,
+          top: 622,
+          height: 36,
+          fontSize: 24,
+          color: "#9fb3c8",
+          textAlign: "center",
+          letterSpacing: 2,
+        },
+        children: [],
+      },
+    ],
+  });
+}
+
 export const showcaseScenes: ShowcaseScene[] = [
   {
     id: "intro",
@@ -1123,6 +1309,20 @@ export const showcaseScenes: ShowcaseScene[] = [
     ],
     scene: audioSyncPulseScene(),
     posterFrame: 15,
+  },
+  {
+    id: "lottie-sticker",
+    title: "Lottie Sticker",
+    description:
+      "A self-contained vector Lottie document (spinning star, pulsing ring) seeked frame-exactly — the same asset twice at different playback rates.",
+    proves: [
+      "lottie node",
+      "frame-exact seek",
+      "playbackRate",
+      "deterministic vectors",
+    ],
+    scene: lottieStickerScene(),
+    posterFrame: 30,
   },
 ];
 

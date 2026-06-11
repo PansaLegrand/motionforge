@@ -14,8 +14,9 @@
     "showcase:generate": "node examples/generate-showcase.mjs",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
-    "lint": "pnpm -r lint",
-    "format": "prettier --write ."
+    "lint": "node scripts/check-determinism.mjs && pnpm -r lint",
+    "format": "prettier --write .",
+    "e2e": "pnpm --filter @motionforge/golden run e2e"
   },
   "devDependencies": {
     "@types/node": "^20.19.5",

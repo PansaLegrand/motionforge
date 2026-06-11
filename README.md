@@ -3,7 +3,7 @@
 [![CI](https://github.com/PansaLegrand/motionforge/actions/workflows/ci.yml/badge.svg)](https://github.com/PansaLegrand/motionforge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status: M0 complete](https://img.shields.io/badge/status-M0%20complete-brightgreen.svg)](docs/m0-roadmap.md)
-[![Version: 0.2.0](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
+[![Version: 0.3.0](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 
 `motionforge` is a deterministic, browser-native video scene engine for apps and coding agents.
 
@@ -23,6 +23,7 @@ The current engine can already turn plain scene JSON into real MP4s in the brows
 - **Launch info display:** a prompt-shaped launch screen with animated panels, scan lines, countdown text, and progress motion.
 - **Timed text overlay:** a written timing prompt turned into exact text nodes: `motionforge.dev` for the first 5 seconds, then `Coming soon...` for the final 10 seconds.
 - **Audio sync pulse:** a synthesized four-beat track (pure-function WAV data URL) with visuals locked to the beats — audible in the playground's preview, mixed into the exported MP4.
+- **Lottie sticker:** a vector Lottie document as a timeline citizen — frame-exact seek, two playback rates from one asset, exported like any other node.
 
 Try them locally with `pnpm dev`; the playground scene picker can scrub, play, and export each showcase to MP4. See [docs/showcase.md](docs/showcase.md) for source links and render commands.
 

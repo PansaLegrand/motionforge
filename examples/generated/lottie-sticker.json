@@ -1,0 +1,85 @@
+{
+  "schemaVersion": 0,
+  "width": 720,
+  "height": 720,
+  "fps": 30,
+  "duration": 90,
+  "assets": {
+    "badge": {
+      "id": "badge",
+      "type": "lottie",
+      "src": "data:application/json,%7B%22v%22%3A%225.7.4%22%2C%22fr%22%3A30%2C%22ip%22%3A0%2C%22op%22%3A90%2C%22w%22%3A400%2C%22h%22%3A400%2C%22nm%22%3A%22badge%22%2C%22ddd%22%3A0%2C%22assets%22%3A%5B%5D%2C%22layers%22%3A%5B%7B%22ddd%22%3A0%2C%22ind%22%3A1%2C%22ty%22%3A4%2C%22nm%22%3A%22star%22%2C%22sr%22%3A1%2C%22ks%22%3A%7B%22o%22%3A%7B%22a%22%3A0%2C%22k%22%3A100%7D%2C%22r%22%3A%7B%22a%22%3A1%2C%22k%22%3A%5B%7B%22t%22%3A0%2C%22s%22%3A%5B0%5D%2C%22e%22%3A%5B360%5D%2C%22i%22%3A%7B%22x%22%3A%5B0.4%5D%2C%22y%22%3A%5B0.4%5D%7D%2C%22o%22%3A%7B%22x%22%3A%5B0.6%5D%2C%22y%22%3A%5B0.6%5D%7D%7D%2C%7B%22t%22%3A90%2C%22s%22%3A%5B360%5D%7D%5D%7D%2C%22p%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B200%2C200%2C0%5D%7D%2C%22a%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%2C0%5D%7D%2C%22s%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B100%2C100%2C100%5D%7D%7D%2C%22ao%22%3A0%2C%22shapes%22%3A%5B%7B%22ty%22%3A%22gr%22%2C%22nm%22%3A%22star-group%22%2C%22it%22%3A%5B%7B%22ty%22%3A%22sr%22%2C%22nm%22%3A%22star-shape%22%2C%22sy%22%3A1%2C%22d%22%3A1%2C%22pt%22%3A%7B%22a%22%3A0%2C%22k%22%3A5%7D%2C%22p%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%5D%7D%2C%22r%22%3A%7B%22a%22%3A0%2C%22k%22%3A0%7D%2C%22ir%22%3A%7B%22a%22%3A0%2C%22k%22%3A45%7D%2C%22is%22%3A%7B%22a%22%3A0%2C%22k%22%3A0%7D%2C%22or%22%3A%7B%22a%22%3A0%2C%22k%22%3A100%7D%2C%22os%22%3A%7B%22a%22%3A0%2C%22k%22%3A0%7D%7D%2C%7B%22ty%22%3A%22fl%22%2C%22nm%22%3A%22fill%22%2C%22c%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B1%2C0.82%2C0.4%2C1%5D%7D%2C%22o%22%3A%7B%22a%22%3A0%2C%22k%22%3A100%7D%7D%2C%7B%22ty%22%3A%22tr%22%2C%22p%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%5D%7D%2C%22a%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%5D%7D%2C%22s%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B100%2C100%5D%7D%2C%22r%22%3A%7B%22a%22%3A0%2C%22k%22%3A0%7D%2C%22o%22%3A%7B%22a%22%3A0%2C%22k%22%3A100%7D%7D%5D%7D%5D%2C%22ip%22%3A0%2C%22op%22%3A90%2C%22st%22%3A0%7D%2C%7B%22ddd%22%3A0%2C%22ind%22%3A2%2C%22ty%22%3A4%2C%22nm%22%3A%22ring%22%2C%22sr%22%3A1%2C%22ks%22%3A%7B%22o%22%3A%7B%22a%22%3A0%2C%22k%22%3A60%7D%2C%22r%22%3A%7B%22a%22%3A0%2C%22k%22%3A0%7D%2C%22p%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B200%2C200%2C0%5D%7D%2C%22a%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%2C0%5D%7D%2C%22s%22%3A%7B%22a%22%3A1%2C%22k%22%3A%5B%7B%22t%22%3A0%2C%22s%22%3A%5B80%2C80%2C100%5D%2C%22e%22%3A%5B110%2C110%2C100%5D%2C%22i%22%3A%7B%22x%22%3A%5B0.4%5D%2C%22y%22%3A%5B0.4%5D%7D%2C%22o%22%3A%7B%22x%22%3A%5B0.6%5D%2C%22y%22%3A%5B0.6%5D%7D%7D%2C%7B%22t%22%3A45%2C%22s%22%3A%5B110%2C110%2C100%5D%2C%22e%22%3A%5B80%2C80%2C100%5D%2C%22i%22%3A%7B%22x%22%3A%5B0.4%5D%2C%22y%22%3A%5B0.4%5D%7D%2C%22o%22%3A%7B%22x%22%3A%5B0.6%5D%2C%22y%22%3A%5B0.6%5D%7D%7D%2C%7B%22t%22%3A90%2C%22s%22%3A%5B80%2C80%2C100%5D%7D%5D%7D%7D%2C%22ao%22%3A0%2C%22shapes%22%3A%5B%7B%22ty%22%3A%22gr%22%2C%22nm%22%3A%22ring-group%22%2C%22it%22%3A%5B%7B%22ty%22%3A%22el%22%2C%22nm%22%3A%22circle%22%2C%22d%22%3A1%2C%22s%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B320%2C320%5D%7D%2C%22p%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%5D%7D%7D%2C%7B%22ty%22%3A%22st%22%2C%22nm%22%3A%22stroke%22%2C%22c%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0.4%2C0.96%2C0.84%2C1%5D%7D%2C%22o%22%3A%7B%22a%22%3A0%2C%22k%22%3A100%7D%2C%22w%22%3A%7B%22a%22%3A0%2C%22k%22%3A16%7D%2C%22lc%22%3A2%2C%22lj%22%3A2%7D%2C%7B%22ty%22%3A%22tr%22%2C%22p%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%5D%7D%2C%22a%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B0%2C0%5D%7D%2C%22s%22%3A%7B%22a%22%3A0%2C%22k%22%3A%5B100%2C100%5D%7D%2C%22r%22%3A%7B%22a%22%3A0%2C%22k%22%3A0%7D%2C%22o%22%3A%7B%22a%22%3A0%2C%22k%22%3A100%7D%7D%5D%7D%5D%2C%22ip%22%3A0%2C%22op%22%3A90%2C%22st%22%3A0%7D%5D%7D"
+    }
+  },
+  "nodes": [
+    {
+      "id": "background",
+      "type": "div",
+      "from": 0,
+      "duration": 90,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(160deg, #101820 0%, #1d2c3a 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "badge-main",
+      "type": "lottie",
+      "assetId": "badge",
+      "from": 0,
+      "duration": 90,
+      "style": {
+        "width": 360,
+        "height": 360,
+        "position": "absolute",
+        "left": 180,
+        "top": 120,
+        "objectFit": "contain"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "badge-echo",
+      "type": "lottie",
+      "assetId": "badge",
+      "playbackRate": 2,
+      "from": 0,
+      "duration": 90,
+      "style": {
+        "width": 140,
+        "height": 140,
+        "position": "absolute",
+        "left": 60,
+        "top": 480,
+        "opacity": 0.55,
+        "objectFit": "contain"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "lottie-caption",
+      "type": "text",
+      "text": "LOTTIE FILES AS TIMELINE CITIZENS",
+      "from": 0,
+      "duration": 90,
+      "style": {
+        "height": 36,
+        "position": "absolute",
+        "left": 60,
+        "right": 60,
+        "top": 622,
+        "fontSize": 24,
+        "color": "#9fb3c8",
+        "letterSpacing": 2,
+        "textAlign": "center"
+      },
+      "animations": [],
+      "children": []
+    }
+  ]
+}

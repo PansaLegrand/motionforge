@@ -84,11 +84,14 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ✅ **A**: `lottie` node implemented per the spike design — optional lottie-web peer dependency, expression/image-layer rejection, clamped frame-exact seek, exact golden with natural + 2× rate nodes. Export and player needed zero changes.
 - ◻ **A**: GSAP-to-keyframes baking spike (build-time only) — stretch.
 
-### Week 5 — harden and launch surface
+### Week 5 — harden and launch surface ✅ complete (publish steps are the maintainer's)
 
-- Golden coverage for everything new; Playwright E2E for the playground controls; lint rule banning wall-clock/randomness in render packages.
-- Docs site (seeded from the guides), examples gallery growth, README polish.
-- 0.3.0 release prep: changelog, version bumps, `npm pack` checks — maintainer publishes (npm scope, GitHub push, Pages deploy) when ready.
+- ✅ Playwright E2E (`pnpm e2e`): ten checks across player controls, agent console, audio and lottie scenes.
+- ✅ Determinism lint in `pnpm lint` (wall-clock/randomness banned in render packages, justified allowlist).
+- ✅ Lottie Sticker showcase (seventh scene) demos the headline feature in playground + README.
+- ✅ 0.3.0 release prep: changelog, six packages bumped (player joins the versioned set), badge, `npm pack` dry-runs clean.
+- ◻ Maintainer: GitHub push + CI, `@motionforge` npm scope + `pnpm publish -r`, tag `v0.3.0`, deploy the playground, eared audio check.
+- Docs site: deferred by choice — the guides + README are launch-sufficient; pick a platform (VitePress et al) post-launch.
 
 ## Explicitly deferred (unchanged)
 

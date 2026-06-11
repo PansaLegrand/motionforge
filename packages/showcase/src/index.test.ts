@@ -11,6 +11,7 @@ describe("showcase scenes", () => {
       "launch-info-display",
       "timed-text-overlay",
       "audio-sync-pulse",
+      "lottie-sticker",
     ]);
 
     for (const entry of showcaseScenes) {

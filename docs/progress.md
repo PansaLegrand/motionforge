@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (week 5: launch surface — lottie showcase, determinism lint, E2E, 0.3.0 prep)
+
+### Changed
+
+- Seventh showcase scene **Lottie Sticker**: a hand-written self-contained vector document (spinning star + pulsing stroked ring) shown twice from one asset at 1× and 2× playback — the headline feature demoed in the playground and README. Playground gained the lottie-web optional peer dependency.
+- **Determinism lint** (`scripts/check-determinism.mjs`, wired into `pnpm lint`): scans all six render-path packages for `Math.random`/`Date.now`/`new Date`/`performance.now` with an explicit, justified allowlist (the player's injectable `now` default is the only entry). First scan: clean.
+- **Committed Playwright E2E** (`pnpm e2e`, `tools/golden/src/e2e.ts`): ten checks driving the real playground — poster paint, play/pause/seek, agent-console closest-id hints and pixel-verified patch apply, audio scene playback with WebAudio, lottie scene vector-pixel detection and playback, zero console errors. Replaces the session-local throwaway smokes with maintained tooling.
+- **0.3.0 release prep**: changelog entry (patch ops, player + audio preview, lottie, filter/zIndex/border/boxShadow, video-node audio, chunked mixing, timeline choreography, tooling), all six publishable packages bumped to 0.3.0 (player now versions with the set), README badge, `npm pack --dry-run` verified for all six (11–23 kB each, dist+README+LICENSE only).
+
+### Tested
+
+- `pnpm e2e` — 10/10 checks.
+- `pnpm lint` (determinism + tsc across the workspace), `pnpm build`, full `pnpm test` (159 tests), `pnpm golden:test` (35 checks).
+- Lottie showcase poster visually verified (star/ring badge + 2× echo + caption).
+
+### Remaining manual steps (maintainer credentials)
+
+1. Push to GitHub; confirm CI green and badge URLs.
+2. Reserve/confirm the `@motionforge` npm scope; `pnpm publish -r --access public` from a clean checkout; tag `v0.3.0`.
+3. Deploy the playground (GitHub Pages or similar) and link it from the README.
+4. Eared check of the Audio Sync Pulse scene in a real browser tab.
+5. Optional first eval baseline: run `tools/agent-eval` against a real endpoint.
+
 ## 2026-06-11 (lottie node — week-4 slice 6, the launch headline feature)
 
 ### Changed

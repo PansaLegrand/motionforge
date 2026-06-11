@@ -11,7 +11,8 @@
     "example": "tsx src/render-example.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "lint": "tsc -p tsconfig.json --noEmit",
-    "benchmark": "tsx src/benchmark.ts"
+    "benchmark": "tsx src/benchmark.ts",
+    "e2e": "tsx src/e2e.ts"
   },
   "dependencies": {
     "@motionforge/core": "workspace:*",

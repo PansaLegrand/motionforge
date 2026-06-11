@@ -22,6 +22,7 @@ The trailing frame numbers write poster PNGs next to the MP4.
 | Launch Info Display | <img src="assets/showcase/launch-info-display.png" alt="Launch info display" width="180"> | Prompt-shaped scene generation: animated panels, scan lines, countdown timing, and progress motion from one serializable document  |
 | Timed Text Overlay  | <img src="assets/showcase/timed-text-overlay.png" alt="Timed text overlay" width="180">   | Written timing instructions mapped to exact text nodes: first 5 seconds top-center, final 10 seconds bottom-right                  |
 | Audio Sync Pulse    | <img src="assets/showcase/audio-sync-pulse.png" alt="Audio sync pulse" width="180">       | A synthesized WAV data URL with beat-locked keyframes: audible in player preview, mixed into the AAC export                        |
+| Lottie Sticker      | <img src="assets/showcase/lottie-sticker.png" alt="Lottie sticker" width="180">           | A self-contained vector Lottie document seeked frame-exactly; the same asset at two playback rates                                 |
 
 ## Prompt-Style Readiness
 
