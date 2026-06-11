@@ -74,12 +74,13 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ✅ **D**: eval harness runner (`tools/agent-eval`, not shipped): generate + edit suites scored mechanically per RFC 0001; provider-agnostic (any chat endpoint via env), cases and assertions are the asset.
 - ✅ **E**: robustness — exact golden fixtures now have committed baseline PNGs; hash mismatches write ignored `received` and red-highlight `diff` PNG artifacts next to the golden snapshots.
 
-### Week 4 — capability depth
+### Week 4 — capability depth (in progress)
 
-- **A**: Lottie node spike (the biggest visual-capability draw for an open-source audience; baked deterministic frame-seek, never a runtime script dependency).
-- **A**: audio showcase scene in the playground (first eared end-to-end check of audio preview + export).
-- **B**: 1080p real-footage benchmark; chunked audio mixing for long scenes; worker-parallel export if the benchmark demands it.
-- **A**: GSAP-to-keyframes baking spike (build-time only) — stretch.
+- ✅ **A**: Lottie node spike — green light (`docs/lottie-spike.md`): pixel-deterministic frame-seek at ~3 ms, integration design recorded (video pattern, optional peer dependency, expression/clamp guards). Implementation is the next A slice.
+- ✅ **A**: audio showcase scene — **Audio Sync Pulse**, the playground's first audible demo (synthesized WAV data URL, beat-locked keyframes, AAC export verified). Maintainer eared check pending.
+- ◻ **B**: 1080p real-footage benchmark; chunked audio mixing for long scenes; worker-parallel export if the benchmark demands it.
+- ◻ **A**: `lottie` node implementation per the spike design.
+- ◻ **A**: GSAP-to-keyframes baking spike (build-time only) — stretch.
 
 ### Week 5 — harden and launch surface
 
