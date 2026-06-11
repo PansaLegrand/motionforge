@@ -98,6 +98,29 @@ describe("animation evaluator", () => {
     expect(resolved.nodes.length).toBeGreaterThan(0);
   });
 
+  it("exposes node-local frames through nested from offsets", () => {
+    const scene = composition({
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 60,
+    })
+      .children(
+        div({ id: "outer", from: 10, duration: 40 }).children(
+          div({ id: "inner", from: 5, duration: 20 }),
+        ),
+      )
+      .toJSON();
+
+    // Scene frame 18: outer local = 8, inner local = 8 - 5 = 3.
+    const resolved = evaluateScene(scene, 18);
+    const outer = resolved.nodes[0];
+    const inner = outer?.children[0];
+
+    expect(outer?.localFrame).toBe(8);
+    expect(inner?.localFrame).toBe(3);
+  });
+
   it("interpolates hex colors in RGBA space", () => {
     expect(
       evaluateKeyframes(

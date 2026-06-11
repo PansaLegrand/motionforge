@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (video clips — roadmap slice 5)
+
+### Changed
+
+- `@motionforge/schema`: video nodes gain `videoStartTime` (source trim, **seconds** — source footage has its own timebase, independent of scene fps) and `playbackRate` (multiplier). Both reject on non-video nodes with actionable messages.
+- `@motionforge/core`: `ResolvedNode` exposes `localFrame` (frames since the node became active), the basis for video time mapping. Builder `video()` accepts the new fields.
+- `@motionforge/renderer-canvas2d`: video assets open through mediabunny (`Input` + `CanvasSink`) for frame-accurate decoding — no `<video>` element seeking. The async/sync boundary is explicit: `prepareFrame(scene, frame, assets)` decodes the source frame every active video node needs (`sourceTime = videoStartTime + (localFrame / fps) * playbackRate`, clamped so scenes outlasting the clip hold the last frame) and stages it per node id; `renderStill` then draws synchronously through the shared objectFit path. Drawing an unstaged or stale-staged video node throws. `videoSourceTime()` exported pure; `disposeAssets()` releases decoders.
+- `@motionforge/export`: `renderFrameSequence` awaits `prepareFrame` per frame when assets are provided, so `exportVideo` handles video scenes with no API change.
+- Golden harness: end-to-end in-browser video checks — synthesize a source clip with `exportVideo` (red 1s / blue 1s), composite it through two video nodes (trim 1.5s; trim 0.5s + rate 2), verify previewed pixels at two scene frames, then export the composite and decode the file to verify exported pixels match preview. No committed binary fixtures; the engine bootstraps its own.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (57 unit tests; new: source-time mapping incl. trim/rate/clamping, localFrame through nested `from` offsets, schema accept/reject for the new fields, unstaged-video error)
+- `pnpm golden:test` (14 fixtures + export smoke + 5 video checks, all passing; decoded color error ≤ 4/255 per channel from double lossy encode)
+
+### Notes
+
+- **Timing baseline** (320x180, headless Chromium, AVC): 60-frame source export 16 ms; 30-frame composite export with two simultaneously decoding video nodes 90 ms (~3 ms/frame). No optimization needed yet; remeasure at 1080p when real footage lands.
+- Clips are fetched fully into memory (BlobSource) for deterministic access; streaming sources are future work.
+- The playground stays synchronous — its sample scene has no video. When a video scene lands there, `draw()` needs an async wrapper around `prepareFrame`.
+- CanvasSink is unpooled so staged canvases stay valid between prepares; revisit with a pool + copy if memory becomes an issue on long scenes.
+
 ## 2026-06-11 (v0.1.0 release prep — roadmap slice 3, credential steps pending)
 
 ### Changed

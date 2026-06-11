@@ -4,6 +4,7 @@ import {
   computeObjectFit,
   parseLinearGradient,
   renderStill,
+  videoSourceTime,
   wrapTextLines,
 } from "./index.js";
 
@@ -212,5 +213,49 @@ describe("parseLinearGradient", () => {
     );
 
     expect(parsed?.stops.map((stop) => stop.offset)).toEqual([0.6, 0.6, 1]);
+  });
+});
+
+describe("videoSourceTime", () => {
+  it("maps local frames to source seconds at natural speed", () => {
+    expect(videoSourceTime(0, 30, 0, 1, 10)).toBe(0);
+    expect(videoSourceTime(15, 30, 0, 1, 10)).toBe(0.5);
+  });
+
+  it("applies trim offset and playback rate", () => {
+    // 0.5s trim + (15/30)s * 2x = 1.5s into the source.
+    expect(videoSourceTime(15, 30, 0.5, 2, 10)).toBe(1.5);
+  });
+
+  it("holds the last frame when the scene outlasts the clip", () => {
+    expect(videoSourceTime(900, 30, 0, 1, 2)).toBeCloseTo(1.999, 5);
+    expect(videoSourceTime(0, 30, 99, 1, 2)).toBeCloseTo(1.999, 5);
+  });
+});
+
+describe("renderStill with video nodes", () => {
+  it("fails loudly when no frame was staged via prepareFrame", () => {
+    const scene = {
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 1,
+      assets: {
+        clip: { id: "clip", type: "video", src: "blob:fake" },
+      },
+      nodes: [{ id: "shot", type: "video", assetId: "clip" }],
+    };
+
+    const context = {
+      globalAlpha: 1,
+      save: () => undefined,
+      restore: () => undefined,
+      clearRect: () => undefined,
+    } as unknown as CanvasRenderingContext2D;
+
+    expect(() => renderStill(context, scene as never, 0)).toThrow(
+      /prepareFrame\(scene, frame, assets\)/,
+    );
   });
 });

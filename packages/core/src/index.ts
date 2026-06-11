@@ -22,6 +22,13 @@ export type NodeOptions = {
   assetId?: string;
 };
 
+export type VideoNodeOptions = NodeOptions & {
+  /** Source trim offset in seconds. */
+  videoStartTime?: number;
+  /** Playback speed multiplier (1 = natural speed). */
+  playbackRate?: number;
+};
+
 type IdCounter = { next: number };
 
 export class SceneBuilder {
@@ -63,6 +70,8 @@ export class NodeBuilder {
   private readonly id?: string;
   private readonly text?: string;
   private readonly assetId?: string;
+  private readonly videoStartTime?: number;
+  private readonly playbackRate?: number;
   private from: number;
   private duration?: number;
   private readonly style: SceneStyle;
@@ -71,12 +80,14 @@ export class NodeBuilder {
 
   constructor(
     type: SceneNode["type"],
-    options: NodeOptions & { text?: string } = {},
+    options: VideoNodeOptions & { text?: string } = {},
   ) {
     this.type = type;
     this.id = options.id;
     this.text = options.text;
     this.assetId = options.assetId;
+    this.videoStartTime = options.videoStartTime;
+    this.playbackRate = options.playbackRate;
     this.from = options.from ?? 0;
     this.duration = options.duration;
     this.style = options.style ?? {};
@@ -119,6 +130,8 @@ export class NodeBuilder {
       type: this.type,
       text: this.text,
       assetId: this.assetId,
+      videoStartTime: this.videoStartTime,
+      playbackRate: this.playbackRate,
       from: this.from,
       duration: this.duration,
       style: this.style,
@@ -144,12 +157,17 @@ export function img(assetId: string, options: NodeOptions = {}): NodeBuilder {
   return new NodeBuilder("img", { ...options, assetId });
 }
 
-export function video(assetId: string, options: NodeOptions = {}): NodeBuilder {
+export function video(
+  assetId: string,
+  options: VideoNodeOptions = {},
+): NodeBuilder {
   return new NodeBuilder("video", { ...options, assetId });
 }
 
 export type ResolvedNode = Omit<SceneNode, "children"> & {
   style: SceneStyle;
+  /** Frames since this node became active (0 on its first visible frame). */
+  localFrame: number;
   children: ResolvedNode[];
 };
 
@@ -203,6 +221,7 @@ function evaluateNode(
     {
       ...node,
       style,
+      localFrame,
       children,
     },
   ];

@@ -77,6 +77,9 @@ importers:
       '@motionforge/schema':
         specifier: workspace:*
         version: link:../schema
+      mediabunny:
+        specifier: ^1.46.0
+        version: 1.46.0
     devDependencies:
       vitest:
         specifier: ^3.2.4
@@ -109,6 +112,9 @@ importers:
       '@motionforge/schema':
         specifier: workspace:*
         version: link:../../packages/schema
+      mediabunny:
+        specifier: ^1.46.0
+        version: 1.46.0
       playwright:
         specifier: ^1.60.0
         version: 1.60.0

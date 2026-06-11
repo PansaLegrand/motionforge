@@ -80,6 +80,14 @@
               "assetId": {
                 "type": "string"
               },
+              "videoStartTime": {
+                "type": "number",
+                "minimum": 0
+              },
+              "playbackRate": {
+                "type": "number",
+                "exclusiveMinimum": 0
+              },
               "from": {
                 "type": "integer",
                 "default": 0

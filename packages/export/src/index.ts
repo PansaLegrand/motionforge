@@ -1,4 +1,5 @@
 import {
+  prepareFrame,
   renderStill,
   resolveAssets,
   type ResolvedAssets,
@@ -122,6 +123,12 @@ export async function renderFrameSequence(
 
   for (let frame = startFrame; frame <= endFrame; frame += 1) {
     throwIfAborted(options.signal);
+
+    if (options.assets) {
+      // Stages decoded video frames for this scene frame; no-op for scenes
+      // without video assets.
+      await prepareFrame(options.scene, frame, options.assets);
+    }
 
     renderFrame(options.context, options.scene, frame);
 

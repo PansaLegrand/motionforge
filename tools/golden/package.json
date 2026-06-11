@@ -16,6 +16,7 @@
     "@motionforge/export": "workspace:*",
     "@motionforge/renderer-canvas2d": "workspace:*",
     "@motionforge/schema": "workspace:*",
+    "mediabunny": "^1.46.0",
     "playwright": "^1.60.0",
     "tsx": "^4.22.4",
     "vite": "^7.3.5"

@@ -32,6 +32,8 @@ type SceneNode = {
   type: "div" | "text" | "img" | "video";
   text?: string; // required when type is "text"
   assetId?: string; // required when type is "img" or "video"
+  videoStartTime?: number; // video nodes only: source trim offset in seconds (default 0)
+  playbackRate?: number; // video nodes only: speed multiplier (default 1)
   from?: number; // start frame, relative to the parent (default 0)
   duration?: number; // frames the node is active (default: parent's duration)
   style?: SceneStyle; // curated CSS-like subset, see the matrix below
@@ -39,6 +41,16 @@ type SceneNode = {
   children?: SceneNode[];
 };
 ```
+
+### Video timing
+
+A video node maps its node-local frame to a source timestamp in **seconds** (source footage has its own timebase, independent of scene fps):
+
+```txt
+sourceTime = videoStartTime + (localFrame / scene.fps) * playbackRate
+```
+
+The renderer draws the last source frame at or before that timestamp. When the scene outlasts the clip, the last frame holds. `videoStartTime` and `playbackRate` validate only on video nodes.
 
 ### Timing model
 
@@ -90,7 +102,7 @@ Validation is intentionally stricter than implementation: a property may validat
 | `margin`                                         |    ✅     |   ✅   |   —    | single value, all sides: outer spacing that shifts the box from its anchor edge and shrinks auto sizes                            |
 | `minWidth`, `minHeight`, `maxWidth`, `maxHeight` |    ✅     |   ✅   |   —    | clamp the resolved size; `min` wins over `max` (CSS semantics)                                                                    |
 | `transformOrigin`                                |    ✅     |   —    |   ✅   | `left`/`center`/`right`, `top`/`center`/`bottom`, `px`, or `%` per axis; default center                                           |
-| `objectFit`                                      |    ✅     |   —    |   ✅   | `fill` (default), `contain`, `cover`, `none`, `scale-down`; applies to `img` nodes (video drawing not yet landed)                 |
+| `objectFit`                                      |    ✅     |   —    |   ✅   | `fill` (default), `contain`, `cover`, `none`, `scale-down`; applies to `img` and `video` nodes                                    |
 | `objectPosition`                                 |    ✅     |   —    |   ✅   | keywords (`left`/`center`/`right`, `top`/`center`/`bottom`), `%` (CSS alignment semantics), or `px` per axis                      |
 
 ✅ implemented · ⚠️ partial (see note) · 📋 validated only, planned · — not applicable
@@ -112,17 +124,24 @@ Anything not in this table is rejected at validation time with an actionable mes
 Asset loading is the engine's only asynchronous phase, and it is explicit:
 
 ```ts
-import { resolveAssets, renderStill } from "@motionforge/renderer-canvas2d";
+import {
+  prepareFrame,
+  renderStill,
+  resolveAssets,
+} from "@motionforge/renderer-canvas2d";
 
 const assets = await resolveAssets(scene); // fetches + decodes scene.assets
+await prepareFrame(scene, frame, assets); // stages video frames (no-op without video)
 renderStill(context, scene, frame, { assets }); // pure given (scene, frame, assets)
 ```
 
 - `resolveAssets(scene)` fetches and decodes every `image` asset (data URLs and remote URLs alike) and loads every `font` asset. Call it once per scene, or whenever `scene.assets` changes; `exportVideo()` calls it internally when you don't pass `assets`.
 - **Font assets register under their asset id**: an asset `{ id: "Inter-Bold", type: "font", src: "..." }` is referenced from styles as `fontFamily: "Inter-Bold"`. Faces register with default descriptors, so name assets per family+weight and reference them without `fontWeight` rather than relying on synthetic bolding. If a font asset is absent or fails to load, resolution rejects; text styled with an unregistered family silently falls back to the next family in the stack (standard canvas behavior), so embed fonts whenever pixel-exact text matters.
+- **Video assets** open through mediabunny for frame-accurate decoding (no `<video>` element seeking). Because decoding is asynchronous and rendering is synchronous, video frames are staged per scene frame: `await prepareFrame(scene, frame, assets)` decodes what every active video node needs, then `renderStill` draws synchronously. `renderFrameSequence`/`exportVideo` call it automatically. Rendering a video node without a staged frame — or with one staged for a different scene frame — **throws**.
 - Rendering a scene that draws an `img` node without resolved assets **throws** with the asset id and the fix — a frame never renders with silently missing media.
 - A failed fetch or decode rejects with the asset id and src; there is no placeholder fallback by design.
-- `video` and `audio` assets validate today but are not yet loaded; they land through this same pipeline.
+- Call `disposeAssets(assets)` when done with a scene to release video decoder resources.
+- `audio` assets validate today but are not yet loaded; they land through this same pipeline (roadmap slice 6).
 
 ## Animations
 

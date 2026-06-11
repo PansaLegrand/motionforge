@@ -140,6 +140,10 @@ type SceneNodeInput = {
   type: "div" | "text" | "img" | "video";
   text?: string;
   assetId?: string;
+  /** Video nodes: source trim offset in seconds (source footage has its own timebase, independent of scene fps). */
+  videoStartTime?: number;
+  /** Video nodes: playback speed multiplier (1 = natural speed). */
+  playbackRate?: number;
   from?: number;
   duration?: number;
   style?: SceneStyle;
@@ -156,6 +160,8 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
       type: z.enum(["div", "text", "img", "video"]),
       text: z.string().optional(),
       assetId: z.string().optional(),
+      videoStartTime: z.number().nonnegative().optional(),
+      playbackRate: z.number().positive().optional(),
       from: z.number().int().default(0),
       duration: z.number().int().positive().optional(),
       style: styleSchema.default({}),
@@ -177,6 +183,18 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
           path: ["assetId"],
           message: `${node.type} nodes require an assetId that points at scene.assets.`,
         });
+      }
+
+      if (node.type !== "video") {
+        for (const field of ["videoStartTime", "playbackRate"] as const) {
+          if (node[field] !== undefined) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: [field],
+              message: `${field} only applies to video nodes; remove it from this ${node.type} node.`,
+            });
+          }
+        }
       }
     }),
 );

@@ -110,6 +110,7 @@ async function run(currentMode: GoldenMode): Promise<void> {
     }
 
     failures.push(...(await runExportSmokeTest(page)));
+    failures.push(...(await runVideoChecks(page)));
 
     if (failures.length > 0) {
       throw new Error(`Golden failures:\n${failures.join("\n\n")}`);
@@ -160,6 +161,26 @@ async function runExportSmokeTest(page: Page): Promise<string[]> {
     console.log(
       `ok export-smoke ${exported.size} bytes, ${exported.codec}, ${exported.totalFrames} frames, ${exported.mimeType}`,
     );
+  }
+
+  return failures;
+}
+
+/**
+ * Video clip integration checks: synthesize a clip with exportVideo, composite
+ * it through video nodes (trim + playbackRate), verify preview pixels, then
+ * export the composite and verify the decoded file matches the preview.
+ */
+async function runVideoChecks(page: Page): Promise<string[]> {
+  const checks = await page.evaluate(() => window.runGoldenVideoChecks());
+  const failures: string[] = [];
+
+  for (const check of checks) {
+    if (check.pass) {
+      console.log(`ok video: ${check.label} (${check.detail})`);
+    } else {
+      failures.push(`video: ${check.label} failed — ${check.detail}`);
+    }
   }
 
   return failures;

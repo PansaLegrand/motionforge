@@ -93,6 +93,42 @@ describe("scene schema", () => {
     );
   });
 
+  it("accepts trim and rate on video nodes, rejects them elsewhere", () => {
+    const valid = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      assets: { clip: { id: "clip", type: "video", src: "clip.mp4" } },
+      nodes: [
+        {
+          id: "shot",
+          type: "video",
+          assetId: "clip",
+          videoStartTime: 1.5,
+          playbackRate: 2,
+        },
+      ],
+    });
+
+    expect(valid.ok).toBe(true);
+
+    const invalid = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [{ id: "box", type: "div", videoStartTime: 1 }],
+    });
+
+    expect(invalid.ok).toBe(false);
+    expect(invalid.ok ? [] : invalid.errors.join("\n")).toContain(
+      "only applies to video nodes",
+    );
+  });
+
   it("re-parsing a parsed scene is an identity no-op", () => {
     const scene = parseScene({
       schemaVersion: 0,
