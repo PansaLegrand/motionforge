@@ -642,8 +642,17 @@ function readLength(
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+// Inline SVG badge so the sample scene exercises image assets without any
+// network dependency. Kept tiny and deterministic.
+const sampleBadgeSvg = `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160"><circle cx="80" cy="80" r="72" fill="#ffd166"/><circle cx="80" cy="80" r="56" fill="#101820"/><path d="M52 96 80 44l28 52H92l-12-24-12 24z" fill="#ffd166"/></svg>`;
+
 export function sampleScene(): Scene {
   return composition({ width: 1080, height: 1920, fps: 30, duration: 120 })
+    .asset({
+      id: "badge",
+      type: "image",
+      src: `data:image/svg+xml;base64,${toBase64(sampleBadgeSvg)}`,
+    })
     .children(
       div({
         id: "background",
@@ -654,6 +663,21 @@ export function sampleScene(): Scene {
           background: "linear-gradient(180deg, #101820 0%, #244f46 100%)",
         },
       }),
+      img("badge", {
+        id: "badge-mark",
+        duration: 120,
+        style: {
+          position: "absolute",
+          left: 460,
+          top: 360,
+          width: 160,
+          height: 160,
+          objectFit: "contain",
+        },
+      }).animate("opacity", [
+        { frame: 0, value: 0 },
+        { frame: 18, value: 1, easing: "easeOut" },
+      ]),
       div({
         id: "subtitle-wrap",
         duration: 120,
@@ -689,4 +713,27 @@ export function sampleScene(): Scene {
       ),
     )
     .toJSON();
+}
+
+/** Base64 that works in browsers (btoa) and Node (Buffer) without DOM types. */
+function toBase64(value: string): string {
+  const globalScope = globalThis as {
+    btoa?: (data: string) => string;
+    Buffer?: {
+      from(
+        data: string,
+        encoding: string,
+      ): { toString(encoding: string): string };
+    };
+  };
+
+  if (typeof globalScope.btoa === "function") {
+    return globalScope.btoa(value);
+  }
+
+  if (globalScope.Buffer) {
+    return globalScope.Buffer.from(value, "utf-8").toString("base64");
+  }
+
+  throw new Error("No base64 encoder available in this environment.");
 }

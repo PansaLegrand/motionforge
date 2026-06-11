@@ -1,9 +1,85 @@
 import { evaluateScene, layoutScene, type LayoutBox } from "@motionforge/core";
-import type { Scene, SceneStyle } from "@motionforge/schema";
+import { parseScene, type Scene, type SceneStyle } from "@motionforge/schema";
 
 export type RenderOptions = {
   clear?: boolean;
+  /** Result of resolveAssets(). Required when the scene draws img nodes. */
+  assets?: ResolvedAssets;
 };
+
+/**
+ * Decoded media for a scene, produced by resolveAssets(). Asset loading is
+ * the only async phase: given the same scene, frame, and resolved assets,
+ * rendering is pure and deterministic.
+ */
+export type ResolvedAssets = {
+  images: Map<string, ImageBitmap>;
+};
+
+/**
+ * Fetches and decodes every asset the scene references. Call once per scene
+ * (or whenever scene.assets changes) and pass the result to renderStill via
+ * options.assets. Throws with the failing asset id and src on any failure;
+ * a scene never renders with silently missing media.
+ */
+export async function resolveAssets(scene: Scene): Promise<ResolvedAssets> {
+  const parsed = parseScene(scene);
+  const images = new Map<string, ImageBitmap>();
+
+  await Promise.all(
+    Object.values(parsed.assets).map(async (asset) => {
+      if (asset.type !== "image") {
+        return;
+      }
+
+      try {
+        const response = await fetch(asset.src);
+
+        if (!response.ok) {
+          throw new Error(`HTTP ${response.status}`);
+        }
+
+        images.set(asset.id, await decodeImageBlob(await response.blob()));
+      } catch (cause) {
+        throw new Error(
+          `Failed to load image asset "${asset.id}" from ${truncateSrc(asset.src)}: ${cause instanceof Error ? cause.message : String(cause)}`,
+          { cause },
+        );
+      }
+    }),
+  );
+
+  return { images };
+}
+
+function truncateSrc(src: string): string {
+  return src.length > 96 ? `${src.slice(0, 96)}…` : src;
+}
+
+/**
+ * createImageBitmap(blob) cannot decode SVG in Chromium; fall back to an
+ * HTMLImageElement (already rasterized at its intrinsic size) when available.
+ */
+async function decodeImageBlob(blob: Blob): Promise<ImageBitmap> {
+  try {
+    return await createImageBitmap(blob);
+  } catch (error) {
+    if (typeof document === "undefined") {
+      throw error;
+    }
+
+    const url = URL.createObjectURL(blob);
+
+    try {
+      const image = new Image();
+      image.src = url;
+      await image.decode();
+      return await createImageBitmap(image);
+    } finally {
+      URL.revokeObjectURL(url);
+    }
+  }
+}
 
 export function renderStill(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
@@ -19,13 +95,14 @@ export function renderStill(
   }
 
   for (const box of layout.boxes) {
-    drawBox(context, box);
+    drawBox(context, box, options.assets);
   }
 }
 
 function drawBox(
   context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
   box: LayoutBox,
+  assets: ResolvedAssets | undefined,
 ): void {
   const { node } = box;
   const style = node.style;
@@ -40,10 +117,152 @@ function drawBox(
     drawText(context, box, node.text, style);
   }
 
-  for (const child of box.children) {
-    drawBox(context, child);
+  if (node.type === "img" && node.assetId) {
+    drawImage(context, box, node.assetId, style, assets);
   }
 
+  for (const child of box.children) {
+    drawBox(context, child, assets);
+  }
+
+  context.restore();
+}
+
+/**
+ * Geometry for drawing media into a box under objectFit/objectPosition.
+ * Exported for tests; coordinates are relative to the box origin.
+ */
+export function computeObjectFit(
+  fit: SceneStyle["objectFit"],
+  position: string | undefined,
+  box: { width: number; height: number },
+  natural: { width: number; height: number },
+): { x: number; y: number; width: number; height: number } {
+  const containScale =
+    natural.width > 0 && natural.height > 0
+      ? Math.min(box.width / natural.width, box.height / natural.height)
+      : 1;
+  const coverScale =
+    natural.width > 0 && natural.height > 0
+      ? Math.max(box.width / natural.width, box.height / natural.height)
+      : 1;
+
+  let width = box.width;
+  let height = box.height;
+
+  switch (fit ?? "fill") {
+    case "contain":
+      width = natural.width * containScale;
+      height = natural.height * containScale;
+      break;
+    case "cover":
+      width = natural.width * coverScale;
+      height = natural.height * coverScale;
+      break;
+    case "none":
+      width = natural.width;
+      height = natural.height;
+      break;
+    case "scale-down": {
+      const scale = Math.min(1, containScale);
+      width = natural.width * scale;
+      height = natural.height * scale;
+      break;
+    }
+    case "fill":
+    default:
+      break;
+  }
+
+  const parts = (position ?? "").trim().split(/\s+/).filter(Boolean);
+  const xPart = parts[0] ?? "center";
+  const yPart = parts[1] ?? "center";
+
+  return {
+    x: resolvePositionComponent(xPart, box.width, width),
+    y: resolvePositionComponent(yPart, box.height, height),
+    width,
+    height,
+  };
+}
+
+function resolvePositionComponent(
+  part: string,
+  boxSize: number,
+  drawnSize: number,
+): number {
+  if (part === "left" || part === "top") {
+    return 0;
+  }
+
+  if (part === "right" || part === "bottom") {
+    return boxSize - drawnSize;
+  }
+
+  if (part === "center") {
+    return (boxSize - drawnSize) / 2;
+  }
+
+  // CSS: percentages align the image's X% point with the box's X% point;
+  // px values offset the image's edge from the box's edge.
+  if (part.endsWith("%")) {
+    const fraction = Number.parseFloat(part) / 100;
+    return Number.isFinite(fraction) ? (boxSize - drawnSize) * fraction : 0;
+  }
+
+  const px = Number.parseFloat(part);
+  return Number.isFinite(px) ? px : (boxSize - drawnSize) / 2;
+}
+
+function drawImage(
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  box: LayoutBox,
+  assetId: string,
+  style: SceneStyle,
+  assets: ResolvedAssets | undefined,
+): void {
+  const image = assets?.images.get(assetId);
+
+  if (!image) {
+    throw new Error(
+      `Scene draws image asset "${assetId}" but it is not in the resolved assets. Call resolveAssets(scene) and pass the result to renderStill via options.assets.`,
+    );
+  }
+
+  const fitted = computeObjectFit(
+    style.objectFit,
+    style.objectPosition,
+    box,
+    image,
+  );
+
+  context.save();
+  // Explicit smoothing settings so scaled pixels are deliberate, not
+  // browser-default-dependent.
+  context.imageSmoothingEnabled = true;
+  context.imageSmoothingQuality = "high";
+
+  const radius = readLength(
+    style.borderRadius,
+    Math.min(box.width, box.height),
+    0,
+  );
+
+  if (radius > 0) {
+    roundedRect(context, box.x, box.y, box.width, box.height, radius);
+  } else {
+    context.beginPath();
+    context.rect(box.x, box.y, box.width, box.height);
+  }
+
+  context.clip();
+  context.drawImage(
+    image,
+    box.x + fitted.x,
+    box.y + fitted.y,
+    fitted.width,
+    fitted.height,
+  );
   context.restore();
 }
 

@@ -64,9 +64,11 @@ scene JSON + frame -> parseScene -> evaluateScene (keyframes) -> layoutScene (bo
 }
 ```
 
-Node types: `div`, `text` (requires `text`), `img` and `video` (require `assetId` pointing at `scene.assets`; drawing not yet implemented). Lengths: number = px, `"50%"` = of parent, `"64px"`.
+Node types: `div`, `text` (requires `text`), `img` (requires `assetId` pointing at `scene.assets`; draws with `objectFit`/`objectPosition` once assets are resolved), `video` (requires `assetId`; drawing not yet implemented). Lengths: number = px, `"50%"` = of parent, `"64px"`.
 
-Styles implemented today: `width`, `height`, `minWidth`/`minHeight`/`maxWidth`/`maxHeight` (min wins over max), `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `margin` (single value, outer spacing), `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`/`space-between`), `alignItems` (`flex-start`/`center`/`flex-end`/`stretch`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `transformOrigin`, `fontSize`, `fontFamily`, `fontWeight`, `fontStyle`, `color`, `textAlign`, `textShadow`, `lineHeight` (unitless = multiplier of fontSize), `letterSpacing`. Validated but not yet rendered: `objectFit`, `objectPosition` (`img`/`video` drawing has not landed).
+Asset workflow: loading is the only async phase. `const assets = await resolveAssets(scene)` (from `@motionforge/renderer-canvas2d`), then `renderStill(ctx, scene, frame, { assets })`. Rendering an `img` without resolved assets throws; `exportVideo()` resolves assets itself when not given them.
+
+Styles implemented today: `width`, `height`, `minWidth`/`minHeight`/`maxWidth`/`maxHeight` (min wins over max), `position` (`relative`/`absolute`), `left`/`top`/`right`/`bottom`, `inset`, `padding`, `margin` (single value, outer spacing), `display: "flex"`, `flexDirection`, `gap`, `justifyContent` (`flex-start`/`center`/`flex-end`/`space-between`), `alignItems` (`flex-start`/`center`/`flex-end`/`stretch`), `backgroundColor`, `background` (solid or simple two-stop linear-gradient), `borderRadius` (no child clipping), `opacity`, `transform` (`translate`/`scale`/`rotate`), `transformOrigin`, `fontSize`, `fontFamily`, `fontWeight`, `fontStyle`, `color`, `textAlign`, `textShadow`, `lineHeight` (unitless = multiplier of fontSize), `letterSpacing`, `objectFit` (`fill`/`contain`/`cover`/`none`/`scale-down`, img nodes), `objectPosition`. Every validated style property is implemented; `video` node drawing is the remaining gap.
 
 Text is multi-line: explicit `\n` always breaks; words wrap to the node's box width using real font metrics; lines are spaced by `lineHeight` and the block is centered vertically in the box.
 
@@ -82,7 +84,7 @@ nodes.2.assetId: img nodes require an assetId that points at scene.assets.
 
 - `@motionforge/schema`: `parseScene(json)` (throws `SceneValidationError`), `validateScene(json)` (returns `{ ok, scene | errors }`), `sceneJsonSchema()` (JSON Schema draft-07; also shipped as `scene.schema.json`).
 - `@motionforge/core`: `composition()`, `div()`, `text()`, `img()`, `video()` builders → `.toJSON()`; `evaluateScene(scene, frame)`, `layoutScene(resolved)`.
-- `@motionforge/renderer-canvas2d`: `renderStill(ctx2d, scene, frame)`.
+- `@motionforge/renderer-canvas2d`: `resolveAssets(scene)` → `ResolvedAssets` (async, once per scene); `renderStill(ctx2d, scene, frame, { assets })`; `computeObjectFit()` for fit geometry.
 - `@motionforge/export`: `detectExportCapability()`; `exportVideo({ scene, onProgress?, startFrame?, endFrame?, signal? })` → `{ blob, codec, totalFrames }` — in-browser MP4 via WebCodecs + mediabunny (gate on `detectExportCapability().videoEncoder`); `renderFrameSequence({ scene, context, onFrame })` — the underlying deterministic frame loop with µs timestamps.
 
 ## Docs

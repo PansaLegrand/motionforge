@@ -89,7 +89,8 @@ Validation is intentionally stricter than implementation: a property may validat
 | `margin`                                         |    ✅     |   ✅   |   —    | single value, all sides: outer spacing that shifts the box from its anchor edge and shrinks auto sizes               |
 | `minWidth`, `minHeight`, `maxWidth`, `maxHeight` |    ✅     |   ✅   |   —    | clamp the resolved size; `min` wins over `max` (CSS semantics)                                                       |
 | `transformOrigin`                                |    ✅     |   —    |   ✅   | `left`/`center`/`right`, `top`/`center`/`bottom`, `px`, or `%` per axis; default center                              |
-| `objectFit`, `objectPosition`                    |    ✅     |   —    |   📋   | validated; `img`/`video` drawing has not landed yet                                                                  |
+| `objectFit`                                      |    ✅     |   —    |   ✅   | `fill` (default), `contain`, `cover`, `none`, `scale-down`; applies to `img` nodes (video drawing not yet landed)    |
+| `objectPosition`                                 |    ✅     |   —    |   ✅   | keywords (`left`/`center`/`right`, `top`/`center`/`bottom`), `%` (CSS alignment semantics), or `px` per axis         |
 
 ✅ implemented · ⚠️ partial (see note) · 📋 validated only, planned · — not applicable
 
@@ -104,6 +105,22 @@ Validation is intentionally stricter than implementation: a property may validat
 - Wrapping happens at render time using real font metrics, so flex layout's intrinsic text sizing still uses the heuristic estimate documented above; give text nodes an explicit `width`/`height` when exact geometry matters.
 
 Anything not in this table is rejected at validation time with an actionable message. Silent visual drift is treated as a bug; if you find a property behaving differently than this table says, file an issue.
+
+## Assets and resolution
+
+Asset loading is the engine's only asynchronous phase, and it is explicit:
+
+```ts
+import { resolveAssets, renderStill } from "@motionforge/renderer-canvas2d";
+
+const assets = await resolveAssets(scene); // fetches + decodes scene.assets
+renderStill(context, scene, frame, { assets }); // pure given (scene, frame, assets)
+```
+
+- `resolveAssets(scene)` fetches and decodes every `image` asset (data URLs and remote URLs alike). Call it once per scene, or whenever `scene.assets` changes; `exportVideo()` calls it internally when you don't pass `assets`.
+- Rendering a scene that draws an `img` node without resolved assets **throws** with the asset id and the fix — a frame never renders with silently missing media.
+- A failed fetch or decode rejects with the asset id and src; there is no placeholder fallback by design.
+- `video`, `audio`, and `font` assets validate today but are not yet loaded; they land through this same pipeline.
 
 ## Animations
 

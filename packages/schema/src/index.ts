@@ -84,7 +84,9 @@ export const styleSchema = z
     letterSpacing: lengthValueSchema.optional(),
     textAlign: z.enum(["left", "center", "right"]).optional(),
     textShadow: z.string().optional(),
-    objectFit: z.enum(["contain", "cover", "fill"]).optional(),
+    objectFit: z
+      .enum(["contain", "cover", "fill", "none", "scale-down"])
+      .optional(),
     objectPosition: z.string().optional(),
   })
   .strict({

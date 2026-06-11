@@ -44,6 +44,21 @@ try {
     deviceScaleFactor: 2,
   });
   await page.goto(url, { waitUntil: "load" });
+  // The playground draws only after resolveAssets() finishes; wait until the
+  // canvas has opaque pixels so the capture isn't a blank frame.
+  await page.waitForFunction(() => {
+    const canvas = document.querySelector("canvas");
+    const context = canvas?.getContext("2d");
+
+    if (!canvas || !context) {
+      return false;
+    }
+
+    return (
+      context.getImageData(canvas.width / 2, canvas.height / 2, 1, 1)
+        .data[3] !== 0
+    );
+  });
   await page.fill("#frame", String(heroFrame));
   await page.waitForFunction(
     (frame) => document.querySelector("output")?.textContent === String(frame),

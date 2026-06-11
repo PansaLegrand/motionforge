@@ -1,6 +1,10 @@
 import { sampleScene } from "@motionforge/core";
 import { detectExportCapability, exportVideo } from "@motionforge/export";
-import { renderStill } from "@motionforge/renderer-canvas2d";
+import {
+  renderStill,
+  resolveAssets,
+  type ResolvedAssets,
+} from "@motionforge/renderer-canvas2d";
 import "./styles.css";
 
 const scene = sampleScene();
@@ -37,6 +41,7 @@ const renderContext = context;
 let frame = 0;
 let playing = false;
 let lastTick = 0;
+let assets: ResolvedAssets | undefined;
 
 slider.max = String(scene.duration - 1);
 capability.textContent = JSON.stringify(detectExportCapability(), null, 2);
@@ -45,7 +50,10 @@ function draw(nextFrame: number): void {
   frame = Math.max(0, Math.min(scene.duration - 1, nextFrame));
   slider.value = String(frame);
   readout.value = String(frame);
-  renderStill(renderContext, scene, frame);
+
+  if (assets) {
+    renderStill(renderContext, scene, frame, { assets });
+  }
 }
 
 function tick(now: number): void {
@@ -92,6 +100,7 @@ async function runExport(): Promise<void> {
   try {
     const { blob, codec, totalFrames } = await exportVideo({
       scene,
+      assets,
       onProgress: ({ frameIndex, totalFrames: total }) => {
         exportStatus.value = `Encoding frame ${frameIndex + 1}/${total}`;
       },
@@ -116,4 +125,13 @@ function downloadBlob(blob: Blob, filename: string): void {
   setTimeout(() => URL.revokeObjectURL(url), 10_000);
 }
 
-draw(0);
+void (async () => {
+  try {
+    assets = await resolveAssets(scene);
+    // Redraw whatever frame the user is on; they may have scrubbed while
+    // assets were loading.
+    draw(frame);
+  } catch (error) {
+    exportStatus.value = error instanceof Error ? error.message : String(error);
+  }
+})();

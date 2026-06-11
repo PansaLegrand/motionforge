@@ -26,7 +26,7 @@ const { blob, codec, totalFrames } = await exportVideo({
 // blob is a video/mp4 Blob ready to download or upload.
 ```
 
-Options: `startFrame`/`endFrame` export a sub-range, `signal` aborts cleanly, `bitrate` takes bits/s or a mediabunny `Quality` preset, and `codecs` restricts codec choice (by default the first MP4-compatible codec this browser can encode is used — AVC where available, falling back to VP9/AV1 in Chromium-only builds).
+Options: `startFrame`/`endFrame` export a sub-range, `signal` aborts cleanly, `bitrate` takes bits/s or a mediabunny `Quality` preset, `codecs` restricts codec choice (by default the first MP4-compatible codec this browser can encode is used — AVC where available, falling back to VP9/AV1 in Chromium-only builds), and `assets` accepts pre-resolved assets from `resolveAssets()` — when omitted, `exportVideo()` resolves the scene's assets itself before the frame loop.
 
 ## Lower-level frame loop
 

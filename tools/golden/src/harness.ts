@@ -1,5 +1,5 @@
 import { exportVideo } from "@motionforge/export";
-import { renderStill } from "@motionforge/renderer-canvas2d";
+import { renderStill, resolveAssets } from "@motionforge/renderer-canvas2d";
 import type { Scene } from "@motionforge/schema";
 
 export type RenderedFrame = {
@@ -19,12 +19,15 @@ export type ExportedVideo = {
 
 declare global {
   interface Window {
-    renderGoldenFrame: (scene: Scene, frame: number) => RenderedFrame;
+    renderGoldenFrame: (scene: Scene, frame: number) => Promise<RenderedFrame>;
     renderGoldenExport: (scene: Scene) => Promise<ExportedVideo>;
   }
 }
 
-window.renderGoldenFrame = (scene: Scene, frame: number): RenderedFrame => {
+window.renderGoldenFrame = async (
+  scene: Scene,
+  frame: number,
+): Promise<RenderedFrame> => {
   const canvas = document.createElement("canvas");
   canvas.width = scene.width;
   canvas.height = scene.height;
@@ -35,7 +38,8 @@ window.renderGoldenFrame = (scene: Scene, frame: number): RenderedFrame => {
     throw new Error("Canvas2D is unavailable in the golden harness.");
   }
 
-  renderStill(context, scene, frame);
+  const assets = await resolveAssets(scene);
+  renderStill(context, scene, frame, { assets });
 
   const image = context.getImageData(0, 0, scene.width, scene.height);
 

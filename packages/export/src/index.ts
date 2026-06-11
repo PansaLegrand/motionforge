@@ -1,4 +1,8 @@
-import { renderStill } from "@motionforge/renderer-canvas2d";
+import {
+  renderStill,
+  resolveAssets,
+  type ResolvedAssets,
+} from "@motionforge/renderer-canvas2d";
 import type { Scene } from "@motionforge/schema";
 import {
   BufferTarget,
@@ -35,6 +39,11 @@ export type ExportVideoOptions = {
    * container supports; the first one this browser can encode is used.
    */
   codecs?: VideoCodec[];
+  /**
+   * Pre-resolved assets. When omitted, exportVideo calls resolveAssets(scene)
+   * itself before the frame loop.
+   */
+  assets?: ResolvedAssets;
 };
 
 export type ExportVideoResult = {
@@ -64,6 +73,8 @@ export type RenderFrameSequenceOptions = {
   startFrame?: number;
   endFrame?: number;
   signal?: AbortSignal;
+  /** Resolved assets forwarded to the default renderStill renderer. */
+  assets?: ResolvedAssets;
   renderFrame?: (
     context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
     scene: Scene,
@@ -100,7 +111,13 @@ export async function renderFrameSequence(
   throwIfAborted(options.signal);
 
   const totalFrames = endFrame - startFrame + 1;
-  const renderFrame = options.renderFrame ?? renderStill;
+  const renderFrame =
+    options.renderFrame ??
+    ((
+      context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+      scene: Scene,
+      frame: number,
+    ) => renderStill(context, scene, frame, { assets: options.assets }));
   let renderedFrames = 0;
 
   for (let frame = startFrame; frame <= endFrame; frame += 1) {
@@ -161,6 +178,7 @@ export async function exportVideo(
     );
   }
 
+  const assets = options.assets ?? (await resolveAssets(scene));
   const { canvas, context } = createExportCanvas(scene.width, scene.height);
   const output = new Output({ format, target: new BufferTarget() });
   const source = new CanvasSource(canvas, {
@@ -177,6 +195,7 @@ export async function exportVideo(
     result = await renderFrameSequence({
       scene,
       context,
+      assets,
       startFrame: options.startFrame,
       endFrame: options.endFrame,
       signal: options.signal,

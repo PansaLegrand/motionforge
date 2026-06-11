@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (asset pipeline + image rendering — roadmap slice 1)
+
+### Changed
+
+- `@motionforge/renderer-canvas2d`: added `resolveAssets(scene)` — the engine's only async phase. Fetches and decodes every `image` asset to an `ImageBitmap`; rejects with the asset id and src on any failure. Rendering stays pure given `(scene, frame, resolvedAssets)`.
+- `renderStill()` accepts `options.assets`; `img` nodes now draw with `objectFit` (`fill` default, `contain`, `cover`, `none`, `scale-down`), `objectPosition` (keywords, `%` with CSS alignment semantics, `px`), and `borderRadius` clipping. Image smoothing is set explicitly so scaled pixels are deliberate. `computeObjectFit()` is exported as a pure, unit-tested helper.
+- Drawing an `img` node without resolved assets throws an actionable error naming the asset and the fix — never a silently partial frame.
+- `@motionforge/schema`: widened `objectFit` to the full CSS set (`none`, `scale-down` added).
+- `@motionforge/export`: `renderFrameSequence` forwards `assets` to the default renderer; `exportVideo` resolves assets internally when not given pre-resolved ones.
+- Sample scene gains an inline-SVG badge image (data URL, no network dependency); playground and golden harness resolve assets before rendering.
+- New exact golden `image-object-fit`: contain letterbox, cover crop with `objectPosition: left top`, and fill under a rounded clip, using a committed 16x16 quadrant PNG data URL.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (45 unit tests; 6 new: objectFit geometry for all five modes, percentage/keyword objectPosition, missing-asset error path)
+- `pnpm golden:test` (11 fixtures + export smoke; all pre-existing hashes unchanged)
+
+### Notes
+
+- The style support matrix now has **zero** validated-but-unimplemented rows. The remaining schema-only feature is `video` node drawing (roadmap slice 5); `font`/`audio` assets validate but load in later slices through this same pipeline.
+- `ResolvedAssets` is deliberately a struct of maps (`{ images }`) so fonts and video sample sinks can be added without breaking the call sites.
+
 ## 2026-06-11 (core engine hardening slice)
 
 ### Changed
