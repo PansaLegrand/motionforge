@@ -8,6 +8,8 @@ describe("showcase scenes", () => {
       "intro",
       "tiktok-captions",
       "karaoke-captions",
+      "launch-info-display",
+      "timed-text-overlay",
     ]);
 
     for (const entry of showcaseScenes) {
@@ -19,7 +21,9 @@ describe("showcase scenes", () => {
   });
 
   it("uses measured caption backgrounds in the TikTok showcase", () => {
-    const tiktok = showcaseScenes.find((entry) => entry.id === "tiktok-captions");
+    const tiktok = showcaseScenes.find(
+      (entry) => entry.id === "tiktok-captions",
+    );
     const caption = tiktok?.scene.nodes.find((node) => node.id === "caption");
     const highlighted = caption?.children?.[1]?.children?.[0];
 
@@ -28,5 +32,35 @@ describe("showcase scenes", () => {
       "rgba(255, 209, 102, 0.16)",
     );
     expect(highlighted?.style?.textStroke).toBe("8px #000000");
+  });
+
+  it("translates the timed text prompt into exact overlay windows", () => {
+    const timed = showcaseScenes.find(
+      (entry) => entry.id === "timed-text-overlay",
+    );
+    const topText = timed?.scene.nodes.find(
+      (node) => node.id === "timed-top-text",
+    );
+    const bottomText = timed?.scene.nodes.find(
+      (node) => node.id === "coming-soon-text",
+    );
+
+    expect(timed?.scene.fps).toBe(30);
+    expect(timed?.scene.duration).toBe(450);
+
+    expect(topText?.text).toBe("motionforge.dev");
+    expect(topText?.from).toBe(0);
+    expect(topText?.duration).toBe(150);
+    expect(topText?.style?.top).toBe(74);
+    expect(topText?.style?.textAlign).toBe("center");
+    expect(topText?.style?.color).toBe("#ff3030");
+
+    expect(bottomText?.text).toBe("Coming soon...");
+    expect(bottomText?.from).toBe(150);
+    expect(bottomText?.duration).toBe(300);
+    expect(bottomText?.style?.right).toBe(70);
+    expect(bottomText?.style?.bottom).toBe(92);
+    expect(bottomText?.style?.textAlign).toBe("right");
+    expect(bottomText?.style?.color).toBe("#ffe45c");
   });
 });

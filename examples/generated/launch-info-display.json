@@ -1,0 +1,1069 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 240,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "launch-background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #10131b 0%, #233945 48%, #2c1f3f 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "launch-grid",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 912,
+        "height": 1320,
+        "position": "absolute",
+        "left": 84,
+        "top": 180,
+        "background": "linear-gradient(90deg, rgba(102,245,215,0.08) 0%, rgba(255,209,102,0.05) 54%, rgba(255,87,122,0.08) 100%)",
+        "border": "2px solid rgba(102,245,215,0.25)",
+        "borderRadius": 34,
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "launch-scanline-a",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "width": 220,
+            "height": 4,
+            "position": "absolute",
+            "left": -260,
+            "top": 180,
+            "backgroundColor": "rgba(102,245,215,0.92)",
+            "borderRadius": 4,
+            "opacity": 0,
+            "transform": "translate(0px, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "opacity",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": 0
+                },
+                {
+                  "frame": 18,
+                  "value": 0
+                },
+                {
+                  "frame": 28,
+                  "value": 0.82,
+                  "easing": "easeOut"
+                },
+                {
+                  "frame": 82,
+                  "value": 0,
+                  "easing": "easeIn"
+                }
+              ]
+            },
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "translate(0px, 0px)"
+                },
+                {
+                  "frame": 18,
+                  "value": "translate(0px, 0px)"
+                },
+                {
+                  "frame": 82,
+                  "value": "translate(1600px, 0px)",
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "launch-scanline-b",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "width": 220,
+            "height": 4,
+            "position": "absolute",
+            "left": -260,
+            "top": 520,
+            "backgroundColor": "rgba(255,209,102,0.86)",
+            "borderRadius": 4,
+            "opacity": 0,
+            "transform": "translate(0px, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "opacity",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": 0
+                },
+                {
+                  "frame": 86,
+                  "value": 0
+                },
+                {
+                  "frame": 96,
+                  "value": 0.82,
+                  "easing": "easeOut"
+                },
+                {
+                  "frame": 150,
+                  "value": 0,
+                  "easing": "easeIn"
+                }
+              ]
+            },
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "translate(0px, 0px)"
+                },
+                {
+                  "frame": 86,
+                  "value": "translate(0px, 0px)"
+                },
+                {
+                  "frame": 150,
+                  "value": "translate(1600px, 0px)",
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "children": []
+        },
+        {
+          "id": "launch-scanline-c",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "width": 220,
+            "height": 4,
+            "position": "absolute",
+            "left": -260,
+            "top": 900,
+            "backgroundColor": "rgba(255,87,122,0.82)",
+            "borderRadius": 4,
+            "opacity": 0,
+            "transform": "translate(0px, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "opacity",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": 0
+                },
+                {
+                  "frame": 142,
+                  "value": 0
+                },
+                {
+                  "frame": 152,
+                  "value": 0.82,
+                  "easing": "easeOut"
+                },
+                {
+                  "frame": 206,
+                  "value": 0,
+                  "easing": "easeIn"
+                }
+              ]
+            },
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "translate(0px, 0px)"
+                },
+                {
+                  "frame": 142,
+                  "value": "translate(0px, 0px)"
+                },
+                {
+                  "frame": 206,
+                  "value": "translate(1600px, 0px)",
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "launch-kicker",
+      "type": "text",
+      "text": "PROMPT TO VIDEO",
+      "from": 0,
+      "style": {
+        "height": 46,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 260,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 28,
+        "fontWeight": 900,
+        "color": "#66f5d7",
+        "letterSpacing": 4,
+        "textAlign": "center"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 18,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "launch-title",
+      "type": "text",
+      "text": "Launch Info Display",
+      "from": 0,
+      "style": {
+        "height": 108,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 316,
+        "transform": "translate(0px, 32px)",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 82,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 16 42 rgba(0,0,0,0.48)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 24,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(0px, 32px)"
+            },
+            {
+              "frame": 26,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "launch-card-window",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 372,
+        "height": 160,
+        "position": "absolute",
+        "left": 132,
+        "top": 486,
+        "background": "linear-gradient(135deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 100%)",
+        "border": "2px solid rgba(102,245,215,0.86)",
+        "borderRadius": 22,
+        "boxShadow": "0 20 48 rgba(0,0,0,0.28)",
+        "opacity": 0,
+        "transform": "translate(0px, 38px)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 34,
+              "value": 0
+            },
+            {
+              "frame": 48,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 34,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 52,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "launch-card-window-label",
+          "type": "text",
+          "text": "WINDOW",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 34,
+            "position": "absolute",
+            "left": 28,
+            "top": 24,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 24,
+            "fontWeight": 800,
+            "color": "rgba(102,245,215,0.86)",
+            "letterSpacing": 2,
+            "textAlign": "left"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "launch-card-window-value",
+          "type": "text",
+          "text": "07:30 UTC",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 58,
+            "position": "absolute",
+            "left": 28,
+            "top": 66,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 44,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "textShadow": "0 8 28 rgba(0,0,0,0.45)"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "launch-card-payload",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 372,
+        "height": 160,
+        "position": "absolute",
+        "left": 576,
+        "top": 486,
+        "background": "linear-gradient(135deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 100%)",
+        "border": "2px solid rgba(255,209,102,0.9)",
+        "borderRadius": 22,
+        "boxShadow": "0 20 48 rgba(0,0,0,0.28)",
+        "opacity": 0,
+        "transform": "translate(0px, 38px)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 46,
+              "value": 0
+            },
+            {
+              "frame": 60,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 46,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 64,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "launch-card-payload-label",
+          "type": "text",
+          "text": "PAYLOAD",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 34,
+            "position": "absolute",
+            "left": 28,
+            "top": 24,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 24,
+            "fontWeight": 800,
+            "color": "rgba(255,209,102,0.9)",
+            "letterSpacing": 2,
+            "textAlign": "left"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "launch-card-payload-value",
+          "type": "text",
+          "text": "MOTIONFORGE",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 58,
+            "position": "absolute",
+            "left": 28,
+            "top": 66,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 44,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "textShadow": "0 8 28 rgba(0,0,0,0.45)"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "launch-card-status",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 372,
+        "height": 160,
+        "position": "absolute",
+        "left": 132,
+        "top": 1050,
+        "background": "linear-gradient(135deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 100%)",
+        "border": "2px solid rgba(255,87,122,0.82)",
+        "borderRadius": 22,
+        "boxShadow": "0 20 48 rgba(0,0,0,0.28)",
+        "opacity": 0,
+        "transform": "translate(0px, 38px)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 72,
+              "value": 0
+            },
+            {
+              "frame": 86,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 72,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 90,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "launch-card-status-label",
+          "type": "text",
+          "text": "STATUS",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 34,
+            "position": "absolute",
+            "left": 28,
+            "top": 24,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 24,
+            "fontWeight": 800,
+            "color": "rgba(255,87,122,0.82)",
+            "letterSpacing": 2,
+            "textAlign": "left"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "launch-card-status-value",
+          "type": "text",
+          "text": "Nominal",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 58,
+            "position": "absolute",
+            "left": 28,
+            "top": 66,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 44,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "textShadow": "0 8 28 rgba(0,0,0,0.45)"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "launch-card-target",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 372,
+        "height": 160,
+        "position": "absolute",
+        "left": 576,
+        "top": 1050,
+        "background": "linear-gradient(135deg, rgba(255,255,255,0.13) 0%, rgba(255,255,255,0.04) 100%)",
+        "border": "2px solid rgba(143,173,255,0.92)",
+        "borderRadius": 22,
+        "boxShadow": "0 20 48 rgba(0,0,0,0.28)",
+        "opacity": 0,
+        "transform": "translate(0px, 38px)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 84,
+              "value": 0
+            },
+            {
+              "frame": 98,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 84,
+              "value": "translate(0px, 38px)"
+            },
+            {
+              "frame": 102,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "launch-card-target-label",
+          "type": "text",
+          "text": "TARGET",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 34,
+            "position": "absolute",
+            "left": 28,
+            "top": 24,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 24,
+            "fontWeight": 800,
+            "color": "rgba(143,173,255,0.92)",
+            "letterSpacing": 2,
+            "textAlign": "left"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "launch-card-target-value",
+          "type": "text",
+          "text": "Public Beta",
+          "from": 0,
+          "style": {
+            "width": 316,
+            "height": 58,
+            "position": "absolute",
+            "left": 28,
+            "top": 66,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 44,
+            "fontWeight": 850,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "textShadow": "0 8 28 rgba(0,0,0,0.45)"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "countdown-t-03",
+      "type": "text",
+      "text": "T-03",
+      "from": 96,
+      "duration": 28,
+      "style": {
+        "width": 840,
+        "height": 260,
+        "position": "absolute",
+        "left": 120,
+        "top": 676,
+        "transform": "scale(0.82)",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 148,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 18 58 rgba(0,0,0,0.55)",
+        "textStroke": "5px rgba(0,0,0,0.55)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "scale(0.82)"
+            },
+            {
+              "frame": 10,
+              "value": "scale(1)",
+              "easing": "spring(0.28)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 6,
+              "value": 1,
+              "easing": "easeOut"
+            },
+            {
+              "frame": 23,
+              "value": 1
+            },
+            {
+              "frame": 27,
+              "value": 0,
+              "easing": "easeIn"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "countdown-t-02",
+      "type": "text",
+      "text": "T-02",
+      "from": 124,
+      "duration": 28,
+      "style": {
+        "width": 840,
+        "height": 260,
+        "position": "absolute",
+        "left": 120,
+        "top": 676,
+        "transform": "scale(0.82)",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 148,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 18 58 rgba(0,0,0,0.55)",
+        "textStroke": "5px rgba(0,0,0,0.55)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "scale(0.82)"
+            },
+            {
+              "frame": 10,
+              "value": "scale(1)",
+              "easing": "spring(0.28)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 6,
+              "value": 1,
+              "easing": "easeOut"
+            },
+            {
+              "frame": 23,
+              "value": 1
+            },
+            {
+              "frame": 27,
+              "value": 0,
+              "easing": "easeIn"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "countdown-t-01",
+      "type": "text",
+      "text": "T-01",
+      "from": 152,
+      "duration": 28,
+      "style": {
+        "width": 840,
+        "height": 260,
+        "position": "absolute",
+        "left": 120,
+        "top": 676,
+        "transform": "scale(0.82)",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 148,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 18 58 rgba(0,0,0,0.55)",
+        "textStroke": "5px rgba(0,0,0,0.55)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "scale(0.82)"
+            },
+            {
+              "frame": 10,
+              "value": "scale(1)",
+              "easing": "spring(0.28)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 6,
+              "value": 1,
+              "easing": "easeOut"
+            },
+            {
+              "frame": 23,
+              "value": 1
+            },
+            {
+              "frame": 27,
+              "value": 0,
+              "easing": "easeIn"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "countdown-go",
+      "type": "text",
+      "text": "GO",
+      "from": 180,
+      "duration": 56,
+      "style": {
+        "width": 840,
+        "height": 260,
+        "position": "absolute",
+        "left": 120,
+        "top": 676,
+        "transform": "scale(0.82)",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 176,
+        "fontWeight": 900,
+        "color": "#66f5d7",
+        "textAlign": "center",
+        "textShadow": "0 18 58 rgba(0,0,0,0.55)",
+        "textStroke": "5px rgba(0,0,0,0.55)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "scale(0.82)"
+            },
+            {
+              "frame": 10,
+              "value": "scale(1)",
+              "easing": "spring(0.28)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 6,
+              "value": 1,
+              "easing": "easeOut"
+            },
+            {
+              "frame": 48,
+              "value": 1
+            },
+            {
+              "frame": 55,
+              "value": 0,
+              "easing": "easeIn"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "launch-progress-track",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "height": 18,
+        "position": "absolute",
+        "left": 132,
+        "right": 132,
+        "top": 1300,
+        "backgroundColor": "rgba(255,255,255,0.16)",
+        "borderRadius": 12,
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "launch-progress-fill",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "background": "linear-gradient(90deg, #66f5d7 0%, #ffd166 54%, #ff577a 100%)",
+            "transform": "translate(-100%, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "translate(-100%, 0px)"
+                },
+                {
+                  "frame": 210,
+                  "value": "translate(0%, 0px)",
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "launch-footer",
+      "type": "text",
+      "text": "A single prompt becomes timed text, panels, countdown, and motion.",
+      "from": 0,
+      "style": {
+        "height": 92,
+        "position": "absolute",
+        "left": 120,
+        "right": 120,
+        "top": 1384,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 34,
+        "fontWeight": 700,
+        "color": "#d9fff7",
+        "lineHeight": 1.18,
+        "textAlign": "center"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 128,
+              "value": 0
+            },
+            {
+              "frame": 148,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        }
+      ],
+      "children": []
+    }
+  ]
+}

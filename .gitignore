@@ -8,3 +8,5 @@ coverage
 apps/playground/.vite
 examples/*.mp4
 tools/spike-editor-adapter/out/
+fixtures/goldens/__diffs__/
+examples/generated/*.mp4

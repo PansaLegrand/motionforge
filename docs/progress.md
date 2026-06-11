@@ -2,6 +2,30 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (golden diff artifacts — week-3 slice 3)
+
+### Changed
+
+- Week 3 is now complete: the golden harness writes visual artifacts for exact-fixture failures.
+- `pnpm golden:update` now emits a committed PNG baseline beside each exact snapshot JSON in `fixtures/goldens/`.
+- `pnpm golden:test` still compares exact frames by hash, but on mismatch it writes ignored artifacts under `fixtures/goldens/__diffs__/`: `<fixture>.received.png` and, when a baseline PNG exists, `<fixture>.diff.png` with changed pixels highlighted red.
+- Roadmap wording tightened so motionforge remains explicitly independent/open-source first; downstream consumers are reference inputs, not roadmap owners.
+- Two new prompt-shaped showcase scenes in `@motionforge/showcase` (now five total): **Launch Info Display** (animated panels, scan lines, countdown text, progress motion) and **Timed Text Overlay** (a written timing prompt mapped to frame-accurate text nodes). README/showcase/examples docs updated with their posters.
+- Review fixes before commit: commercial branding scrubbed from the new showcase scene/docs (`motionforge.dev` instead; node id renamed; posters and generated JSON re-rendered and visually verified), and `examples/generated/*.mp4` added to `.gitignore` per the documented rendered-MP4 convention.
+
+### Tested
+
+- `pnpm --filter @motionforge/golden typecheck`
+- `pnpm --filter @motionforge/golden build`
+- `pnpm golden:update`
+- `pnpm golden:test` (34 checks green post-review)
+- Deliberately changed one snapshot hash and verified the failure message included the received/diff artifact paths, then restored the snapshot and removed the ignored artifacts. Re-verified independently during review: `__diffs__/opacity-keyframe.received.png` + `.diff.png` written, paths in the failure output.
+- Full `pnpm test` (141 unit tests incl. updated showcase assertions), `pnpm build`, `pnpm typecheck` green after the branding scrub and regeneration.
+
+### Notes
+
+- Probe-style fixtures still report textual probe failures; this slice targets exact pixel goldens where a visual before/after/diff is most useful.
+
 ## 2026-06-11 (agent-eval harness — week-3 slice 2)
 
 ### Changed

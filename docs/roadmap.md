@@ -1,6 +1,6 @@
 # Roadmap
 
-Each slice follows the working practice: code + tests + docs + a `progress.md` entry, landed as one commit. The two-axis objective is unchanged: (a) an open-source engine good enough that strangers adopt it, (b) the engine behind the downstream editor.
+Each slice follows the working practice: code + tests + docs + a `progress.md` entry, landed as one commit. motionforge is an independent open-source engine first. Downstream products are reference consumers for requirements and validation, not owners of the roadmap.
 
 ## Done — weeks 1–2 (static + time-based media)
 
@@ -68,11 +68,11 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ◻ **D**: eval harness runner (generate suite) — moved to week 3.
 - ◻ **E**: docs site skeleton — moved to week 5; `docs/guides/getting-started.md` is the seed content.
 
-### Week 3 — make the agent loop tangible
+### Week 3 — make the agent loop tangible ✅ complete
 
-- **D**: playground **agent console** — paste a scene document or a patch op list into the playground, apply it live (`validateScene`/`applyScenePatch`), see the preview update, read the validator's errors. This is the chat loop minus the LLM: it proves the contract, demos it to strangers, and dogfoods the patch API in a UI.
-- **D**: eval harness runner (`tools/agent-eval`, not shipped): generate + edit suites scored mechanically per RFC 0001; provider-agnostic (any chat endpoint via env), cases and assertions are the asset.
-- **E**: robustness — pixel-diff artifacts written next to golden failures (the spike's inverted-paint-order bug argued for this).
+- ✅ **D**: playground **agent console** — paste a scene document or a patch op list into the playground, apply it live (`validateScene`/`applyScenePatch`), see the preview update, read the validator's errors. This is the chat loop minus the LLM: it proves the contract, demos it to strangers, and dogfoods the patch API in a UI.
+- ✅ **D**: eval harness runner (`tools/agent-eval`, not shipped): generate + edit suites scored mechanically per RFC 0001; provider-agnostic (any chat endpoint via env), cases and assertions are the asset.
+- ✅ **E**: robustness — exact golden fixtures now have committed baseline PNGs; hash mismatches write ignored `received` and red-highlight `diff` PNG artifacts next to the golden snapshots.
 
 ### Week 4 — capability depth
 

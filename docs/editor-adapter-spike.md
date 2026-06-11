@@ -61,4 +61,4 @@ Two real editor templates (`full-templates/example-5.json` — 10 overlays: 3 re
 
 ## Recommendation
 
-Proceed with integration. The structural fit is confirmed — every sampled production overlay converts and renders. Ship order: (1) engine `filter` + `zIndex` + `%`-translate, (2) adapter package with font manifest + animation coverage, (3) caption mapping slice, then the editor preview behind a feature flag with Remotion fallback for won't-support overlays.
+Use this as downstream-consumer reference material, not as motionforge roadmap ownership. The structural fit is confirmed — every sampled production overlay converts and renders — so a consumer can build an adapter in its own repo when it is ready. motionforge should only absorb generally useful engine work surfaced by the spike, such as deterministic `filter`, `zIndex`, media audio, caption primitives, and future Lottie support.

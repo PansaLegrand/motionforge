@@ -49,6 +49,10 @@ declare global {
     renderGoldenExport: (scene: Scene) => Promise<ExportedVideo>;
     renderGoldenExportFile: (scene: Scene) => Promise<ExportedVideoFile>;
     renderGoldenFramePng: (scene: Scene, frame: number) => Promise<string>;
+    renderGoldenDiffPng: (
+      expected: RenderedFrame,
+      received: RenderedFrame,
+    ) => Promise<string>;
     runGoldenVideoChecks: () => Promise<VideoCheck[]>;
     runGoldenAudioChecks: () => Promise<VideoCheck[]>;
   }
@@ -655,5 +659,62 @@ window.renderGoldenFramePng = async (
   await prepareFrame(scene, frame, assets);
   renderStill(context, scene, frame, { assets });
   disposeAssets(assets);
+  return canvas.toDataURL("image/png").split(",")[1] ?? "";
+};
+
+window.renderGoldenDiffPng = async (
+  expected: RenderedFrame,
+  received: RenderedFrame,
+): Promise<string> => {
+  if (expected.width !== received.width || expected.height !== received.height) {
+    throw new Error(
+      `Cannot diff frames with different sizes: expected ${expected.width}x${expected.height}, received ${received.width}x${received.height}`,
+    );
+  }
+
+  const canvas = document.createElement("canvas");
+  canvas.width = received.width;
+  canvas.height = received.height;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+
+  if (!context) {
+    throw new Error("Canvas2D unavailable for diff artifact");
+  }
+
+  const image = context.createImageData(received.width, received.height);
+
+  for (let index = 0; index < received.rgba.length; index += 4) {
+    const dr = Math.abs(
+      (expected.rgba[index] ?? 0) - (received.rgba[index] ?? 0),
+    );
+    const dg = Math.abs(
+      (expected.rgba[index + 1] ?? 0) - (received.rgba[index + 1] ?? 0),
+    );
+    const db = Math.abs(
+      (expected.rgba[index + 2] ?? 0) - (received.rgba[index + 2] ?? 0),
+    );
+    const da = Math.abs(
+      (expected.rgba[index + 3] ?? 0) - (received.rgba[index + 3] ?? 0),
+    );
+    const changed = dr + dg + db + da > 0;
+
+    if (changed) {
+      image.data[index] = 255;
+      image.data[index + 1] = 64;
+      image.data[index + 2] = 64;
+      image.data[index + 3] = 255;
+    } else {
+      image.data[index] = Math.round((received.rgba[index] ?? 0) * 0.25);
+      image.data[index + 1] = Math.round(
+        (received.rgba[index + 1] ?? 0) * 0.25,
+      );
+      image.data[index + 2] = Math.round(
+        (received.rgba[index + 2] ?? 0) * 0.25,
+      );
+      image.data[index + 3] = 255;
+    }
+  }
+
+  context.putImageData(image, 0, 0);
   return canvas.toDataURL("image/png").split(",")[1] ?? "";
 };

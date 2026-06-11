@@ -21,6 +21,15 @@ pnpm showcase:generate
 
 Those scenes also power the playground scene picker, so docs, examples, and preview stay aligned.
 
+## Prompt-style examples
+
+The generated showcase now includes two use-case demos aimed at agent and editor workflows:
+
+- `launch-info-display.json` — a prompt-to-video style launch display with animated panels, scan lines, countdown text, and progress motion.
+- `timed-text-overlay.json` — a written timing prompt mapped to frame-accurate overlays: `motionforge.dev` at top center for the first 5 seconds, then `Coming soon...` in the bottom-right corner for the final 10 seconds.
+
+These examples prove the scene contract is ready for prompt-generated videos. The repository does not yet ship a natural-language compiler; today an agent, app, or preset layer writes the scene JSON and motionforge validates, previews, and exports it.
+
 ## tiktok-captions.json
 
 The one-word-at-a-time caption style (1080x1920, 30 fps, 5 s): each word is a

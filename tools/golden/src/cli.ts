@@ -24,6 +24,7 @@ type GoldenSnapshot = {
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "../../..");
 const goldenDir = resolve(rootDir, "fixtures/goldens");
+const diffDir = resolve(goldenDir, "__diffs__");
 const harnessDir = resolve(rootDir, "tools/golden");
 const mode = parseMode(process.argv[2]);
 
@@ -86,19 +87,28 @@ async function run(currentMode: GoldenMode): Promise<void> {
       if (fixture.kind === "exact") {
         const snapshot = snapshotFrame(fixture, rendered);
         const snapshotPath = resolve(goldenDir, `${fixture.id}.json`);
+        const baselinePngPath = resolve(goldenDir, `${fixture.id}.png`);
 
         if (currentMode === "update") {
           await writeSnapshot(snapshotPath, snapshot);
+          await writeFramePng(page, baselinePngPath, fixture);
           console.log(`updated ${fixture.id} ${snapshot.hash}`);
         } else {
           const expected = await readSnapshot(snapshotPath);
 
           if (expected.hash !== snapshot.hash) {
+            const artifacts = await writeFailureArtifacts(
+              page,
+              fixture,
+              rendered,
+              baselinePngPath,
+            );
             failures.push(
               [
                 `${fixture.id}: hash mismatch`,
                 `  expected ${expected.hash}`,
                 `  received ${snapshot.hash}`,
+                `  artifacts ${artifacts.join(", ")}`,
                 `  run pnpm golden:update after inspecting the visual change`,
               ].join("\n"),
             );
@@ -261,6 +271,96 @@ async function writeSnapshot(
 ): Promise<void> {
   await mkdir(dirname(path), { recursive: true });
   await writeFile(path, `${JSON.stringify(snapshot, null, 2)}\n`);
+}
+
+async function writeFramePng(
+  page: Page,
+  path: string,
+  fixture: Extract<GoldenFixture, { kind: "exact" }>,
+): Promise<void> {
+  const pngBase64 = await page.evaluate(
+    ({ scene, frame }) => window.renderGoldenFramePng(scene, frame),
+    { scene: fixture.scene, frame: fixture.frame },
+  );
+
+  await writeBase64File(path, pngBase64);
+}
+
+async function writeFailureArtifacts(
+  page: Page,
+  fixture: Extract<GoldenFixture, { kind: "exact" }>,
+  received: RenderedFrame,
+  baselinePngPath: string,
+): Promise<string[]> {
+  await mkdir(diffDir, { recursive: true });
+
+  const receivedPath = resolve(diffDir, `${fixture.id}.received.png`);
+  const diffPath = resolve(diffDir, `${fixture.id}.diff.png`);
+
+  const receivedBase64 = await page.evaluate(
+    ({ scene, frame }) => window.renderGoldenFramePng(scene, frame),
+    { scene: fixture.scene, frame: fixture.frame },
+  );
+  await writeBase64File(receivedPath, receivedBase64);
+
+  const artifacts = [receivedPath];
+  const expected = await readBaselinePng(page, baselinePngPath);
+
+  if (expected) {
+    const diffBase64 = await page.evaluate(
+      ({ expectedFrame, receivedFrame }) =>
+        window.renderGoldenDiffPng(expectedFrame, receivedFrame),
+      { expectedFrame: expected, receivedFrame: received },
+    );
+    await writeBase64File(diffPath, diffBase64);
+    artifacts.push(diffPath);
+  }
+
+  return artifacts;
+}
+
+async function readBaselinePng(
+  page: Page,
+  path: string,
+): Promise<RenderedFrame | undefined> {
+  try {
+    const pngBase64 = (await readFile(path)).toString("base64");
+
+    return await page.evaluate(async (base64) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${base64}`;
+      await image.decode();
+
+      const canvas = document.createElement("canvas");
+      canvas.width = image.naturalWidth;
+      canvas.height = image.naturalHeight;
+      const context = canvas.getContext("2d", { willReadFrequently: true });
+
+      if (!context) {
+        throw new Error("Canvas2D unavailable for baseline PNG");
+      }
+
+      context.drawImage(image, 0, 0);
+      const data = context.getImageData(0, 0, canvas.width, canvas.height).data;
+
+      return {
+        width: canvas.width,
+        height: canvas.height,
+        rgba: Array.from(data),
+      };
+    }, pngBase64);
+  } catch (error) {
+    if (error instanceof Error && "code" in error && error.code === "ENOENT") {
+      return undefined;
+    }
+
+    throw error;
+  }
+}
+
+async function writeBase64File(path: string, base64: string): Promise<void> {
+  await mkdir(dirname(path), { recursive: true });
+  await writeFile(path, Buffer.from(base64, "base64"));
 }
 
 function evaluateProbes(

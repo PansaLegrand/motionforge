@@ -1,0 +1,241 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 450,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "timed-background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #18191f 0%, #253947 52%, #17191f 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "timed-frame",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "position": "absolute",
+        "left": 72,
+        "right": 72,
+        "top": 148,
+        "bottom": 148,
+        "border": "2px solid rgba(255,255,255,0.18)",
+        "borderRadius": 32
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "timed-center-panel",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "height": 520,
+        "position": "absolute",
+        "left": 144,
+        "right": 144,
+        "top": 650,
+        "background": "linear-gradient(135deg, rgba(102,245,215,0.16) 0%, rgba(255,209,102,0.12) 46%, rgba(255,87,122,0.13) 100%)",
+        "border": "2px solid rgba(255,255,255,0.16)",
+        "borderRadius": 28,
+        "boxShadow": "0 26 70 rgba(0,0,0,0.32)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "timed-top-text",
+      "type": "text",
+      "text": "motionforge.dev",
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "width": "100%",
+        "height": 118,
+        "position": "absolute",
+        "left": 0,
+        "top": 74,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 76,
+        "fontWeight": 900,
+        "color": "#ff3030",
+        "textAlign": "center",
+        "textShadow": "0 12 34 rgba(0,0,0,0.45)",
+        "textStroke": "4px rgba(55,0,0,0.72)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "dojo-top-rule",
+      "type": "div",
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "width": 360,
+        "height": 6,
+        "position": "absolute",
+        "left": 360,
+        "top": 204,
+        "backgroundColor": "#ff3030",
+        "borderRadius": 5,
+        "transform": "scale(0.2)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "scale(0.2)"
+            },
+            {
+              "frame": 18,
+              "value": "scale(1)",
+              "easing": "easeOut"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "timed-prompt-copy",
+      "type": "text",
+      "text": "first 5 seconds: top center\nending 10 seconds: right bottom",
+      "from": 0,
+      "style": {
+        "height": 180,
+        "position": "absolute",
+        "left": 190,
+        "right": 190,
+        "top": 804,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 38,
+        "fontWeight": 760,
+        "color": "#ffffff",
+        "lineHeight": 1.28,
+        "textAlign": "center",
+        "textBackgroundColor": "rgba(0,0,0,0.22)",
+        "textBackgroundPaddingX": 28,
+        "textBackgroundPaddingY": 12,
+        "textBackgroundRadius": 18
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "coming-soon-text",
+      "type": "text",
+      "text": "Coming soon...",
+      "from": 150,
+      "duration": 300,
+      "style": {
+        "width": 520,
+        "height": 78,
+        "position": "absolute",
+        "right": 70,
+        "bottom": 92,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 38,
+        "fontWeight": 850,
+        "color": "#ffe45c",
+        "textAlign": "right",
+        "textShadow": "0 10 28 rgba(0,0,0,0.54)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "coming-soon-accent",
+      "type": "div",
+      "from": 150,
+      "duration": 300,
+      "style": {
+        "width": 260,
+        "height": 5,
+        "position": "absolute",
+        "right": 72,
+        "bottom": 82,
+        "backgroundColor": "#ffe45c",
+        "borderRadius": 5,
+        "transform": "translate(260px, 0px)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(260px, 0px)"
+            },
+            {
+              "frame": 16,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "timed-progress-track",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "height": 10,
+        "position": "absolute",
+        "left": 120,
+        "right": 120,
+        "bottom": 188,
+        "backgroundColor": "rgba(255,255,255,0.18)",
+        "borderRadius": 8,
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "timed-progress-fill",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "background": "linear-gradient(90deg, #ff3030 0%, #ffe45c 100%)",
+            "transform": "translate(-100%, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                {
+                  "frame": 0,
+                  "value": "translate(-100%, 0px)"
+                },
+                {
+                  "frame": 449,
+                  "value": "translate(0%, 0px)",
+                  "easing": "linear"
+                }
+              ]
+            }
+          ],
+          "children": []
+        }
+      ]
+    }
+  ]
+}

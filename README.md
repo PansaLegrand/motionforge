@@ -13,15 +13,19 @@
 
 The current engine can already turn plain scene JSON into real MP4s in the browser. These demos are shared between the playground and docs, so the screenshots below come from the same scene data users can scrub and export.
 
-| Engine intro | TikTok captions | Karaoke captions |
-| --- | --- | --- |
-| <img src="docs/assets/showcase/intro.png" alt="Engine intro" width="220"> | <img src="docs/assets/showcase/tiktok-captions.png" alt="TikTok captions" width="220"> | <img src="docs/assets/showcase/karaoke-captions.png" alt="Karaoke captions" width="220"> |
+| Engine intro                                                              | TikTok captions                                                                        | Karaoke captions                                                                         | Launch display                                                                                 | Timed text                                                                                   |
+| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| <img src="docs/assets/showcase/intro.png" alt="Engine intro" width="180"> | <img src="docs/assets/showcase/tiktok-captions.png" alt="TikTok captions" width="180"> | <img src="docs/assets/showcase/karaoke-captions.png" alt="Karaoke captions" width="180"> | <img src="docs/assets/showcase/launch-info-display.png" alt="Launch info display" width="180"> | <img src="docs/assets/showcase/timed-text-overlay.png" alt="Timed text overlay" width="180"> |
 
 - **Engine intro:** gradients, image assets, text layout, opacity keyframes.
 - **TikTok captions:** ASR word timestamps → springy one-word captions with strokes and measured highlight pills.
 - **Karaoke captions:** full-line captions with per-word color ramps driven by spoken timestamps.
+- **Launch info display:** a prompt-shaped launch screen with animated panels, scan lines, countdown text, and progress motion.
+- **Timed text overlay:** a written timing prompt turned into exact text nodes: `motionforge.dev` for the first 5 seconds, then `Coming soon...` for the final 10 seconds.
 
 Try them locally with `pnpm dev`; the playground scene picker can scrub, play, and export each showcase to MP4. See [docs/showcase.md](docs/showcase.md) for source links and render commands.
+
+Today these prompt-style showcases are authored as scene JSON/preset code, not by a bundled natural-language compiler. The engine is ready for this workflow; the compiler/editor layer can sit above the same scene contract.
 
 ## The bet
 
@@ -86,7 +90,7 @@ This project treats LLM agents as first-class users:
 - [`packages/schema/scene.schema.json`](packages/schema/scene.schema.json) — JSON Schema (draft-07) for validating scenes without running any code.
 - Validation errors are written to be actionable: they name the path, the problem, and what to do instead. Node ids are unique by contract, so agents can patch scenes by id.
 - **Scene patches** ([RFC 0001](docs/rfcs/0001-scene-patch-ops.md)): `applyScenePatch(scene, ops)` applies id-addressed, transactional edits — the API a chat loop drives. Misspelled ids get closest-match suggestions in the error.
-- **Try the loop by hand**: the playground's *Agent console* lets you paste a scene or a patch, applies it through these exact APIs, and shows you the same errors an agent would read.
+- **Try the loop by hand**: the playground's _Agent console_ lets you paste a scene or a patch, applies it through these exact APIs, and shows you the same errors an agent would read.
 
 ## Quickstart
 
