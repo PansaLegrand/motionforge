@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (Lottie spike — week-4 slice 2)
+
+### Changed
+
+- Ran the Lottie feasibility spike (`tools/spike-lottie`, throwaway): lottie-web's canvas renderer driven via `goToAndStop(frame, true)` into a context we own. Findings and the integration design in `docs/lottie-spike.md`.
+- **Green light.** Pixels are deterministic per frame, including after backward seeks and across separate browser launches (identical PNG sha twice); distinct frames differ; ~3 ms/seek on a 200×200 shape layer — same order as video staging.
+- Integration design recorded: `lottie` asset+node types following the video pattern (resolve → prepareFrame staging → sync draw, frame mapping with clamp), lottie-web as an **optional peer dependency** dynamically imported only when a scene uses it.
+
+### Tested
+
+- Spike script asserts determinism (repeat + backseek + cross-run), frame distinctness, seek timing, and discovered that lottie-web does **not** clamp out-of-range frames (frame 999 ≠ last frame) — the integration must clamp like `videoSourceTime`.
+
+### Notes
+
+- Determinism contract requirements for the real slice: reject Lottie documents with JS expressions (can call `Date`/`random`) and image-layer externals (v0 is self-contained vectors only).
+- tsx gotcha worth remembering: esbuild-transformed closures passed to Playwright's `page.evaluate` carry a `__name` helper that breaks in-page; pass browser code as a string.
+
 ## 2026-06-11 (audio-sync showcase scene — week-4 slice 1)
 
 ### Changed
