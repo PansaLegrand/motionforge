@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Scene } from "@motionforge/schema";
 import {
+  audioChunkRanges,
   collectAudioPlacements,
   detectExportCapability,
   exportVideo,
@@ -391,5 +392,22 @@ describe("mixAudioSegments", () => {
     const mixed = mixAudioSegments([loud, loud], 1, 2, 1);
 
     expect(Array.from(mixed[0] ?? [])).toEqual([1, 1]);
+  });
+});
+
+describe("audioChunkRanges", () => {
+  it("covers the range with consecutive inclusive chunks", () => {
+    // 1.5s at 30fps in 0.4s chunks: 12-frame windows over [0, 44]
+    expect(audioChunkRanges(0, 44, 30, 0.4)).toEqual([
+      [0, 11],
+      [12, 23],
+      [24, 35],
+      [36, 44],
+    ]);
+  });
+
+  it("single chunk when the range fits, clamped to at least one frame", () => {
+    expect(audioChunkRanges(10, 20, 30, 10)).toEqual([[10, 20]]);
+    expect(audioChunkRanges(5, 5, 30, 0.0001)).toEqual([[5, 5]]);
   });
 });

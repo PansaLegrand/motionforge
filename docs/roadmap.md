@@ -78,8 +78,10 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 
 - ✅ **A**: Lottie node spike — green light (`docs/lottie-spike.md`): pixel-deterministic frame-seek at ~3 ms, integration design recorded (video pattern, optional peer dependency, expression/clamp guards). Implementation is the next A slice.
 - ✅ **A**: audio showcase scene — **Audio Sync Pulse**, the playground's first audible demo (synthesized WAV data URL, beat-locked keyframes, AAC export verified). Maintainer eared check pending.
-- ◻ **B**: 1080p real-footage benchmark; chunked audio mixing for long scenes; worker-parallel export if the benchmark demands it.
-- ◻ **A**: `lottie` node implementation per the spike design.
+- ✅ **B**: 1080p benchmark (`docs/benchmarks.md`): two-decoder export beats realtime (29 ms/frame), heap flat — **worker-parallel export stays parked**. Memory boundary is BlobSource full-file fetch, not the pipeline.
+- ✅ **B**: chunked audio mixing — export audio now mixes in 10 s windows (flat memory at any scene length); golden checks run the chunked path with 0.4 s windows.
+- ✅ **A (presets)**: `timeline()`/`stagger()` choreography — the GSAP vocabulary as a pure keyframe compiler with `compileToPatch()`; GSAP itself ruled out (license + runtime philosophy).
+- ◻ **A**: `lottie` node implementation per the spike design — scheduled as the last feature before launch.
 - ◻ **A**: GSAP-to-keyframes baking spike (build-time only) — stretch.
 
 ### Week 5 — harden and launch surface

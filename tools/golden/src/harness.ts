@@ -413,7 +413,14 @@ window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
 
   const assets = await resolveAssets(scene);
   const exportStart = performance.now();
-  const { blob, audioCodec } = await exportVideo({ scene, assets });
+  // 0.4s chunks force the chunked mix path (4 windows over 1.5s, with the
+  // tone start crossing a chunk boundary); the RMS/alignment checks below
+  // then validate chunk concatenation, not just the mix math.
+  const { blob, audioCodec } = await exportVideo({
+    scene,
+    assets,
+    audioChunkSeconds: 0.4,
+  });
   const exportMs = performance.now() - exportStart;
 
   checks.push({

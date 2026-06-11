@@ -49,6 +49,12 @@ export type ExportVideoOptions = {
    * itself before the frame loop.
    */
   assets?: ResolvedAssets;
+  /**
+   * Audio is mixed and fed to the encoder in windows of this many seconds
+   * (default 10), so audio memory stays flat regardless of scene length.
+   * Exposed mainly for tests; the default is fine.
+   */
+  audioChunkSeconds?: number;
 };
 
 export type ExportVideoResult = {
@@ -339,20 +345,21 @@ export async function exportVideo(
   });
   output.addVideoTrack(source, { frameRate: scene.fps });
 
-  // Mix the scene's audio before starting the output: tracks can only be
-  // added while the output is pending.
+  // Tracks can only be added while the output is pending, so probe for
+  // audible content up front (no decoding); the actual mix happens in
+  // chunks after the frame loop so audio memory stays flat.
   const startFrame = options.startFrame ?? 0;
   const endFrame = options.endFrame ?? scene.duration - 1;
-  const mixedAudio = await mixSceneAudio(scene, assets, startFrame, endFrame);
+  const hasAudio = sceneHasAudibleContent(scene, assets, startFrame, endFrame);
   let audioSource: AudioBufferSource | null = null;
   let audioCodec: AudioCodec | null = null;
 
-  if (mixedAudio) {
+  if (hasAudio) {
     audioCodec = await getFirstEncodableAudioCodec(
       format.getSupportedAudioCodecs(),
       {
-        numberOfChannels: mixedAudio.numberOfChannels,
-        sampleRate: mixedAudio.sampleRate,
+        numberOfChannels: MIX_CHANNELS,
+        sampleRate: MIX_SAMPLE_RATE,
       },
     );
 
@@ -390,8 +397,23 @@ export async function exportVideo(
       onProgress: options.onProgress,
     });
 
-    if (audioSource && mixedAudio) {
-      await audioSource.add(mixedAudio);
+    if (audioSource) {
+      // Sequential appends: every chunk must be added, so silent windows
+      // become explicit silence rather than skipped (skipping would shift
+      // everything after them earlier).
+      const ranges = audioChunkRanges(
+        startFrame,
+        endFrame,
+        scene.fps,
+        options.audioChunkSeconds ?? 10,
+      );
+
+      for (const [chunkStart, chunkEnd] of ranges) {
+        const chunk =
+          (await mixSceneAudio(scene, assets, chunkStart, chunkEnd)) ??
+          silentBuffer(chunkStart, chunkEnd, scene.fps);
+        await audioSource.add(chunk);
+      }
     }
 
     await output.finalize();
@@ -421,6 +443,87 @@ export async function exportVideo(
 
 const MIX_SAMPLE_RATE = 48_000;
 const MIX_CHANNELS = 2;
+
+/**
+ * Splits an inclusive frame range into consecutive inclusive chunks of at
+ * most `chunkSeconds`. Pure; exported for tests. Chunks cover the full range
+ * with no overlap and no gaps.
+ */
+export function audioChunkRanges(
+  startFrame: number,
+  endFrame: number,
+  fps: number,
+  chunkSeconds: number,
+): Array<[number, number]> {
+  const chunkFrames = Math.max(1, Math.round(chunkSeconds * fps));
+  const ranges: Array<[number, number]> = [];
+
+  for (let from = startFrame; from <= endFrame; from += chunkFrames) {
+    ranges.push([from, Math.min(endFrame, from + chunkFrames - 1)]);
+  }
+
+  return ranges;
+}
+
+/**
+ * Whether any node would contribute sound to the range — the same walk the
+ * mixer does, minus decoding. Decides up front if the MP4 gets an audio
+ * track (tracks can only be added before output.start()).
+ */
+function sceneHasAudibleContent(
+  scene: Scene,
+  assets: ResolvedAssets,
+  startFrame: number,
+  endFrame: number,
+): boolean {
+  for (const placement of collectAudioPlacements(scene)) {
+    const assetId = placement.node.assetId ?? "";
+    const isVideo = placement.node.type === "video";
+    const clip = isVideo
+      ? assets.videos.get(assetId)?.audio
+      : assets.audio.get(assetId);
+
+    if (!clip) {
+      continue; // silent video clip, or missing asset surfaced later
+    }
+
+    const audibleStart = Math.max(placement.startFrame, startFrame);
+    const audibleEnd = Math.min(placement.endFrame, endFrame + 1);
+
+    if (audibleStart >= audibleEnd) {
+      continue;
+    }
+
+    const rate = isVideo ? (placement.node.playbackRate ?? 1) : 1;
+    const nodeTrim = isVideo
+      ? (placement.node.videoStartTime ?? 0)
+      : (placement.node.audioStartTime ?? 0);
+    const framesIntoSource =
+      placement.framesIntoNode + (audibleStart - placement.startFrame);
+    const trimOffset = nodeTrim + (framesIntoSource / scene.fps) * rate;
+
+    if (trimOffset < clip.duration) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function silentBuffer(
+  chunkStart: number,
+  chunkEnd: number,
+  fps: number,
+): AudioBuffer {
+  return new AudioBuffer({
+    numberOfChannels: MIX_CHANNELS,
+    length: Math.max(
+      1,
+      Math.round(((chunkEnd - chunkStart + 1) / fps) * MIX_SAMPLE_RATE),
+    ),
+    sampleRate: MIX_SAMPLE_RATE,
+  });
+}
 
 /**
  * Decodes and mixes every audible node (audio nodes and video-node

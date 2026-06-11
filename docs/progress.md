@@ -2,6 +2,24 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (chunked audio mixing — week-4 slice 5)
+
+### Changed
+
+- `exportVideo()` no longer builds the whole scene's audio as one buffer. The mix is produced and fed to the encoder in windows (`audioChunkSeconds` option, default 10 s), so audio memory stays flat regardless of scene length (the old path held ≈23 MiB/min for the entire video encode).
+- `audioChunkRanges()` exported (pure): consecutive inclusive frame windows, no gaps/overlaps. Silent windows append explicit silence — sequential `AudioBufferSource.add()` would otherwise shift later chunks earlier.
+- New `sceneHasAudibleContent()` probe (the mixer's walk minus decoding) decides up front whether the MP4 gets an audio track, since tracks can only be added before `output.start()`. Behavior preserved: all-silent scenes (e.g. only soundless video clips) still produce no audio track.
+
+### Tested
+
+- Golden audio checks now run with `audioChunkSeconds: 0.4` — four windows over the 1.5 s tone scene with the tone start crossing a chunk boundary. All RMS/alignment/duration assertions unchanged and green (silence rms 0.0000, tone rms 0.2809): chunk concatenation is sample-correct end-to-end, not just in theory.
+- 2 new unit tests for `audioChunkRanges` (coverage, clamping); full suite 152 tests + 34 golden checks green.
+
+### Notes
+
+- The player's preview still caches one whole-scene buffer (it needs random access for seeking); chunked preview is a follow-up if minutes-long scenes become a preview use case.
+- Chunk boundaries can round ±1 sample at non-integral samples-per-frame rates; inaudible and absorbed by AAC framing.
+
 ## 2026-06-11 (1080p export benchmark — week-4 slice 4)
 
 ### Changed
