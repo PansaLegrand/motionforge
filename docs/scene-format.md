@@ -61,36 +61,37 @@ Style properties that take lengths accept:
 
 Validation is intentionally stricter than implementation: a property may validate today and gain behavior in a later release without a format change. The matrix below is the source of truth for what actually happens at each stage. **Validated** means the schema accepts it; **Layout** means it affects box geometry; **Render** means it affects pixels.
 
-| Property                                         | Validated | Layout | Render | Notes                                                                                                                |
-| ------------------------------------------------ | :-------: | :----: | :----: | -------------------------------------------------------------------------------------------------------------------- |
-| `width`, `height`                                |    ✅     |   ✅   |   —    | number, `px`, or `%`                                                                                                 |
-| `position`                                       |    ✅     |   ✅   |   —    | `relative` (default) or `absolute`                                                                                   |
-| `left`, `top`, `right`, `bottom`                 |    ✅     |   ✅   |   —    | `right`/`bottom` only apply with `position: absolute`                                                                |
-| `inset`                                          |    ✅     |   ✅   |   —    | fallback for `left`/`top` and implied size                                                                           |
-| `padding`                                        |    ✅     |   ✅   |   —    | single value, all sides                                                                                              |
-| `display: "flex"`                                |    ✅     |   ✅   |   —    | the only non-default display                                                                                         |
-| `flexDirection`                                  |    ✅     |   ✅   |   —    | `row` (default) or `column`                                                                                          |
-| `gap`                                            |    ✅     |   ✅   |   —    | main-axis gap between flex children                                                                                  |
-| `justifyContent`                                 |    ✅     |   ✅   |   —    | `flex-start` (default), `center`, `flex-end`, `space-between` (distributes leftover space on top of `gap`)           |
-| `alignItems`                                     |    ✅     |   ✅   |   —    | `flex-start` (default), `center`, `flex-end`, `stretch` (fills the cross axis for children without an explicit size) |
-| `backgroundColor`                                |    ✅     |   —    |   ✅   | any Canvas2D fill style string                                                                                       |
-| `background`                                     |    ✅     |   —    |   ⚠️   | solid colors; `linear-gradient` limited to exactly two stops, vertical (`180deg`/`to bottom`) or horizontal          |
-| `borderRadius`                                   |    ✅     |   —    |   ⚠️   | rounds the background fill; does **not** clip children                                                               |
-| `opacity`                                        |    ✅     |   —    |   ✅   | `0`–`1`, multiplies down the subtree                                                                                 |
-| `transform`                                      |    ✅     |   —    |   ⚠️   | `translate()`, `scale()`, `rotate()` only; pivot set by `transformOrigin`                                            |
-| `fontSize`                                       |    ✅     |   ✅   |   ✅   | also drives intrinsic text size in flex layout                                                                       |
-| `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   | font assets register under their asset id; reference as `fontFamily: "<asset id>"`                                   |
-| `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                            |
-| `textAlign`                                      |    ✅     |   —    |   ✅   | `left` (default), `center`, `right`                                                                                  |
-| `textShadow`                                     |    ✅     |   —    |   ✅   | single `x y blur color` shadow                                                                                       |
-| `fontStyle`                                      |    ✅     |   —    |   ✅   | `normal` (default) or `italic`                                                                                       |
-| `lineHeight`                                     |    ✅     |   ✅   |   ✅   | unitless number = multiplier of `fontSize` (CSS semantics); `px`/`%` lengths also accepted; default `1.25`           |
-| `letterSpacing`                                  |    ✅     |   —    |   ✅   | number or `px`; uses the Canvas2D `letterSpacing` API (Chromium-class browsers)                                      |
-| `margin`                                         |    ✅     |   ✅   |   —    | single value, all sides: outer spacing that shifts the box from its anchor edge and shrinks auto sizes               |
-| `minWidth`, `minHeight`, `maxWidth`, `maxHeight` |    ✅     |   ✅   |   —    | clamp the resolved size; `min` wins over `max` (CSS semantics)                                                       |
-| `transformOrigin`                                |    ✅     |   —    |   ✅   | `left`/`center`/`right`, `top`/`center`/`bottom`, `px`, or `%` per axis; default center                              |
-| `objectFit`                                      |    ✅     |   —    |   ✅   | `fill` (default), `contain`, `cover`, `none`, `scale-down`; applies to `img` nodes (video drawing not yet landed)    |
-| `objectPosition`                                 |    ✅     |   —    |   ✅   | keywords (`left`/`center`/`right`, `top`/`center`/`bottom`), `%` (CSS alignment semantics), or `px` per axis         |
+| Property                                         | Validated | Layout | Render | Notes                                                                                                                             |
+| ------------------------------------------------ | :-------: | :----: | :----: | --------------------------------------------------------------------------------------------------------------------------------- |
+| `width`, `height`                                |    ✅     |   ✅   |   —    | number, `px`, or `%`                                                                                                              |
+| `position`                                       |    ✅     |   ✅   |   —    | `relative` (default) or `absolute`                                                                                                |
+| `left`, `top`, `right`, `bottom`                 |    ✅     |   ✅   |   —    | `right`/`bottom` only apply with `position: absolute`                                                                             |
+| `inset`                                          |    ✅     |   ✅   |   —    | fallback for `left`/`top` and implied size                                                                                        |
+| `padding`                                        |    ✅     |   ✅   |   —    | single value, all sides                                                                                                           |
+| `display: "flex"`                                |    ✅     |   ✅   |   —    | the only non-default display                                                                                                      |
+| `flexDirection`                                  |    ✅     |   ✅   |   —    | `row` (default) or `column`                                                                                                       |
+| `gap`                                            |    ✅     |   ✅   |   —    | main-axis gap between flex children                                                                                               |
+| `justifyContent`                                 |    ✅     |   ✅   |   —    | `flex-start` (default), `center`, `flex-end`, `space-between` (distributes leftover space on top of `gap`)                        |
+| `alignItems`                                     |    ✅     |   ✅   |   —    | `flex-start` (default), `center`, `flex-end`, `stretch` (fills the cross axis for children without an explicit size)              |
+| `backgroundColor`                                |    ✅     |   —    |   ✅   | any Canvas2D fill style string                                                                                                    |
+| `background`                                     |    ✅     |   —    |   ✅   | solid colors or `linear-gradient` with any stop count; direction in `deg` or `to <side>`; omitted `%` positions distribute evenly |
+| `borderRadius`                                   |    ✅     |   —    |   ✅   | rounds the background fill; combine with `overflow: "hidden"` to clip children (CSS semantics)                                    |
+| `overflow`                                       |    ✅     |   —    |   ✅   | `visible` (default) or `hidden` — clips the node's content and subtree to the border box, following `borderRadius`                |
+| `opacity`                                        |    ✅     |   —    |   ✅   | `0`–`1`, multiplies down the subtree                                                                                              |
+| `transform`                                      |    ✅     |   —    |   ⚠️   | `translate()`, `scale()`, `rotate()` only; pivot set by `transformOrigin`                                                         |
+| `fontSize`                                       |    ✅     |   ✅   |   ✅   | also drives intrinsic text size in flex layout                                                                                    |
+| `fontFamily`, `fontWeight`                       |    ✅     |   —    |   ✅   | font assets register under their asset id; reference as `fontFamily: "<asset id>"`                                                |
+| `color`                                          |    ✅     |   —    |   ✅   | text fill                                                                                                                         |
+| `textAlign`                                      |    ✅     |   —    |   ✅   | `left` (default), `center`, `right`                                                                                               |
+| `textShadow`                                     |    ✅     |   —    |   ✅   | single `x y blur color` shadow                                                                                                    |
+| `fontStyle`                                      |    ✅     |   —    |   ✅   | `normal` (default) or `italic`                                                                                                    |
+| `lineHeight`                                     |    ✅     |   ✅   |   ✅   | unitless number = multiplier of `fontSize` (CSS semantics); `px`/`%` lengths also accepted; default `1.25`                        |
+| `letterSpacing`                                  |    ✅     |   —    |   ✅   | number or `px`; uses the Canvas2D `letterSpacing` API (Chromium-class browsers)                                                   |
+| `margin`                                         |    ✅     |   ✅   |   —    | single value, all sides: outer spacing that shifts the box from its anchor edge and shrinks auto sizes                            |
+| `minWidth`, `minHeight`, `maxWidth`, `maxHeight` |    ✅     |   ✅   |   —    | clamp the resolved size; `min` wins over `max` (CSS semantics)                                                                    |
+| `transformOrigin`                                |    ✅     |   —    |   ✅   | `left`/`center`/`right`, `top`/`center`/`bottom`, `px`, or `%` per axis; default center                                           |
+| `objectFit`                                      |    ✅     |   —    |   ✅   | `fill` (default), `contain`, `cover`, `none`, `scale-down`; applies to `img` nodes (video drawing not yet landed)                 |
+| `objectPosition`                                 |    ✅     |   —    |   ✅   | keywords (`left`/`center`/`right`, `top`/`center`/`bottom`), `%` (CSS alignment semantics), or `px` per axis                      |
 
 ✅ implemented · ⚠️ partial (see note) · 📋 validated only, planned · — not applicable
 

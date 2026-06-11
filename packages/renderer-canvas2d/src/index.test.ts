@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 import { sampleScene } from "@motionforge/core";
-import { computeObjectFit, renderStill, wrapTextLines } from "./index.js";
+import {
+  computeObjectFit,
+  parseLinearGradient,
+  renderStill,
+  wrapTextLines,
+} from "./index.js";
 
 // Deterministic fake measurer: every character is 10px wide.
 const measure = (line: string): number => line.length * 10;
@@ -146,5 +151,66 @@ describe("renderStill with image nodes", () => {
     expect(() => renderStill(context, scene as never, 0)).toThrow(
       /resolveAssets\(scene\)/,
     );
+  });
+});
+
+describe("parseLinearGradient", () => {
+  it("returns null for non-gradient fills", () => {
+    expect(parseLinearGradient("#ff0000")).toBeNull();
+    expect(parseLinearGradient("rgba(0, 0, 0, 0.5)")).toBeNull();
+  });
+
+  it("defaults to 180deg (to bottom) when no direction is given", () => {
+    expect(parseLinearGradient("linear-gradient(#000 0%, #fff 100%)")).toEqual({
+      angleDeg: 180,
+      stops: [
+        { color: "#000", offset: 0 },
+        { color: "#fff", offset: 1 },
+      ],
+    });
+  });
+
+  it("parses deg angles and to-side keywords", () => {
+    expect(
+      parseLinearGradient("linear-gradient(135deg, #000 0%, #fff 100%)")
+        ?.angleDeg,
+    ).toBe(135);
+    expect(
+      parseLinearGradient("linear-gradient(to right, #000 0%, #fff 100%)")
+        ?.angleDeg,
+    ).toBe(90);
+  });
+
+  it("handles many stops and rgba colors with embedded commas", () => {
+    const parsed = parseLinearGradient(
+      "linear-gradient(90deg, rgba(255, 0, 0, 0.5) 0%, #00ff00 50%, rgb(0, 0, 255) 100%)",
+    );
+
+    expect(parsed?.stops).toEqual([
+      { color: "rgba(255, 0, 0, 0.5)", offset: 0 },
+      { color: "#00ff00", offset: 0.5 },
+      { color: "rgb(0, 0, 255)", offset: 1 },
+    ]);
+  });
+
+  it("distributes omitted stop positions evenly like CSS", () => {
+    const parsed = parseLinearGradient(
+      "linear-gradient(to right, #000, #888, #aaa, #fff)",
+    );
+
+    expect(parsed?.stops.map((stop) => stop.offset)).toEqual([
+      0,
+      1 / 3,
+      2 / 3,
+      1,
+    ]);
+  });
+
+  it("clamps out-of-order positions to be non-decreasing", () => {
+    const parsed = parseLinearGradient(
+      "linear-gradient(#000 60%, #888 20%, #fff 100%)",
+    );
+
+    expect(parsed?.stops.map((stop) => stop.offset)).toEqual([0.6, 0.6, 1]);
   });
 });

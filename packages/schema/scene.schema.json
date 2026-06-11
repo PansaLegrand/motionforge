@@ -181,6 +181,13 @@
                   "borderRadius": {
                     "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
                   },
+                  "overflow": {
+                    "type": "string",
+                    "enum": [
+                      "visible",
+                      "hidden"
+                    ]
+                  },
                   "opacity": {
                     "type": "number",
                     "minimum": 0,

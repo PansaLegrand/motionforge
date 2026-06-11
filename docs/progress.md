@@ -2,6 +2,25 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (renderer paint completion — roadmap slice 4)
+
+### Changed
+
+- `@motionforge/renderer-canvas2d`: rewrote the `linear-gradient` parser. Any number of stops; direction as `<deg>` angles (CSS gradient-line math through the box center) or `to top/right/bottom/left`; rgba colors with embedded commas (paren-aware splitting); omitted `%` positions distribute evenly between neighbors; out-of-order positions clamp non-decreasing like CSS. `parseLinearGradient()` exported as a pure helper. The pre-existing `paint-gradient` exact golden hash is unchanged — the rewrite is pixel-compatible with the old two-stop format.
+- New style property `overflow: "visible" | "hidden"` (schema + renderer): `hidden` clips the node's own content and its subtree to the border box, following `borderRadius` — CSS semantics, so `borderRadius` alone correctly does not clip children.
+- Support matrix: `background`, `borderRadius` move to ✅; new `overflow` row. The only remaining ⚠️ is `transform` (translate/scale/rotate subset), and the only schema-only feature is `video` node drawing.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (51 unit tests; 6 new gradient-parser tests: defaults, angles, keywords, rgba commas, even distribution, clamping)
+- `pnpm golden:test` (14 fixtures + export smoke; new exact fixtures `gradient-multistop-angle` and `overflow-hidden-clip` with an unclipped sibling as the negative control; all pre-existing hashes unchanged)
+
+### Notes
+
+- Week 1 roadmap slices 1, 2, and 4 are done. Slice 3 (GitHub push, npm publish) needs account credentials and is the remaining week-1 item.
+- Gradient color stops pass through to Canvas2D unparsed, so named colors work in gradients even though keyframe interpolation doesn't interpolate them.
+
 ## 2026-06-11 (font loading — roadmap slice 2)
 
 ### Changed
