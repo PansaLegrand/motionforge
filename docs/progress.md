@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (examples: TikTok-style captions demo)
+
+### Changed
+
+- Added `examples/tiktok-captions.json`: a hand-written 1080×1920 scene producing the one-word-at-a-time caption style — word-timed text nodes, `fontSize` pop with `easeOut` (the current substitute for transform scale tweens), opacity fades, highlight pills, a white→gold color keyframe, an animated progress bar, and an SVG image asset. Pure JSON, no code.
+- Added `tools/golden/src/render-example.ts` (`pnpm --filter @motionforge/golden run example <scene.json> <out.mp4> [frame ...]`): renders any scene JSON to MP4 plus optional PNG frames through the harness browser. Harness gained `renderGoldenExportFile` (base64 MP4) and `renderGoldenFramePng`.
+- `examples/README.md` documents the workflow with frame thumbnails; rendered MP4s are gitignored.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`, `pnpm test`, `pnpm golden:test` (all unchanged and green)
+- Rendered the example: 150 frames at 1080×1920 exported in ~1.8 s (1.6 MiB, AVC); frames 30/60/135 visually verified.
+
+### Notes
+
+- Known animation gap surfaced while building this: `transform` strings step rather than interpolate, so scale pops are expressed via numeric `fontSize`/`width`/`height` keyframes. Transform interpolation is the top animation follow-up, then richer easings (cubic-bezier/spring) and an animation-presets helper that compiles names like `popIn` into keyframes.
+
 ## 2026-06-11 (audio — roadmap slice 6)
 
 ### Changed

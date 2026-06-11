@@ -35,10 +35,20 @@ export type VideoCheck = {
   detail: string;
 };
 
+export type ExportedVideoFile = {
+  base64: string;
+  size: number;
+  codec: string;
+  audioCodec: string | null;
+  totalFrames: number;
+};
+
 declare global {
   interface Window {
     renderGoldenFrame: (scene: Scene, frame: number) => Promise<RenderedFrame>;
     renderGoldenExport: (scene: Scene) => Promise<ExportedVideo>;
+    renderGoldenExportFile: (scene: Scene) => Promise<ExportedVideoFile>;
+    renderGoldenFramePng: (scene: Scene, frame: number) => Promise<string>;
     runGoldenVideoChecks: () => Promise<VideoCheck[]>;
     runGoldenAudioChecks: () => Promise<VideoCheck[]>;
   }
@@ -473,4 +483,50 @@ window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
   URL.revokeObjectURL(toneUrl);
 
   return checks;
+};
+
+/** Exports a scene to MP4 and returns the file as base64 (for saving to disk). */
+window.renderGoldenExportFile = async (scene: Scene) => {
+  const assets = await resolveAssets(scene);
+  const { blob, codec, audioCodec, totalFrames } = await exportVideo({
+    scene,
+    assets,
+  });
+  const bytes = new Uint8Array(await blob.arrayBuffer());
+  let binary = "";
+
+  for (let index = 0; index < bytes.length; index += 0x8000) {
+    binary += String.fromCharCode(...bytes.subarray(index, index + 0x8000));
+  }
+
+  disposeAssets(assets);
+
+  return {
+    base64: btoa(binary),
+    size: bytes.length,
+    codec,
+    audioCodec,
+    totalFrames,
+  };
+};
+
+/** Renders one frame and returns it as a base64 PNG (for saving to disk). */
+window.renderGoldenFramePng = async (
+  scene: Scene,
+  frame: number,
+): Promise<string> => {
+  const canvas = document.createElement("canvas");
+  canvas.width = scene.width;
+  canvas.height = scene.height;
+  const context = canvas.getContext("2d");
+
+  if (!context) {
+    throw new Error("Canvas2D unavailable");
+  }
+
+  const assets = await resolveAssets(scene);
+  await prepareFrame(scene, frame, assets);
+  renderStill(context, scene, frame, { assets });
+  disposeAssets(assets);
+  return canvas.toDataURL("image/png").split(",")[1] ?? "";
 };
