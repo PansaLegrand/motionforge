@@ -31,6 +31,7 @@ const server = await createServer({
         "packages/renderer-canvas2d/src/index.ts",
       ),
       "@motionforge/export": resolve(rootDir, "packages/export/src/index.ts"),
+      "@motionforge/player": resolve(rootDir, "packages/player/src/index.ts"),
     },
   },
   server: { host: "127.0.0.1", port: 0, strictPort: false },

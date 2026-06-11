@@ -1,0 +1,352 @@
+import { parseScene, type Scene } from "@motionforge/schema";
+import {
+  disposeAssets,
+  prepareFrame,
+  renderStill,
+  resolveAssets,
+  type ResolvedAssets,
+} from "@motionforge/renderer-canvas2d";
+
+/**
+ * Maps wall-clock time to scene frames. This is the only place in the
+ * playback path where wall-clock time exists: rendering stays a pure function
+ * of (scene, frame). The clock is pure given injected timestamps, so playback
+ * timing is unit-testable without timers.
+ *
+ * Frames are integers in [0, durationInFrames). While playing, the frame at
+ * time `now` is anchored to the play() position: floor((now − anchorTime) /
+ * 1000 × fps) + anchorFrame. Pausing re-anchors; seeking re-anchors while
+ * preserving play state.
+ */
+export class FrameClock {
+  readonly fps: number;
+  readonly durationInFrames: number;
+  loop: boolean;
+
+  private anchorFrame = 0;
+  private anchorTime = 0;
+  private isPlaying = false;
+
+  constructor(options: {
+    fps: number;
+    durationInFrames: number;
+    loop?: boolean;
+  }) {
+    if (options.fps <= 0 || !Number.isFinite(options.fps)) {
+      throw new Error(`FrameClock fps must be a positive number, got ${options.fps}.`);
+    }
+    if (
+      !Number.isInteger(options.durationInFrames) ||
+      options.durationInFrames <= 0
+    ) {
+      throw new Error(
+        `FrameClock durationInFrames must be a positive integer, got ${options.durationInFrames}.`,
+      );
+    }
+
+    this.fps = options.fps;
+    this.durationInFrames = options.durationInFrames;
+    this.loop = options.loop ?? false;
+  }
+
+  get playing(): boolean {
+    return this.isPlaying;
+  }
+
+  /** Starts (or restarts) playback at the current frame position. */
+  play(now: number): void {
+    if (this.isPlaying) {
+      return;
+    }
+
+    // Playing from the final frame restarts from 0 — the universal
+    // player-button expectation.
+    if (!this.loop && this.anchorFrame >= this.durationInFrames - 1) {
+      this.anchorFrame = 0;
+    }
+
+    this.anchorTime = now;
+    this.isPlaying = true;
+  }
+
+  /** Freezes the clock at the frame visible at `now`. */
+  pause(now: number): void {
+    if (!this.isPlaying) {
+      return;
+    }
+
+    this.anchorFrame = this.frameAt(now).frame;
+    this.isPlaying = false;
+  }
+
+  /** Jumps to a frame (clamped to the scene range), preserving play state. */
+  seek(frame: number, now: number): void {
+    this.anchorFrame = Math.min(
+      Math.max(Math.floor(frame), 0),
+      this.durationInFrames - 1,
+    );
+    this.anchorTime = now;
+  }
+
+  /**
+   * The frame visible at wall time `now`, and whether non-looping playback
+   * has run past the final frame. Calling this never mutates the clock;
+   * the caller decides what to do at the end (pause, loop is internal).
+   */
+  frameAt(now: number): { frame: number; ended: boolean } {
+    if (!this.isPlaying) {
+      return { frame: this.anchorFrame, ended: false };
+    }
+
+    const elapsed = Math.max(0, now - this.anchorTime);
+    const advanced = Math.floor((elapsed / 1000) * this.fps) + this.anchorFrame;
+
+    if (advanced < this.durationInFrames) {
+      return { frame: advanced, ended: false };
+    }
+
+    if (this.loop) {
+      return { frame: advanced % this.durationInFrames, ended: false };
+    }
+
+    return { frame: this.durationInFrames - 1, ended: true };
+  }
+}
+
+export type PlayerEvent = "frame" | "play" | "pause" | "ended";
+
+export type PlayerOptions = {
+  /** A 2D context sized to the scene; the player draws into it. */
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D;
+  scene: unknown;
+  /**
+   * Pre-resolved assets. When omitted, createPlayer() resolves them and
+   * dispose() releases them; when provided, the caller owns their lifetime.
+   */
+  assets?: ResolvedAssets;
+  loop?: boolean;
+  /** Injectable time source for tests; defaults to performance.now. */
+  now?: () => number;
+  /** Injectable frame scheduler for tests; defaults to requestAnimationFrame. */
+  requestFrame?: (callback: () => void) => number;
+  cancelFrame?: (handle: number) => void;
+};
+
+/**
+ * A playing/seekable view of a scene on a canvas. Create with createPlayer().
+ *
+ * The render loop awaits prepareFrame() per displayed frame (video decode),
+ * so a slow decode never tears: the player skips to the latest target frame
+ * rather than rendering stale intermediates.
+ */
+export class Player {
+  readonly scene: Scene;
+
+  private readonly clock: FrameClock;
+  private readonly context: PlayerOptions["context"];
+  private readonly assets: ResolvedAssets | undefined;
+  private readonly ownsAssets: boolean;
+  private readonly now: () => number;
+  private readonly requestFrame: (callback: () => void) => number;
+  private readonly cancelFrame: (handle: number) => void;
+
+  private listeners = new Map<PlayerEvent, Set<(frame: number) => void>>();
+  private renderedFrame = -1;
+  private rafHandle: number | null = null;
+  private rendering = false;
+  private disposed = false;
+
+  /** @internal — use createPlayer(). */
+  constructor(
+    scene: Scene,
+    options: PlayerOptions,
+    assets: ResolvedAssets | undefined,
+    ownsAssets: boolean,
+  ) {
+    this.scene = scene;
+    this.context = options.context;
+    this.assets = assets;
+    this.ownsAssets = ownsAssets;
+    this.now = options.now ?? (() => performance.now());
+    this.requestFrame =
+      options.requestFrame ??
+      ((callback) => globalThis.requestAnimationFrame(callback));
+    this.cancelFrame =
+      options.cancelFrame ??
+      ((handle) => globalThis.cancelAnimationFrame(handle));
+    this.clock = new FrameClock({
+      fps: scene.fps,
+      durationInFrames: scene.duration,
+      loop: options.loop ?? false,
+    });
+  }
+
+  get playing(): boolean {
+    return this.clock.playing;
+  }
+
+  /** The most recently rendered frame (−1 before the first render). */
+  get currentFrame(): number {
+    return this.renderedFrame;
+  }
+
+  get loop(): boolean {
+    return this.clock.loop;
+  }
+
+  set loop(value: boolean) {
+    this.clock.loop = value;
+  }
+
+  on(event: PlayerEvent, listener: (frame: number) => void): () => void {
+    if (!this.listeners.has(event)) {
+      this.listeners.set(event, new Set());
+    }
+
+    this.listeners.get(event)?.add(listener);
+    return () => this.listeners.get(event)?.delete(listener);
+  }
+
+  play(): void {
+    this.assertAlive();
+
+    if (this.clock.playing) {
+      return;
+    }
+
+    this.clock.play(this.now());
+    this.emit("play", this.renderedFrame);
+    this.scheduleTick();
+  }
+
+  pause(): void {
+    this.assertAlive();
+
+    if (!this.clock.playing) {
+      return;
+    }
+
+    this.clock.pause(this.now());
+    this.stopTicking();
+    this.emit("pause", this.clock.frameAt(this.now()).frame);
+  }
+
+  /** Jumps to a frame and renders it; resolves when the frame is on screen. */
+  async seek(frame: number): Promise<void> {
+    this.assertAlive();
+    this.clock.seek(frame, this.now());
+    await this.renderFrame(this.clock.frameAt(this.now()).frame);
+  }
+
+  /** Stops playback and releases player-owned assets. */
+  dispose(): void {
+    if (this.disposed) {
+      return;
+    }
+
+    this.stopTicking();
+    this.disposed = true;
+    this.listeners.clear();
+
+    if (this.ownsAssets && this.assets) {
+      disposeAssets(this.assets);
+    }
+  }
+
+  /** @internal — first paint from createPlayer(). */
+  async renderInitialFrame(): Promise<void> {
+    await this.renderFrame(0);
+  }
+
+  private scheduleTick(): void {
+    if (this.rafHandle !== null || this.disposed) {
+      return;
+    }
+
+    this.rafHandle = this.requestFrame(() => {
+      this.rafHandle = null;
+      void this.tick();
+    });
+  }
+
+  private stopTicking(): void {
+    if (this.rafHandle !== null) {
+      this.cancelFrame(this.rafHandle);
+      this.rafHandle = null;
+    }
+  }
+
+  private async tick(): Promise<void> {
+    if (this.disposed || !this.clock.playing) {
+      return;
+    }
+
+    const { frame, ended } = this.clock.frameAt(this.now());
+
+    if (frame !== this.renderedFrame) {
+      await this.renderFrame(frame);
+    }
+
+    if (ended) {
+      this.clock.pause(this.now());
+      this.emit("ended", frame);
+      return;
+    }
+
+    this.scheduleTick();
+  }
+
+  private async renderFrame(frame: number): Promise<void> {
+    // One render in flight at a time; the next tick picks up the latest
+    // clock position, so a slow video decode skips ahead instead of queueing
+    // stale frames.
+    if (this.rendering || this.disposed) {
+      return;
+    }
+
+    this.rendering = true;
+
+    try {
+      if (this.assets) {
+        await prepareFrame(this.scene, frame, this.assets);
+      }
+
+      if (this.disposed) {
+        return;
+      }
+
+      renderStill(this.context, this.scene, frame, { assets: this.assets });
+      this.renderedFrame = frame;
+      this.emit("frame", frame);
+    } finally {
+      this.rendering = false;
+    }
+  }
+
+  private emit(event: PlayerEvent, frame: number): void {
+    for (const listener of this.listeners.get(event) ?? []) {
+      listener(frame);
+    }
+  }
+
+  private assertAlive(): void {
+    if (this.disposed) {
+      throw new Error("Player is disposed; create a new one with createPlayer().");
+    }
+  }
+}
+
+/**
+ * Validates the scene, resolves assets (unless provided), renders frame 0,
+ * and returns a ready Player.
+ */
+export async function createPlayer(options: PlayerOptions): Promise<Player> {
+  const scene = parseScene(options.scene);
+  const needsAssets = Object.keys(scene.assets).length > 0;
+  const ownsAssets = options.assets === undefined && needsAssets;
+  const assets = options.assets ?? (needsAssets ? await resolveAssets(scene) : undefined);
+
+  const player = new Player(scene, options, assets, ownsAssets);
+  await player.renderInitialFrame();
+  return player;
+}

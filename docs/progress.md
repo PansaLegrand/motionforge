@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (@motionforge/player — playback skeleton)
+
+### Changed
+
+- New publishable package `@motionforge/player`:
+  - `FrameClock` — the only place wall-clock time exists in the playback path. Maps injected timestamps to integer frames (anchored at play/seek), pauses by re-anchoring, loops by modulo, clamps + reports `ended` otherwise. Pure given timestamps; replaying from the final frame restarts at 0.
+  - `Player`/`createPlayer()` — canvas render loop on top of the clock: `play`/`pause`/`seek`/`dispose`, `loop`, `currentFrame`, events (`frame`/`play`/`pause`/`ended`). Awaits `prepareFrame()` per displayed frame with a latest-frame-wins policy (slow video decode skips ahead, never queues stale frames). Asset ownership explicit: pass `assets` and the caller owns them; omit and the player resolves/disposes.
+  - `now`/`requestFrame`/`cancelFrame` injectable, so playback behavior is fully unit-tested in Node with a fake driver.
+- Playground now runs on the player (replacing its hand-rolled frame-per-rAF loop, which drifted at low rAF rates); it shares one asset resolution between preview and export.
+- README/llms.txt package listings updated; audio-preview design recorded in the package README (reuses export's pure mix functions, one AudioBufferSource, clock re-anchors to audio on drift).
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm --filter @motionforge/player test` (11 tests: clock time→frame mapping incl. frame-boundary rounding, pause/anchor, end clamp + ended flag, loop wrap, seek clamping with play-state preservation, replay-from-end; player frame advancement, latest-frame-wins skip, pause freeze + no leaked rAF, seek, ended event, loop, dispose inertness)
+- Playwright smoke against the real playground: poster frame renders, play advances ~22 frames in 700 ms (wall-clock 30 fps), pause freezes, slider seeks, scene switching works, no console errors.
+
+### Notes
+
+- Audio preview is design-only this slice (see package README); export remains the audio source of truth.
+- The React wrapper stays deferred until dojo integration needs it — the core is framework-free by design.
+
 ## 2026-06-11 (filter, zIndex, border, boxShadow — spike-prioritized engine slice)
 
 ### Changed

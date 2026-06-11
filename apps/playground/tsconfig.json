@@ -13,6 +13,7 @@
     { "path": "../../packages/presets" },
     { "path": "../../packages/renderer-canvas2d" },
     { "path": "../../packages/export" },
+    { "path": "../../packages/player" },
     { "path": "../../packages/showcase" }
   ]
 }

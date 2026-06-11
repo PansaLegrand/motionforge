@@ -29,6 +29,9 @@ importers:
       '@motionforge/export':
         specifier: workspace:*
         version: link:../../packages/export
+      '@motionforge/player':
+        specifier: workspace:*
+        version: link:../../packages/player
       '@motionforge/presets':
         specifier: workspace:*
         version: link:../../packages/presets
@@ -70,6 +73,19 @@ importers:
       mediabunny:
         specifier: ^1.46.0
         version: 1.46.0
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@20.19.42)(tsx@4.22.4)
+
+  packages/player:
+    dependencies:
+      '@motionforge/renderer-canvas2d':
+        specifier: workspace:*
+        version: link:../renderer-canvas2d
+      '@motionforge/schema':
+        specifier: workspace:*
+        version: link:../schema
     devDependencies:
       vitest:
         specifier: ^3.2.4

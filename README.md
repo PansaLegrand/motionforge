@@ -64,6 +64,7 @@ flowchart TB
 | [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                         | ✅ working |
 | [`@motionforge/export`](packages/export)                       | In-browser MP4 export (WebCodecs + mediabunny)      | ✅ working |
 | [`@motionforge/presets`](packages/presets)                     | Animation presets + caption generators → scene data | ✅ working |
+| [`@motionforge/player`](packages/player)                       | Real-time playback: frame clock, play/pause/seek    | ✅ working |
 | [`apps/playground`](apps/playground)                           | Vite preview with frame scrubbing                   | ✅ working |
 
 ## Why not Remotion?

@@ -1,7 +1,7 @@
 import { detectExportCapability, exportVideo } from "@motionforge/export";
+import { createPlayer, type Player } from "@motionforge/player";
 import {
   disposeAssets,
-  renderStill,
   resolveAssets,
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
@@ -41,11 +41,9 @@ if (!context) {
 const renderContext = context;
 const capabilityResult = detectExportCapability();
 
-let frame = 0;
-let playing = false;
-let lastTick = 0;
 let current = showcaseScenes[0] as ShowcaseScene;
 let assets: ResolvedAssets | undefined;
+let player: Player | undefined;
 let loadVersion = 0;
 
 capability.textContent = JSON.stringify(capabilityResult, null, 2);
@@ -57,46 +55,32 @@ for (const entry of showcaseScenes) {
   sceneSelect.append(option);
 }
 
-function draw(nextFrame: number): void {
-  frame = Math.max(0, Math.min(current.scene.duration - 1, nextFrame));
+function showFrame(frame: number): void {
   slider.value = String(frame);
   readout.value = String(frame);
-
-  if (assets) {
-    renderStill(renderContext, current.scene, frame, { assets });
-  }
-}
-
-function tick(now: number): void {
-  if (!playing) {
-    return;
-  }
-
-  if (now - lastTick >= 1000 / current.scene.fps) {
-    draw((frame + 1) % current.scene.duration);
-    lastTick = now;
-  }
-
-  requestAnimationFrame(tick);
 }
 
 slider.addEventListener("input", () => {
-  playing = false;
-  playButton.textContent = "Play";
-  draw(Number(slider.value));
-});
-
-playButton.addEventListener("click", () => {
-  if (!assets) {
+  if (!player) {
     return;
   }
 
-  playing = !playing;
-  playButton.textContent = playing ? "Pause" : "Play";
-  lastTick = performance.now();
+  player.pause();
+  playButton.textContent = "Play";
+  void player.seek(Number(slider.value));
+});
 
-  if (playing) {
-    requestAnimationFrame(tick);
+playButton.addEventListener("click", () => {
+  if (!player) {
+    return;
+  }
+
+  if (player.playing) {
+    player.pause();
+    playButton.textContent = "Play";
+  } else {
+    player.play();
+    playButton.textContent = "Pause";
   }
 });
 
@@ -150,7 +134,8 @@ function downloadBlob(blob: Blob, filename: string): void {
 
 async function loadScene(entry: ShowcaseScene): Promise<void> {
   const version = ++loadVersion;
-  playing = false;
+  player?.dispose();
+  player = undefined;
   playButton.textContent = "Play";
   current = entry;
   sceneSelect.value = entry.id;
@@ -167,9 +152,8 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
   canvas.width = entry.scene.width;
   canvas.height = entry.scene.height;
   slider.max = String(entry.scene.duration - 1);
-  frame = Math.min(entry.posterFrame, entry.scene.duration - 1);
-  slider.value = String(frame);
-  readout.value = String(frame);
+  const posterFrame = Math.min(entry.posterFrame, entry.scene.duration - 1);
+  showFrame(posterFrame);
   exportButton.disabled = true;
   exportStatus.value = "Loading scene assets...";
 
@@ -187,11 +171,27 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
 
     previousAssets && disposeAssets(previousAssets);
     assets = resolved;
+
+    // The playground owns the assets (export reuses them), so the player
+    // gets them pre-resolved and never disposes them itself.
+    const created = await createPlayer({
+      context: renderContext,
+      scene: entry.scene,
+      assets,
+      loop: true,
+    });
+
+    if (version !== loadVersion) {
+      created.dispose();
+      return;
+    }
+
+    player = created;
+    player.on("frame", showFrame);
+    // Land on the poster frame; the user may also have scrubbed during load.
+    await player.seek(Number(slider.value));
     exportButton.disabled = !capabilityResult.videoEncoder;
     exportStatus.value = "";
-    // Redraw whatever frame the user is on; they may have scrubbed while
-    // assets were loading.
-    draw(frame);
   } catch (error) {
     if (version === loadVersion) {
       exportStatus.value =
