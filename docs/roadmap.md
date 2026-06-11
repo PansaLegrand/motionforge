@@ -81,7 +81,7 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ✅ **B**: 1080p benchmark (`docs/benchmarks.md`): two-decoder export beats realtime (29 ms/frame), heap flat — **worker-parallel export stays parked**. Memory boundary is BlobSource full-file fetch, not the pipeline.
 - ✅ **B**: chunked audio mixing — export audio now mixes in 10 s windows (flat memory at any scene length); golden checks run the chunked path with 0.4 s windows.
 - ✅ **A (presets)**: `timeline()`/`stagger()` choreography — the GSAP vocabulary as a pure keyframe compiler with `compileToPatch()`; GSAP itself ruled out (license + runtime philosophy).
-- ◻ **A**: `lottie` node implementation per the spike design — scheduled as the last feature before launch.
+- ✅ **A**: `lottie` node implemented per the spike design — optional lottie-web peer dependency, expression/image-layer rejection, clamped frame-exact seek, exact golden with natural + 2× rate nodes. Export and player needed zero changes.
 - ◻ **A**: GSAP-to-keyframes baking spike (build-time only) — stretch.
 
 ### Week 5 — harden and launch surface
