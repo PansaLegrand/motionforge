@@ -3,7 +3,7 @@
 [![CI](https://github.com/PansaLegrand/motionforge/actions/workflows/ci.yml/badge.svg)](https://github.com/PansaLegrand/motionforge/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![Status: M0 complete](https://img.shields.io/badge/status-M0%20complete-brightgreen.svg)](docs/m0-roadmap.md)
-[![Version: 0.1.0](https://img.shields.io/badge/version-0.1.0-blue.svg)](CHANGELOG.md)
+[![Version: 0.2.0](https://img.shields.io/badge/version-0.2.0-blue.svg)](CHANGELOG.md)
 
 `motionforge` is a deterministic, browser-native video scene engine for apps and coding agents.
 

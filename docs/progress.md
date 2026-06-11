@@ -2,6 +2,30 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (0.2.0 publish prep — roadmap slice 11, credential steps pending)
+
+### Changed
+
+- Added the `0.2.0` changelog entry covering animation maturity since the unpublished `0.1.0` package set.
+- Bumped all publishable packages to `0.2.0`: `@motionforge/schema`, `@motionforge/core`, `@motionforge/renderer-canvas2d`, `@motionforge/export`, and `@motionforge/presets`.
+- Updated the README version badge to `0.2.0`.
+
+### Tested
+
+- `pnpm build`
+- `pnpm typecheck`
+- `pnpm test` (80 unit tests)
+- `pnpm golden:test` (15 golden fixtures, export smoke, video/audio integration checks)
+- `npm pack --dry-run` for all five publishable packages
+
+### Remaining manual steps (need account credentials)
+
+1. Push to GitHub and confirm CI is green.
+2. Reserve or confirm access to the `@motionforge` npm scope.
+3. Publish from a clean checkout with `pnpm publish -r --access public`.
+4. Tag `v0.2.0`.
+5. Deploy the playground to GitHub Pages and link it from the README.
+
 ## 2026-06-11 (@motionforge/presets — roadmap slice 10)
 
 ### Changed
