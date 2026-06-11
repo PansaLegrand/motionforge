@@ -41,28 +41,46 @@ This is simultaneously the agent-facing animation vocabulary and the compiler th
 
 **Done when:** `npm install @motionforge/core` works from a clean machine and the README demo is clickable.
 
-## Week 4 — dojo readiness
+## Done — week 4 prep (caption-grade text)
 
-Status: slice 12 is complete. The next project priority is the showcase/playground launch surface; slice 13 is intentionally deferred until the open-source project is easier to understand and demo.
+Slice 12 landed: `textStroke` and text-fitted per-line backgrounds, with exact goldens; `tiktokCaptions()` emits measured background styles.
 
-### Slice 12: Caption-grade text (1 day)
+## The 5-week integration plan (current)
 
-The two text features every caption template needs: `textStroke` (outline, the classic TikTok/Shorts look) and text-fitted backgrounds (pill sized to measured text per line, not a hand-sized box). Both additive style properties.
+Ultimate goal: a user chats, uploads media, and gets a video — previewed and exported in the browser. Five workstreams: **A** engine, **B** player/perf, **C** dojo adapter, **D** agent layer, **E** launch/DX. Publishing (npm scope, GitHub push, Pages deploy) is owned by the maintainer and slots in when ready — everything else is sequenced not to block on it.
 
-**Done:** exact goldens cover stroked glyphs and stroked caption text on fitted per-line pills; `tiktokCaptions()` emits measured background styles instead of hand-sized wrapper boxes.
+### Week 1 — measure the real gap, ship the skeleton ✅ complete
 
-### Slice 13: dojo adapter spike (1 day, in the dojo repo — task chip ready)
+- ✅ **Slice 13 — dojo adapter spike** (`docs/dojo-adapter-spike.md`): two real templates convert 100% and render end-to-end; gap list classified engine/adapter/won't-support. Engine priorities reordered by measured frequency.
+- ✅ **Spike-prioritized engine slice**: `filter` chains (13/20 production video overlays use them), `zIndex` sibling paint order, `border`, `boxShadow`. (`shape` node deliberately dropped — zero occurrences in real templates.)
+- ✅ **`@motionforge/player`**: deterministic `FrameClock` + canvas render loop (play/pause/seek/loop, latest-frame-wins decode policy); playground now runs on it. Audio preview designed (package README), implementation week 2.
+- ✅ **RFC 0001 — scene patch ops** (`docs/rfcs/0001-scene-patch-ops.md`): id-addressed transactional patch vocabulary + mechanical eval harness design (generate/edit/repair suites).
+- ✅ **User-oriented docs**: `docs/guides/getting-started.md`.
 
-Convert one real `CompositionData` to a scene with throwaway code, render, diff against the Remotion output. Deliverable is a gap list classified into engine work / adapter work / won't-support.
+### Week 2 — close the measured gaps, make preview real
 
-### Slice 14: Spike follow-ups + media-audio completeness (1–2 days)
+- **A**: remaining spike engine items as templates demand them; video nodes contributing audio (`styles.volume` on clips).
+- **B**: player audio preview (per the design: reuse export's pure mix, one AudioBufferSource, clock re-anchors to audio on drift); thin React wrapper for dojo.
+- **C**: productionize the converter as a real adapter package (font manifest from dojo's fontsource set, full animation-name coverage, unit normalization, `translateX` → `translate` rewrites).
+- **D**: implement `applyScenePatch` + `scenePatchSchema` per RFC 0001; eval harness runner with the generate suite.
+- **E**: docs site skeleton; example gallery growth.
 
-Sized by the spike's gap list, plus two known items: video nodes contributing their own audio track (today an explicit audio node is required), and best-effort audio preview in the playground (export stays the source of truth). Measure 1080p decode/export with real footage and record the baseline.
+### Week 3 — integration behind a flag, chat loop v1
 
-### Slice 15: Robustness fill-ins (remaining time)
+- **C+B**: dojo editor preview renders supported compositions through motionforge behind a feature flag, Remotion fallback otherwise; in-browser export button.
+- **D**: chat loop v1 in dojo ai-chat — message + scene → patch → validate → live preview.
+- **C**: caption overlays → caption presets mapping (the 14 dojo caption templates become preset option bundles).
+- **A**: Lottie node spike (also covers dojo stickers).
+- **B**: worker-parallel export; 1080p real-footage benchmark.
 
-From the testing strategy, in order: pixel-diff artifacts written next to golden failures, a lint rule banning wall-clock/randomness in render packages, a Playwright E2E for the playground controls, and chunked audio mixing for long scenes.
+### Week 4 — the end-to-end demo (all hands)
+
+Target scenario in dojo: upload a video → "add TikTok-style subtitles and a title that pops in" → ASR → caption presets → live preview with audio → in-browser MP4 export. Plus: GSAP-to-keyframes baking spike (build-time only, never a runtime dependency).
+
+### Week 5 — harden and launch
+
+Golden coverage for all new features; bug bash on real dojo projects; 0.3.0 publish (player, filter/zIndex/border/boxShadow, patch ops); dojo flag rollout to a user slice; public launch with the live playground.
 
 ## Explicitly deferred (unchanged)
 
-React/JSX adapter, GSAP adapter (would bake GSAP timelines into keyframes at build time — never a runtime dependency), CanvasKit renderer, Tauri desktop, MCP server, streaming video sources, worker-parallel export.
+React/JSX authoring adapter, CanvasKit renderer, Tauri desktop, MCP server (wraps patch ops once they exist), streaming video sources, visualizer overlays, CRDT/concurrent editing.

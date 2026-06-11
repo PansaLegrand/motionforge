@@ -2,6 +2,22 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (patch-ops RFC, getting-started guide, 5-week roadmap)
+
+### Changed
+
+- `docs/rfcs/0001-scene-patch-ops.md`: the agent edit vocabulary — id-addressed, transactional `ScenePatch` ops (`setStyle` merge / `setAnimations` replace semantics, guarded asset removal, no JSON-Pointer paths, pure application), error model with closest-id hints, and the mechanical eval harness design (generate/edit/repair suites scored by validator + structural assertions, no LLM judging). Implementation scheduled week 2.
+- `docs/guides/getting-started.md`: first user-oriented guide — scene JSON in five minutes, player preview, MP4 export, presets, assets, and the LLM entry point.
+- `docs/roadmap.md`: rewritten around the 5-week integration plan (5 workstreams, week 1 marked complete with evidence links). Publishing steps are maintainer-owned and non-blocking.
+
+### Tested
+
+- Docs-only slice; `pnpm test` and `pnpm golden:test` re-run green before commit (108 unit tests, 31 golden checks).
+
+### Notes
+
+- Week-1 scope intentionally shipped without npm/GitHub publishing (maintainer will publish when ready); nothing downstream blocks on it.
+
 ## 2026-06-11 (@motionforge/player — playback skeleton)
 
 ### Changed
