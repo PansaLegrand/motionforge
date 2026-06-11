@@ -7,3 +7,4 @@ coverage
 *.tsbuildinfo
 apps/playground/.vite
 examples/*.mp4
+tools/spike-editor-adapter/out/

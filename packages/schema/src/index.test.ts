@@ -203,7 +203,7 @@ describe("scene schema", () => {
       nodes: [{ id: "n", type: "div", style: { filter } }],
     });
 
-    // The real chains observed in dojo-video-web templates must pass.
+    // The real chains observed in the downstream editor templates must pass.
     expect(
       validateScene(
         sceneWith(

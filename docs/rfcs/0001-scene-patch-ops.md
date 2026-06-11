@@ -2,7 +2,7 @@
 
 **Status:** proposed (week-1 deliverable; implementation scheduled week 2)
 **Owner:** agent-layer workstream
-**Consumers:** chat-driven editing (dojo ai-chat), any tool that edits scenes incrementally
+**Consumers:** chat-driven editing (a chat UI), any tool that edits scenes incrementally
 
 ## Problem
 
@@ -37,7 +37,7 @@ const scenePatchSchema: z.ZodType<ScenePatch>;   // + JSON Schema artifact for t
 Decisions and rationale:
 
 - **Merge semantics for `setStyle`, replace semantics for `setAnimations`.** Style edits are usually one or two keys ("make it red"); animations are usually authored as a unit (a preset's output) and partial keyframe surgery invites invalid frame orderings. An LLM that wants to tweak one keyframe re-emits that node's animation list — still small.
-- **No generic JSON-Pointer paths.** RFC 6902 (`/nodes/3/children/0/style/...`) is index-addressed and lets a patch express states the schema can't validate incrementally. A closed op vocabulary keeps every op meaningful in scene terms, trivially diffable in UI ("changed style of `title`"), and maps 1:1 to editor actions (dojo's `changeOverlay` becomes `setStyle`/`retime`).
+- **No generic JSON-Pointer paths.** RFC 6902 (`/nodes/3/children/0/style/...`) is index-addressed and lets a patch express states the schema can't validate incrementally. A closed op vocabulary keeps every op meaningful in scene terms, trivially diffable in UI ("changed style of `title`"), and maps 1:1 to editor actions (the editor's `changeOverlay` becomes `setStyle`/`retime`).
 - **`setText` is separate from a hypothetical `setNode`** so the common caption-fix path is a one-liner and node type changes stay impossible by construction.
 - **Asset removal is guarded**, not cascading: removing an asset that nodes still reference is an error naming those node ids. Cascades hide mistakes from agents; errors teach them.
 - **Determinism:** `applyScenePatch` is pure. Same scene + same patch → same result. No clocks, no randomness, no id generation (inserted nodes must carry ids; duplicate ids are rejected by final validation — agents are told to namespace, e.g. `caption-7`).
@@ -70,6 +70,6 @@ Each case: `{ id, suite, input, prompt, assert(scene): string[] }`. Runner repor
 
 ## Out of scope
 
-- Operational-transform/CRDT concurrent editing (patches apply to a known document revision; dojo's existing last-write-wins persistence is unchanged).
+- Operational-transform/CRDT concurrent editing (patches apply to a known document revision; the editor's existing last-write-wins persistence is unchanged).
 - Undo/redo (an applied patch's inverse is computable later; not needed for the chat loop).
 - An MCP server wrapping these ops — week 3+, after the ops exist.

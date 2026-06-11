@@ -38,13 +38,13 @@ This is the living project log. Every meaningful implementation slice should rec
 ### Notes
 
 - Audio preview is design-only this slice (see package README); export remains the audio source of truth.
-- The React wrapper stays deferred until dojo integration needs it — the core is framework-free by design.
+- The React wrapper stays deferred until the editor integration needs it — the core is framework-free by design.
 
 ## 2026-06-11 (filter, zIndex, border, boxShadow — spike-prioritized engine slice)
 
 ### Changed
 
-- `@motionforge/schema`: four new style properties, prioritized by measured frequency in real dojo templates (see `docs/dojo-adapter-spike.md`):
+- `@motionforge/schema`: four new style properties, prioritized by measured frequency in real editor templates (see `docs/editor-adapter-spike.md`):
   - `filter` — validated chain of `brightness`/`contrast`/`saturate`/`grayscale`/`sepia`/`invert`/`opacity` (number or `%`), `hue-rotate(<deg>)`, `blur(<px>)`, or `none`. `isFilterExpression()` exported. Used by 13/20 video overlays in production templates.
   - `zIndex` — integer; paint order only, never layout.
   - `border` — `<width> [solid] <color>` string.
@@ -54,12 +54,12 @@ This is the living project log. Every meaningful implementation slice should rec
   - Siblings paint in ascending `zIndex` (stable; document order breaks ties) at every tree level. A negative `zIndex` paints behind *all* siblings, including a full-canvas background sibling — CSS sibling semantics, verified visually.
   - `border` strokes inside the border box following `borderRadius` (solid only; other line styles are loud nulls). `parseBorder()` exported.
   - `boxShadow` rides the background fill via canvas shadow state (no background → no shadow, documented); `inset`/spread unsupported and make the whole value null rather than subtly wrong. `parseBoxShadow()` exported.
-- Spike correction: `%` translate already tweens and resolves against the node's own box; dojo's `translateX(-100%)` is an adapter rewrite, not engine work.
+- Spike correction: `%` translate already tweens and resolves against the node's own box; the editor's `translateX(-100%)` is an adapter rewrite, not engine work.
 
 ### Tested
 
 - `pnpm build`, `pnpm typecheck`
-- `pnpm test` (97 unit tests; new: filter expression accept/reject incl. real dojo chains, zIndex int/fractional, parseBoxShadow forms + inset/spread rejection, parseBorder forms + non-solid rejection, sibling paint order via fillStyle capture)
+- `pnpm test` (97 unit tests; new: filter expression accept/reject incl. real production filter chains, zIndex int/fractional, parseBoxShadow forms + inset/spread rejection, parseBorder forms + non-solid rejection, sibling paint order via fillStyle capture)
 - `pnpm golden:test` (18 fixtures; new exact fixture `filter-zindex-border-shadow` with an unfiltered control image; rendered frame visually verified before trusting the hash; all pre-existing hashes unchanged)
 
 ### Notes
@@ -67,13 +67,13 @@ This is the living project log. Every meaningful implementation slice should rec
 - The `shape` node type was deliberately dropped from this slice: zero occurrences in sampled production templates. It lands with the sticker work when a real consumer exists.
 - Filter compositing semantics (subtree-as-group, stacking with ancestor filters) need offscreen layer rendering; revisit if a template filters a container with overlapping children.
 
-## 2026-06-11 (dojo adapter spike — roadmap slice 13)
+## 2026-06-11 (the editor-adapter spike — roadmap slice 13)
 
 ### Changed
 
-- Ran the deferred adapter spike against two real dojo-video-web editor templates (10 and 6 overlays: remote videos, image, texts, sound). Throwaway converter at `tools/spike-dojo-adapter/convert.mjs`; findings and the classified gap list in `docs/dojo-adapter-spike.md`.
+- Ran the deferred adapter spike against two real templates from the downstream timeline editor (10 and 6 overlays: remote videos, image, texts, sound). Throwaway converter at `tools/spike-editor-adapter/convert.mjs`; findings and the classified gap list in `docs/editor-adapter-spike.md`.
 - Both templates convert 100% of overlays to schema-valid scenes and render end-to-end in the harness browser (example-5: 124 frames with three remote pexels videos + mixed AAC soundtrack in ~14 s, ~3 ms/frame after fetch; example-7: 203 frames in ~1.9 s).
-- Verified dojo semantics in source: `zIndex = 100 − row·10` paint order, top-level `rotation` (center origin), 15-frame named enter/exit animation ramps, rem/em/empty-string style values, @fontsource class names.
+- Verified the editor semantics in source: `zIndex = 100 − row·10` paint order, top-level `rotation` (center origin), 15-frame named enter/exit animation ramps, rem/em/empty-string style values, @fontsource class names.
 
 ### Tested
 
@@ -83,7 +83,7 @@ This is the living project log. Every meaningful implementation slice should rec
 ### Notes
 
 - Engine priorities reordered by measured frequency: CSS `filter` chains (13/20 video overlays!), `zIndex` style, percent `translate`; `textDecoration` deprioritized (present on every text overlay, always `"none"`).
-- Won't-support list started: `backdropFilter`, visualizer overlays, animated React stickers, 3D `flip` — these fall back to Remotion in dojo.
+- Won't-support list started: `backdropFilter`, visualizer overlays, animated React stickers, 3D `flip` — these fall back to Remotion in the editor.
 
 ## 2026-06-11 (showcase launch surface — open-source demo slice)
 
@@ -93,7 +93,7 @@ This is the living project log. Every meaningful implementation slice should rec
 - Playground now has a scene picker with per-scene descriptions/proof tags; each selected scene can be scrubbed, played, and exported to MP4.
 - Added `pnpm showcase:generate`, which writes the shared showcase scenes to `examples/generated/*.json` for people who want to inspect or render raw scene documents.
 - Added README showcase gallery, `docs/showcase.md`, and poster images for the three demos.
-- Updated the roadmap to defer dojo integration until the open-source demo surface is stronger.
+- Updated the roadmap to defer the editor integration until the open-source demo surface is stronger.
 
 ### Tested
 
@@ -135,7 +135,7 @@ This is the living project log. Every meaningful implementation slice should rec
 
 ### Notes
 
-- Slice 12 is complete. The next planned step is the dojo adapter spike: one real `CompositionData` converted into a motionforge scene, then a classified gap list.
+- Slice 12 is complete. The next planned step is the editor-adapter spike: one real `CompositionData` converted into a motionforge scene, then a classified gap list.
 
 ## 2026-06-11 (0.2.0 publish prep — roadmap slice 11, credential steps pending)
 
@@ -180,7 +180,7 @@ This is the living project log. Every meaningful implementation slice should rec
 ### Notes
 
 - Caption pill widths derive from character count (no text measurement in data land); good enough visually, revisit when text-fitted backgrounds land in slice 12.
-- These presets are the compilation target dojo's named enter/exit overlay animations will map onto in the adapter.
+- These presets are the compilation target the editor's named enter/exit overlay animations will map onto in the adapter.
 
 ## 2026-06-11 (transform interpolation + easing expansion — roadmap slices 8 & 9)
 

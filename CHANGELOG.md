@@ -26,7 +26,7 @@ Animation maturity release. This is the publish target for the first public laun
 
 ### Docs and Examples
 
-- Added the weeks 3–4 roadmap for animation maturity, launch, and dojo readiness.
+- Added the weeks 3–4 roadmap for animation maturity, launch, and the editor readiness.
 - Added/updated TikTok caption examples, generated frames, and agent-facing docs so agents prefer presets over hand-authored animation JSON.
 
 Verified by 80 unit tests, 15 golden fixtures, 11 in-browser integration checks, and the generated TikTok caption scene rendered end to end.

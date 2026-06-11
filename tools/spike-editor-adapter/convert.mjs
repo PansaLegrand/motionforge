@@ -1,23 +1,23 @@
-// THROWAWAY SPIKE — dojo-video-web CompositionData/TemplateOverlay → motionforge scene.
+// THROWAWAY SPIKE — a row-based timeline-editor overlay format → motionforge scene.
 // Deliverable is the gap report, not this code. Do not productionize in place;
-// the real adapter is a follow-up package informed by docs/dojo-adapter-spike.md.
+// the real adapter is a follow-up package informed by docs/editor-adapter-spike.md.
 //
-// Usage: node tools/spike-dojo-adapter/convert.mjs <dojo-template.json> <out-scene.json> [--report <out-report.json>]
+// Usage: node tools/spike-editor-adapter/convert.mjs <editor-template.json> <out-scene.json> [--report <out-report.json>]
 
 import { readFileSync, writeFileSync } from "node:fs";
 import { validateScene } from "../../packages/schema/dist/index.js";
 
 const [, , inPath, outPath, ...rest] = process.argv;
 if (!inPath || !outPath) {
-  console.error("usage: node convert.mjs <dojo-template.json> <out-scene.json> [--report <path>]");
+  console.error("usage: node convert.mjs <editor-template.json> <out-scene.json> [--report <path>]");
   process.exit(1);
 }
 const reportPath = rest[0] === "--report" ? rest[1] : undefined;
 
-const FPS = 30; // dojo editor default
+const FPS = 30; // the editor editor default
 const REM = 16;
 
-/** Gap collector: every dojo property the converter cannot map faithfully. */
+/** Gap collector: every the editor property the converter cannot map faithfully. */
 const gaps = [];
 function gap(overlay, property, value, classification, note) {
   gaps.push({
@@ -48,7 +48,7 @@ function cleanColor(value) {
   return value;
 }
 
-// dojo font classes ("font-bungee-inline") → CSS family names.
+// the editor font classes ("font-bungee-inline") → CSS family names.
 // The editor loads these via @fontsource; motionforge needs font *assets* (woff2 URLs).
 // For the spike we map to the family name and let canvas fall back to system fonts.
 const FONT_CLASS_TO_FAMILY = {
@@ -60,7 +60,7 @@ const FONT_CLASS_TO_FAMILY = {
 };
 
 // ---------- enter/exit animation mapping ----------
-// dojo animation templates are 15-frame ramps evaluated per frame.
+// the editor animation templates are 15-frame ramps evaluated per frame.
 // We compile each name into motionforge keyframes on the node's local timeline.
 
 const ENTER_LEN = 15;
@@ -83,7 +83,7 @@ function enterKeyframes(name, overlay) {
     case "slideRight":
       return [
         { property: "opacity", frames: [{ frame: 0, value: 0 }, { frame: ENTER_LEN, value: 1 }] },
-        // dojo uses translateX(-100%) — percent translate; motionforge translate is px.
+        // the editor uses translateX(-100%) — percent translate; motionforge translate is px.
         // Approximate with the overlay's own width in px.
         { property: "transform", frames: [{ frame: 0, value: `translate(${-overlay.width}px, 0px)` }, { frame: ENTER_LEN, value: "translate(0px, 0px)" }] },
       ];
@@ -172,7 +172,7 @@ function baseStyle(overlay) {
     height: overlay.height,
   };
   if (overlay.rotation) {
-    style.transform = `rotate(${overlay.rotation}deg)`; // dojo: transformOrigin center center (motionforge default)
+    style.transform = `rotate(${overlay.rotation}deg)`; // the editor: transformOrigin center center (motionforge default)
   }
   const st = overlay.styles ?? {};
   if (st.opacity != null && st.opacity !== 1) style.opacity = st.opacity;
@@ -182,7 +182,7 @@ function baseStyle(overlay) {
   return style;
 }
 
-/** dojo wraps media in a padded colored box via padding+paddingBackgroundColor. */
+/** the editor wraps media in a padded colored box via padding+paddingBackgroundColor. */
 function wrapPadded(overlay, node) {
   const st = overlay.styles ?? {};
   const pad = px(st.padding);
@@ -269,7 +269,7 @@ function convertMedia(overlay) {
   if (st.objectPosition) style.objectPosition = st.objectPosition;
   if (st.borderRadius) style.borderRadius = px(st.borderRadius);
   if (st.filter) {
-    gap(overlay, "styles.filter", st.filter, "engine", "CSS filter chain (brightness/contrast/saturate/sepia/hue-rotate/grayscale) — used by most dojo video templates");
+    gap(overlay, "styles.filter", st.filter, "engine", "CSS filter chain (brightness/contrast/saturate/sepia/hue-rotate/grayscale) — used by most the editor video templates");
   }
   if (st.boxShadow) gap(overlay, "styles.boxShadow", st.boxShadow, "engine", "box shadows not in style schema");
   if (st.border) gap(overlay, "styles.border", st.border, "engine", "borders not in style schema");
@@ -346,7 +346,7 @@ const duration =
   template.duration ??
   Math.max(...overlays.map((o) => o.from + o.durationInFrames));
 
-// dojo paint order: container zIndex = 100 - row*10 (higher row = behind).
+// the editor paint order: container zIndex = 100 - row*10 (higher row = behind).
 // motionforge paints in node order, so sort back-to-front.
 const ordered = [...overlays].sort(
   (a, b) => (100 - (a.row ?? 0) * 10) - (100 - (b.row ?? 0) * 10)
