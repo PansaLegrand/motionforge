@@ -23,7 +23,7 @@ M0 proves the thesis with the smallest useful engine.
 7. ✅ Deterministic frame sequence loop for export.
 8. ✅ WebCodecs/mediabunny export (`exportVideo()`, playground Export MP4 button, browser smoke test).
 
-All M0 sequence items have landed. M0 close-out remains open until the acceptance criteria have been re-verified together and the next milestone is scoped.
+**M0 is closed.** All acceptance criteria re-verified on 2026-06-11: scenes validate through `@motionforge/schema` (with JSON Schema export), the builder serializes deterministically, animations resolve as pure functions of `frame` (numbers and colors), the Canvas2D renderer draws the same scene as preview (proven by golden hashes shared between paths), the playground scrubs and exports, `exportVideo()` works behind capability checks, and every slice landed with tests and a `progress.md` entry. The next milestone is [the post-M0 roadmap](roadmap.md).
 
 ## Deferred
 

@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (v0.1.0 release prep — roadmap slice 3, credential steps pending)
+
+### Changed
+
+- Closed M0 in `docs/m0-roadmap.md` after re-verifying every acceptance criterion.
+- Added `CHANGELOG.md` with the 0.1.0 entry covering all four packages.
+- Bumped `@motionforge/schema`, `core`, `renderer-canvas2d`, and `export` to 0.1.0 (they version together).
+- Verified `npm pack --dry-run` for each package: dist + README + LICENSE only (plus `scene.schema.json` for the schema package); no compiled tests, no tsbuildinfo.
+- README badges: status → M0 complete, version → 0.1.0.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`, `pnpm test`, `pnpm golden:test`
+- `npm pack --dry-run` × 4
+
+### Remaining manual steps (need account credentials)
+
+1. Create the GitHub repository and push (`git remote add origin … && git push -u origin main`); confirm CI is green and badge URLs match the repo slug.
+2. Reserve the `@motionforge` npm scope (npm org).
+3. `pnpm publish -r --access public` from a clean checkout, then tag `v0.1.0`.
+4. Optional: deploy the playground to GitHub Pages and link it from the README.
+
 ## 2026-06-11 (renderer paint completion — roadmap slice 4)
 
 ### Changed
