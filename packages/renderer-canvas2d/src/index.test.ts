@@ -60,10 +60,11 @@ describe("wrapTextLines", () => {
     ]);
   });
 
-  it("gives an overlong single word its own line instead of looping", () => {
+  it("breaks an overlong single word by grapheme instead of squishing", () => {
     expect(wrapTextLines("tiny enormousword tiny", 60, measure)).toEqual([
       "tiny",
-      "enormousword",
+      "enormo",
+      "usword",
       "tiny",
     ]);
   });
@@ -484,5 +485,48 @@ describe("validateLottieDocument", () => {
       layers: [{ ty: 4, ks: { p: { a: 1, k: [{ t: 0, i: { x: [0.5], y: [0.5] } }] } } }],
     };
     expect(validateLottieDocument(withEasing)).toEqual([]);
+  });
+});
+
+describe("wrapTextLines with spaceless scripts", () => {
+  // 10px per code point, like the Latin fake measurer above.
+  const measureCjk = (line: string): number => Array.from(line).length * 10;
+
+  it("breaks a spaceless CJK paragraph into fitting lines", () => {
+    const text = "这是一个很长的中文段落用来测试文本换行";
+    const lines = wrapTextLines(text, 80, measureCjk); // 8 chars per line
+
+    expect(lines).toEqual(["这是一个很长的中", "文段落用来测试文", "本换行"]);
+    expect(lines.every((line) => measureCjk(line) <= 80)).toBe(true);
+  });
+
+  it("mixes spaced and spaceless runs", () => {
+    const lines = wrapTextLines("emoji 中文混合测试段落在这里", 80, measureCjk);
+    // word-level breaks drop the inter-word space, as they always have
+    expect(lines).toEqual(["emoji", "中文混合测试段落", "在这里"]);
+    expect(lines.every((line) => measureCjk(line) <= 80)).toBe(true);
+  });
+
+  it("keeps emoji grapheme clusters intact when breaking", () => {
+    // Each flag emoji is two code points (one grapheme may be wider);
+    // ensure no break lands inside a surrogate pair.
+    const text = "🎬🎬🎬🎬🎬🎬";
+    const lines = wrapTextLines(text, 45, (line) => Array.from(line).length * 10);
+    for (const line of lines) {
+      expect([...line].every((ch) => ch === "🎬")).toBe(true);
+    }
+  });
+
+  it("clamps a single grapheme wider than the box (unchanged behavior)", () => {
+    expect(wrapTextLines("字", 5, measureCjk)).toEqual(["字"]);
+  });
+
+  it("Latin wrapping is byte-identical to the previous behavior", () => {
+    const measure = (line: string): number => line.length * 10;
+    expect(wrapTextLines("the quick brown fox jumps", 100, measure)).toEqual([
+      "the quick",
+      "brown fox",
+      "jumps",
+    ]);
   });
 });

@@ -141,6 +141,13 @@ Validation is intentionally stricter than implementation: a property may validat
 - A single word wider than the box gets its own line and is horizontally condensed to fit rather than overflowing.
 - Lines are spaced by `lineHeight` and the whole line block is centered vertically in the node's box. `textAlign` positions each line horizontally.
 - Absolutely positioned text nodes should set an explicit `height`: auto height resolves to the parent's height, so the centered line block lands far below `top` (typically off-canvas). Intrinsic auto-height for text is a known follow-up.
+
+#### International text
+
+- **Spaceless scripts wrap.** Chinese/Japanese (and any run without spaces, e.g. long URLs) break by grapheme cluster when a run exceeds the box width — emoji and combining marks are never split. Japanese kinsoku rules (no line-initial 。、) are not applied; a known simplification.
+- **RTL and Arabic work via canvas text shaping**: cursive joining and right-to-left ordering are automatic per line, and Arabic wraps on its spaces. Use `textAlign: "right"` for RTL blocks. **Avoid `letterSpacing` on Arabic/cursive scripts** — spacing is applied between glyphs and breaks joining.
+- Mixed-direction lines (Latin + Arabic in one string) follow the canvas bidi algorithm.
+- **Fonts**: any script renders with system-font fallback out of the box; for deterministic cross-machine output, register a `font` asset covering the script (e.g. a Noto Sans SC/JP/KR or Noto Naskh woff2). CJK fonts are large — prefer subsetted files.
 - `textStroke` uses a compact shorthand such as `"6px #000000"` or `"10% rgba(0,0,0,0.8)"`. Invalid or non-positive strokes are ignored rather than failing the render.
 - `textBackgroundColor` draws one rounded fitted background per rendered line. `textBackgroundPadding` sets both axes; `textBackgroundPaddingX`/`textBackgroundPaddingY` override per axis; `textBackgroundRadius` rounds each line background. Backgrounds paint before `textStroke` and fill.
 - Wrapping happens at render time using real font metrics, so flex layout's intrinsic text sizing still uses the heuristic estimate documented above; give text nodes an explicit `width`/`height` when exact geometry matters.

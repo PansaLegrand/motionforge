@@ -1068,8 +1068,10 @@ function drawBorder(
 
 /**
  * Splits text into rendered lines: explicit "\n" always breaks, and words
- * wrap when a line would exceed maxWidth. A single word wider than maxWidth
- * gets its own line and is clamped by fillText's maxWidth at draw time.
+ * wrap when a line would exceed maxWidth. A single run wider than maxWidth
+ * (CJK text has no spaces, so a whole paragraph is one "word") breaks by
+ * grapheme cluster so every script wraps instead of being condensed; only a
+ * single grapheme wider than the box is clamped by fillText at draw time.
  */
 export function wrapTextLines(
   text: string,
@@ -1097,12 +1099,74 @@ export function wrapTextLines(
       } else {
         current = candidate;
       }
+
+      // The line so far may exceed the box on its own (spaceless scripts,
+      // long URLs): emit grapheme-fitted lines until the remainder fits.
+      while (measure(current) > maxWidth) {
+        const broken = breakByGrapheme(current, maxWidth, measure);
+
+        if (broken === null) {
+          break; // single grapheme wider than the box: clamp at draw time
+        }
+
+        lines.push(broken.fit);
+        current = broken.rest;
+      }
     }
 
     lines.push(current);
   }
 
   return lines;
+}
+
+/**
+ * Largest grapheme-cluster prefix of `text` that fits `maxWidth` (at least
+ * one cluster), plus the remainder. Returns null when the text cannot be
+ * split further. Grapheme segmentation keeps emoji and combining marks
+ * intact; falls back to code points where Intl.Segmenter is unavailable.
+ */
+function breakByGrapheme(
+  text: string,
+  maxWidth: number,
+  measure: (line: string) => number,
+): { fit: string; rest: string } | null {
+  const clusters = splitGraphemes(text);
+
+  if (clusters.length <= 1) {
+    return null;
+  }
+
+  let fit = clusters[0] ?? "";
+  let index = 1;
+
+  while (index < clusters.length) {
+    const candidate = fit + clusters[index];
+
+    if (measure(candidate) > maxWidth) {
+      break;
+    }
+
+    fit = candidate;
+    index += 1;
+  }
+
+  if (index >= clusters.length) {
+    return null; // everything fits after all (measurement settled)
+  }
+
+  return { fit, rest: clusters.slice(index).join("") };
+}
+
+function splitGraphemes(text: string): string[] {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter(undefined, {
+      granularity: "grapheme",
+    });
+    return Array.from(segmenter.segment(text), (entry) => entry.segment);
+  }
+
+  return Array.from(text);
 }
 
 function resolveLineHeight(

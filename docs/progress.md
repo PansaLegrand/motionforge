@@ -2,6 +2,24 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (core engine verification: multilingual text — CJK wrap fix)
+
+### Changed
+
+- Pre-phase-2 verification pass over the engine, presets, and international text. One real gap found and fixed: **Chinese/Japanese text did not wrap** — `wrapTextLines` only broke on whitespace, so a spaceless CJK paragraph was one "word" horizontally condensed into a single squished line by `fillText`'s maxWidth clamp.
+- Fix: when a run alone exceeds the box width, it now breaks by **grapheme cluster** (`Intl.Segmenter`, code-point fallback) — fixes CJK, long URLs, and any spaceless run, and never splits emoji or combining marks. Behavior change for overlong Latin words: they now break instead of being condensed (the better behavior). All existing goldens unchanged — Latin wrapping with normal words is byte-identical.
+- Docs: new "International text" section in scene-format (grapheme wrapping, RTL/Arabic guidance — shaping/bidi are automatic per line, use `textAlign: right`, avoid `letterSpacing` on cursive scripts, kinsoku simplification noted, CJK font-asset guidance); llms.txt note for agents.
+
+### Tested
+
+- Rendered a zh/ja/ko/ar/emoji/mixed-bidi scene through the engine before and after: before, Chinese and Japanese were single squished lines; after, both wrap cleanly at natural glyph width. Arabic verified correct both times (cursive shaping, RTL, wraps on spaces, right-aligned); Korean wraps; color emoji and mixed-direction lines render.
+- 5 new `wrapTextLines` unit tests (CJK paragraph breaking, mixed runs, emoji cluster integrity, single-grapheme clamp, Latin regression); one old test updated to the new break-instead-of-squish contract. 47 renderer tests, 35 golden checks green (existing hashes unchanged).
+- All seven motion presets rendered mid-entrance in one strip and visually verified (popIn growth, fadeUp rise+fade, four slideIn directions, pulse peak).
+
+### Notes
+
+- Verification verdict recorded for phase-2 planning: engine is complete against its documented contract; remaining known simplifications are kinsoku, mixed Latin+CJK line packing (correct but not maximally dense), letterSpacing-vs-cursive (documented), and intrinsic text auto-height (queued for phase 2 week A).
+
 ## 2026-06-11 (week 5: launch surface — lottie showcase, determinism lint, E2E, 0.3.0 prep)
 
 ### Changed
