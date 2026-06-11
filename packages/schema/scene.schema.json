@@ -196,8 +196,14 @@
                   "backgroundColor": {
                     "type": "string"
                   },
+                  "border": {
+                    "type": "string"
+                  },
                   "borderRadius": {
                     "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "boxShadow": {
+                    "type": "string"
                   },
                   "overflow": {
                     "type": "string",
@@ -210,6 +216,12 @@
                     "type": "number",
                     "minimum": 0,
                     "maximum": 1
+                  },
+                  "filter": {
+                    "type": "string"
+                  },
+                  "zIndex": {
+                    "type": "integer"
                   },
                   "transform": {
                     "type": "string"

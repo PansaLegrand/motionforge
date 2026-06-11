@@ -113,6 +113,10 @@ Validation is intentionally stricter than implementation: a property may validat
 | `transformOrigin`                                |    ✅     |   —    |   ✅   | `left`/`center`/`right`, `top`/`center`/`bottom`, `px`, or `%` per axis; default center                                           |
 | `objectFit`                                      |    ✅     |   —    |   ✅   | `fill` (default), `contain`, `cover`, `none`, `scale-down`; applies to `img` and `video` nodes                                    |
 | `objectPosition`                                 |    ✅     |   —    |   ✅   | keywords (`left`/`center`/`right`, `top`/`center`/`bottom`), `%` (CSS alignment semantics), or `px` per axis                      |
+| `border`                                         |    ✅     |   —    |   ✅   | `<width> [solid] <color>`; strokes inside the border box, follows `borderRadius`; only solid lines                                |
+| `boxShadow`                                      |    ✅     |   —    |   ✅   | `<x> <y> [blur] <color>`; rides the background fill (no background → no shadow); no `inset`/spread                                |
+| `filter`                                         |    ✅     |   —    |   ✅   | chain of `brightness`/`contrast`/`saturate`/`grayscale`/`sepia`/`invert`/`opacity` (number or `%`), `hue-rotate(deg)`, `blur(px)`; per draw call, not composited subtree; no-op in Safari |
+| `zIndex`                                         |    ✅     |   —    |   ✅   | integer; reorders painting among siblings (ascending, document order ties); never affects layout                                  |
 
 ✅ implemented · ⚠️ partial (see note) · 📋 validated only, planned · — not applicable
 

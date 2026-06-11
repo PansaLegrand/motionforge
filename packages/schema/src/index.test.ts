@@ -28,7 +28,7 @@ describe("scene schema", () => {
           id: "bad",
           type: "div",
           style: {
-            boxShadow: "0 8px 24px rgba(0,0,0,0.25)",
+            backdropFilter: "blur(8px)",
           },
         },
       ],
@@ -191,6 +191,53 @@ describe("scene schema", () => {
     );
     expect(validateScene(sceneWith("bounce")).ok).toBe(false);
     expect(validateScene(sceneWith("spring(1)")).ok).toBe(false);
+  });
+
+  it("validates filter expressions and rejects unknown filter functions", () => {
+    const sceneWith = (filter: string) => ({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [{ id: "n", type: "div", style: { filter } }],
+    });
+
+    // The real chains observed in dojo-video-web templates must pass.
+    expect(
+      validateScene(
+        sceneWith(
+          "brightness(100%) sepia(20%) hue-rotate(180deg) saturate(90%)",
+        ),
+      ).ok,
+    ).toBe(true);
+    expect(
+      validateScene(sceneWith("grayscale(100%) contrast(150%) brightness(90%)"))
+        .ok,
+    ).toBe(true);
+    expect(validateScene(sceneWith("blur(4px)")).ok).toBe(true);
+    expect(validateScene(sceneWith("brightness(1.2)")).ok).toBe(true);
+    expect(validateScene(sceneWith("none")).ok).toBe(true);
+
+    expect(validateScene(sceneWith("drop-shadow(0 0 4px red)")).ok).toBe(false);
+    expect(validateScene(sceneWith("blur(4deg)")).ok).toBe(false);
+    expect(validateScene(sceneWith("url(#svg-filter)")).ok).toBe(false);
+    expect(validateScene(sceneWith("")).ok).toBe(false);
+  });
+
+  it("accepts integer zIndex and rejects fractional values", () => {
+    const sceneWith = (zIndex: number) => ({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [{ id: "n", type: "div", style: { zIndex } }],
+    });
+
+    expect(validateScene(sceneWith(0)).ok).toBe(true);
+    expect(validateScene(sceneWith(-5)).ok).toBe(true);
+    expect(validateScene(sceneWith(1.5)).ok).toBe(false);
   });
 
   it("re-parsing a parsed scene is an identity no-op", () => {

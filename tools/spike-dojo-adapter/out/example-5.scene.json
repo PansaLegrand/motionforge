@@ -1,0 +1,269 @@
+{
+  "schemaVersion": 0,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "duration": 124,
+  "assets": {
+    "asset-sound-957242": {
+      "id": "asset-sound-957242",
+      "type": "audio",
+      "src": "https://rwxrdxvxndclnqvznxfj.supabase.co/storage/v1/object/public/sounds/sound-3.mp3?t=2024-11-04T03%3A52%3A35.101Z"
+    },
+    "asset-video-791325": {
+      "id": "asset-video-791325",
+      "type": "video",
+      "src": "https://videos.pexels.com/video-files/2821900/2821900-hd_1280_720_25fps.mp4"
+    },
+    "asset-video-949039": {
+      "id": "asset-video-949039",
+      "type": "video",
+      "src": "https://videos.pexels.com/video-files/3044090/3044090-uhd_2560_1440_24fps.mp4"
+    },
+    "asset-video-634772": {
+      "id": "asset-video-634772",
+      "type": "video",
+      "src": "https://videos.pexels.com/video-files/7778850/7778850-uhd_2732_1440_25fps.mp4"
+    }
+  },
+  "nodes": [
+    {
+      "id": "canvas-bg",
+      "type": "div",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#111827"
+      }
+    },
+    {
+      "id": "ov-957242",
+      "type": "audio",
+      "assetId": "asset-sound-957242",
+      "from": 0,
+      "duration": 156
+    },
+    {
+      "id": "ov-791325-pad",
+      "type": "div",
+      "from": 0,
+      "duration": 61,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720,
+        "objectFit": "cover",
+        "backgroundColor": "#ffffff",
+        "padding": 50
+      },
+      "children": [
+        {
+          "id": "ov-791325",
+          "type": "video",
+          "assetId": "asset-video-791325",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "cover"
+          }
+        }
+      ],
+      "animations": []
+    },
+    {
+      "id": "ov-949039-pad",
+      "type": "div",
+      "from": 101,
+      "duration": 54,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720,
+        "objectFit": "cover",
+        "backgroundColor": "#ffffff",
+        "padding": 50
+      },
+      "children": [
+        {
+          "id": "ov-949039",
+          "type": "video",
+          "assetId": "asset-video-949039",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "cover"
+          }
+        }
+      ],
+      "animations": []
+    },
+    {
+      "id": "ov-162812",
+      "type": "text",
+      "text": "MAKE",
+      "from": 9,
+      "duration": 48,
+      "style": {
+        "position": "absolute",
+        "left": 38,
+        "top": 141,
+        "width": 1195,
+        "height": 444,
+        "fontSize": 48,
+        "color": "rgb(24, 23, 22)",
+        "fontWeight": 700,
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "letterSpacing": -1.44,
+        "fontFamily": "League Spartan"
+      },
+      "animations": []
+    },
+    {
+      "id": "ov-634772-pad",
+      "type": "div",
+      "from": 57,
+      "duration": 52,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1280,
+        "height": 720,
+        "objectFit": "cover",
+        "backgroundColor": "#ffffff",
+        "padding": 50
+      },
+      "children": [
+        {
+          "id": "ov-634772",
+          "type": "video",
+          "assetId": "asset-video-634772",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "cover"
+          }
+        }
+      ],
+      "animations": []
+    },
+    {
+      "id": "ov-407242",
+      "type": "text",
+      "text": "MAKE",
+      "from": 9,
+      "duration": 47,
+      "style": {
+        "position": "absolute",
+        "left": 24,
+        "top": 127,
+        "width": 1195,
+        "height": 444,
+        "fontSize": 48,
+        "color": "rgba(255, 169, 2, 1)",
+        "fontWeight": 700,
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "letterSpacing": -1.44,
+        "fontFamily": "League Spartan"
+      },
+      "animations": []
+    },
+    {
+      "id": "ov-671754",
+      "type": "text",
+      "text": "GREAT",
+      "from": 62,
+      "duration": 41,
+      "style": {
+        "position": "absolute",
+        "left": 38,
+        "top": 141,
+        "width": 1195,
+        "height": 444,
+        "fontSize": 48,
+        "color": "rgb(24, 23, 22)",
+        "fontWeight": 700,
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "letterSpacing": -1.44,
+        "fontFamily": "League Spartan"
+      },
+      "animations": []
+    },
+    {
+      "id": "ov-286216",
+      "type": "text",
+      "text": "VIDEOS",
+      "from": 108,
+      "duration": 47,
+      "style": {
+        "position": "absolute",
+        "left": 38,
+        "top": 141,
+        "width": 1195,
+        "height": 444,
+        "fontSize": 48,
+        "color": "rgb(24, 23, 22)",
+        "fontWeight": 700,
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "letterSpacing": -1.44,
+        "fontFamily": "League Spartan"
+      },
+      "animations": []
+    },
+    {
+      "id": "ov-957241",
+      "type": "text",
+      "text": "GREAT",
+      "from": 62,
+      "duration": 40,
+      "style": {
+        "position": "absolute",
+        "left": 24,
+        "top": 127,
+        "width": 1195,
+        "height": 444,
+        "fontSize": 48,
+        "color": "rgba(255, 169, 2, 1)",
+        "fontWeight": 700,
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "letterSpacing": -1.44,
+        "fontFamily": "League Spartan"
+      },
+      "animations": []
+    },
+    {
+      "id": "ov-947381",
+      "type": "text",
+      "text": "VIDEOS",
+      "from": 108,
+      "duration": 47,
+      "style": {
+        "position": "absolute",
+        "left": 24,
+        "top": 127,
+        "width": 1195,
+        "height": 444,
+        "fontSize": 48,
+        "color": "rgba(255, 169, 2, 1)",
+        "fontWeight": 700,
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "letterSpacing": -1.44,
+        "fontFamily": "League Spartan"
+      },
+      "animations": []
+    }
+  ]
+}

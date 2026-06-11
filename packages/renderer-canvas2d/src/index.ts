@@ -350,9 +350,24 @@ export function renderStill(
     context.clearRect(0, 0, scene.width, scene.height);
   }
 
-  for (const box of layout.boxes) {
+  for (const box of sortByZIndex(layout.boxes)) {
     drawBox(context, box, options.assets, layout.frame);
   }
+}
+
+/**
+ * Paint order among siblings: ascending zIndex (default 0), stable for equal
+ * values so document order keeps deciding ties. zIndex never affects layout.
+ */
+function sortByZIndex(boxes: LayoutBox[]): LayoutBox[] {
+  return boxes
+    .map((box, index) => ({ box, index }))
+    .sort((a, b) => {
+      const za = a.box.node.style.zIndex ?? 0;
+      const zb = b.box.node.style.zIndex ?? 0;
+      return za === zb ? a.index - b.index : za - zb;
+    })
+    .map((entry) => entry.box);
 }
 
 function drawBox(
@@ -367,6 +382,14 @@ function drawBox(
   context.save();
   context.globalAlpha *= style.opacity ?? 1;
   applyTransform(context, box, style);
+
+  if (style.filter && style.filter !== "none") {
+    // Canvas2D applies the filter per draw call, not to the composited
+    // subtree, and a child's own filter replaces (not stacks with) this one.
+    // Identical to CSS for leaf media/text nodes — the dominant use. Safari
+    // has no context.filter; the assignment is a silent no-op there.
+    context.filter = style.filter;
+  }
 
   drawBackground(context, box, style);
 
@@ -402,7 +425,9 @@ function drawBox(
     drawVideo(context, box, node, style, assets, sceneFrame);
   }
 
-  for (const child of box.children) {
+  drawBorder(context, box, style);
+
+  for (const child of sortByZIndex(box.children)) {
     drawBox(context, child, assets, sceneFrame);
   }
 
@@ -593,6 +618,19 @@ function drawBackground(
     return;
   }
 
+  const shadow = style.boxShadow ? parseBoxShadow(style.boxShadow) : null;
+
+  if (shadow) {
+    // Canvas shadows emit from painted pixels, so the shadow rides the
+    // background fill. A node with boxShadow but no background paints no
+    // shadow — documented in scene-format.
+    context.save();
+    context.shadowColor = shadow.color;
+    context.shadowOffsetX = shadow.offsetX;
+    context.shadowOffsetY = shadow.offsetY;
+    context.shadowBlur = shadow.blur;
+  }
+
   context.fillStyle = parseFill(context, box, background);
   const radius = readLength(
     style.borderRadius,
@@ -603,10 +641,144 @@ function drawBackground(
   if (radius > 0) {
     roundedRect(context, box.x, box.y, box.width, box.height, radius);
     context.fill();
+  } else {
+    context.fillRect(box.x, box.y, box.width, box.height);
+  }
+
+  if (shadow) {
+    context.restore();
+  }
+}
+
+export type ParsedBoxShadow = {
+  offsetX: number;
+  offsetY: number;
+  blur: number;
+  color: string;
+};
+
+/**
+ * Parses `<offset-x> <offset-y> [blur] <color>` box shadows (px lengths;
+ * color last, rgb()/rgba() allowed). Inset and spread are not supported and
+ * make the whole value null (no shadow), so unsupported shadows are loud in
+ * review rather than subtly wrong.
+ */
+export function parseBoxShadow(value: string): ParsedBoxShadow | null {
+  const tokens: string[] =
+    value.trim().match(/(?:[^\s()]+\([^)]*\)|[^\s()]+)/g) ?? [];
+
+  if (tokens.includes("inset")) {
+    return null;
+  }
+
+  const lengths: number[] = [];
+  const colorParts: string[] = [];
+
+  for (const token of tokens) {
+    const length = token.match(/^(-?\d+(?:\.\d+)?)(?:px)?$/);
+
+    if (length && colorParts.length === 0) {
+      lengths.push(Number.parseFloat(length[1] ?? "0"));
+    } else {
+      colorParts.push(token);
+    }
+  }
+
+  if (lengths.length < 2 || lengths.length > 3 || colorParts.length === 0) {
+    return null;
+  }
+
+  return {
+    offsetX: lengths[0] ?? 0,
+    offsetY: lengths[1] ?? 0,
+    blur: Math.max(0, lengths[2] ?? 0),
+    color: colorParts.join(" "),
+  };
+}
+
+export type ParsedBorder = { width: number; color: string };
+
+/**
+ * Parses `<width> [solid] <color>` borders. Only solid is supported; other
+ * line styles make the value null.
+ */
+export function parseBorder(value: string): ParsedBorder | null {
+  const tokens = value.trim().match(/(?:[^\s()]+\([^)]*\)|[^\s()]+)/g) ?? [];
+  let width: number | null = null;
+  const colorParts: string[] = [];
+
+  for (const token of tokens) {
+    const length = token.match(/^(\d+(?:\.\d+)?)(?:px)?$/);
+
+    if (length && width === null) {
+      width = Number.parseFloat(length[1] ?? "0");
+      continue;
+    }
+
+    if (token === "solid") {
+      continue;
+    }
+
+    if (["dashed", "dotted", "double", "groove", "ridge"].includes(token)) {
+      return null;
+    }
+
+    colorParts.push(token);
+  }
+
+  if (width === null || width <= 0 || colorParts.length === 0) {
+    return null;
+  }
+
+  return { width, color: colorParts.join(" ") };
+}
+
+/**
+ * Strokes the border inside the border box (CSS border-box sizing), following
+ * borderRadius. Painted after the node's own content, before children.
+ */
+function drawBorder(
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  box: LayoutBox,
+  style: SceneStyle,
+): void {
+  const border = style.border ? parseBorder(style.border) : null;
+
+  if (!border) {
     return;
   }
 
-  context.fillRect(box.x, box.y, box.width, box.height);
+  const radius = readLength(
+    style.borderRadius,
+    Math.min(box.width, box.height),
+    0,
+  );
+  const inset = border.width / 2;
+
+  context.save();
+  context.strokeStyle = border.color;
+  context.lineWidth = border.width;
+
+  if (radius > 0) {
+    roundedRect(
+      context,
+      box.x + inset,
+      box.y + inset,
+      box.width - border.width,
+      box.height - border.width,
+      Math.max(0, radius - inset),
+    );
+    context.stroke();
+  } else {
+    context.strokeRect(
+      box.x + inset,
+      box.y + inset,
+      box.width - border.width,
+      box.height - border.width,
+    );
+  }
+
+  context.restore();
 }
 
 /**

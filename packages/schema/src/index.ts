@@ -23,9 +23,13 @@ export const supportedStyleKeys = [
   "inset",
   "background",
   "backgroundColor",
+  "border",
   "borderRadius",
+  "boxShadow",
   "overflow",
   "opacity",
+  "filter",
+  "zIndex",
   "transform",
   "transformOrigin",
   "fontFamily",
@@ -78,9 +82,19 @@ export const styleSchema = z
     inset: lengthValueSchema.optional(),
     background: z.string().optional(),
     backgroundColor: z.string().optional(),
+    border: z.string().optional(),
     borderRadius: lengthValueSchema.optional(),
+    boxShadow: z.string().optional(),
     overflow: z.enum(["visible", "hidden"]).optional(),
     opacity: z.number().min(0).max(1).optional(),
+    filter: z
+      .string()
+      .refine(isFilterExpression, {
+        message:
+          "filter must be `none` or a space-separated chain of brightness()/contrast()/saturate()/grayscale()/sepia()/invert()/opacity() with a number or percentage, hue-rotate(<deg>), and blur(<px>).",
+      })
+      .optional(),
+    zIndex: z.number().int().optional(),
     transform: z.string().optional(),
     transformOrigin: z.string().optional(),
     fontFamily: z.string().optional(),
@@ -109,6 +123,29 @@ export const styleSchema = z
   });
 
 export type SceneStyle = z.infer<typeof styleSchema>;
+
+const filterFunctionPattern =
+  /^(?:(?:brightness|contrast|saturate|grayscale|sepia|invert|opacity)\(\s*\d+(?:\.\d+)?%?\s*\)|hue-rotate\(\s*-?\d+(?:\.\d+)?deg\s*\)|blur\(\s*\d+(?:\.\d+)?px\s*\))$/;
+
+/**
+ * Validates a filter expression: `none` or a space-separated chain of
+ * brightness()/contrast()/saturate()/grayscale()/sepia()/invert()/opacity()
+ * (number or percentage), hue-rotate(<deg>), and blur(<px>). This is the
+ * subset Canvas2D `context.filter` accepts with deterministic output.
+ */
+export function isFilterExpression(value: string): boolean {
+  const trimmed = value.trim();
+
+  if (trimmed === "none") {
+    return true;
+  }
+
+  const parts = trimmed.split(/\s+(?![^(]*\))/).filter(Boolean);
+
+  return (
+    parts.length > 0 && parts.every((part) => filterFunctionPattern.test(part))
+  );
+}
 
 export const namedEasings = [
   "linear",

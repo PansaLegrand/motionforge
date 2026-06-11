@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import { sampleScene } from "@motionforge/core";
 import {
   computeObjectFit,
+  parseBorder,
+  parseBoxShadow,
   parseLinearGradient,
   parseTextBackground,
   parseTextStroke,
@@ -330,5 +332,91 @@ describe("renderStill with video nodes", () => {
     expect(() => renderStill(context, scene as never, 0)).toThrow(
       /prepareFrame\(scene, frame, assets\)/,
     );
+  });
+});
+
+describe("parseBoxShadow", () => {
+  it("parses offset/blur/color forms", () => {
+    expect(parseBoxShadow("2px 4px 8px rgba(0, 0, 0, 0.5)")).toEqual({
+      offsetX: 2,
+      offsetY: 4,
+      blur: 8,
+      color: "rgba(0, 0, 0, 0.5)",
+    });
+    expect(parseBoxShadow("0 6 #000000")).toEqual({
+      offsetX: 0,
+      offsetY: 6,
+      blur: 0,
+      color: "#000000",
+    });
+    expect(parseBoxShadow("-3px -3px 10px gold")).toEqual({
+      offsetX: -3,
+      offsetY: -3,
+      blur: 10,
+      color: "gold",
+    });
+  });
+
+  it("rejects inset, spread, and incomplete values", () => {
+    expect(parseBoxShadow("inset 2px 2px 4px #000")).toBeNull();
+    expect(parseBoxShadow("2px 2px 4px 6px #000")).toBeNull();
+    expect(parseBoxShadow("2px #000")).toBeNull();
+    expect(parseBoxShadow("2px 2px 4px")).toBeNull();
+  });
+});
+
+describe("parseBorder", () => {
+  it("parses width/solid/color in any practical order", () => {
+    expect(parseBorder("2px solid #ff0000")).toEqual({
+      width: 2,
+      color: "#ff0000",
+    });
+    expect(parseBorder("3 rgb(10, 20, 30)")).toEqual({
+      width: 3,
+      color: "rgb(10, 20, 30)",
+    });
+  });
+
+  it("rejects non-solid line styles and missing parts", () => {
+    expect(parseBorder("2px dashed #fff")).toBeNull();
+    expect(parseBorder("solid #fff")).toBeNull();
+    expect(parseBorder("2px solid")).toBeNull();
+    expect(parseBorder("0 solid #fff")).toBeNull();
+  });
+});
+
+describe("zIndex paint order", () => {
+  it("paints siblings in ascending zIndex order, document order for ties", () => {
+    const fills: string[] = [];
+    const scene = {
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        { id: "top", type: "div", style: { width: 10, height: 10, backgroundColor: "#aa0000", zIndex: 5 } },
+        { id: "bottom", type: "div", style: { width: 10, height: 10, backgroundColor: "#00bb00", zIndex: -1 } },
+        { id: "mid-a", type: "div", style: { width: 10, height: 10, backgroundColor: "#0000cc" } },
+        { id: "mid-b", type: "div", style: { width: 10, height: 10, backgroundColor: "#dd00dd" } },
+      ],
+    };
+
+    const context = {
+      globalAlpha: 1,
+      set fillStyle(value: string) {
+        fills.push(value);
+      },
+      save: () => undefined,
+      restore: () => undefined,
+      clearRect: () => undefined,
+      fillRect: () => undefined,
+      translate: () => undefined,
+    } as unknown as CanvasRenderingContext2D;
+
+    renderStill(context, scene as never, 0);
+
+    expect(fills).toEqual(["#00bb00", "#0000cc", "#dd00dd", "#aa0000"]);
   });
 });

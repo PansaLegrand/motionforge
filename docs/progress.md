@@ -2,6 +2,51 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (filter, zIndex, border, boxShadow — spike-prioritized engine slice)
+
+### Changed
+
+- `@motionforge/schema`: four new style properties, prioritized by measured frequency in real dojo templates (see `docs/dojo-adapter-spike.md`):
+  - `filter` — validated chain of `brightness`/`contrast`/`saturate`/`grayscale`/`sepia`/`invert`/`opacity` (number or `%`), `hue-rotate(<deg>)`, `blur(<px>)`, or `none`. `isFilterExpression()` exported. Used by 13/20 video overlays in production templates.
+  - `zIndex` — integer; paint order only, never layout.
+  - `border` — `<width> [solid] <color>` string.
+  - `boxShadow` — `<x> <y> [blur] <color>` string.
+- `@motionforge/renderer-canvas2d`:
+  - `filter` sets `context.filter` for the node's own draws; children inherit unless they set their own (per-draw application, not subtree compositing — identical to CSS for leaf media/text nodes, the dominant case). Safari silently ignores it.
+  - Siblings paint in ascending `zIndex` (stable; document order breaks ties) at every tree level. A negative `zIndex` paints behind *all* siblings, including a full-canvas background sibling — CSS sibling semantics, verified visually.
+  - `border` strokes inside the border box following `borderRadius` (solid only; other line styles are loud nulls). `parseBorder()` exported.
+  - `boxShadow` rides the background fill via canvas shadow state (no background → no shadow, documented); `inset`/spread unsupported and make the whole value null rather than subtly wrong. `parseBoxShadow()` exported.
+- Spike correction: `%` translate already tweens and resolves against the node's own box; dojo's `translateX(-100%)` is an adapter rewrite, not engine work.
+
+### Tested
+
+- `pnpm build`, `pnpm typecheck`
+- `pnpm test` (97 unit tests; new: filter expression accept/reject incl. real dojo chains, zIndex int/fractional, parseBoxShadow forms + inset/spread rejection, parseBorder forms + non-solid rejection, sibling paint order via fillStyle capture)
+- `pnpm golden:test` (18 fixtures; new exact fixture `filter-zindex-border-shadow` with an unfiltered control image; rendered frame visually verified before trusting the hash; all pre-existing hashes unchanged)
+
+### Notes
+
+- The `shape` node type was deliberately dropped from this slice: zero occurrences in sampled production templates. It lands with the sticker work when a real consumer exists.
+- Filter compositing semantics (subtree-as-group, stacking with ancestor filters) need offscreen layer rendering; revisit if a template filters a container with overlapping children.
+
+## 2026-06-11 (dojo adapter spike — roadmap slice 13)
+
+### Changed
+
+- Ran the deferred adapter spike against two real dojo-video-web editor templates (10 and 6 overlays: remote videos, image, texts, sound). Throwaway converter at `tools/spike-dojo-adapter/convert.mjs`; findings and the classified gap list in `docs/dojo-adapter-spike.md`.
+- Both templates convert 100% of overlays to schema-valid scenes and render end-to-end in the harness browser (example-5: 124 frames with three remote pexels videos + mixed AAC soundtrack in ~14 s, ~3 ms/frame after fetch; example-7: 203 frames in ~1.9 s).
+- Verified dojo semantics in source: `zIndex = 100 − row·10` paint order, top-level `rotation` (center origin), 15-frame named enter/exit animation ramps, rem/em/empty-string style values, @fontsource class names.
+
+### Tested
+
+- `validateScene()` green for both converted scenes; rendered MP4s + poster frames visually verified (letter-by-letter text reveal, padded photo frame, video color/composition).
+- One converter bug found and fixed during verification: paint order was inverted (image covered all text); caught by rendering, not validation — a good argument for the planned pixel-diff artifacts.
+
+### Notes
+
+- Engine priorities reordered by measured frequency: CSS `filter` chains (13/20 video overlays!), `zIndex` style, percent `translate`; `textDecoration` deprioritized (present on every text overlay, always `"none"`).
+- Won't-support list started: `backdropFilter`, visualizer overlays, animated React stickers, 3D `flip` — these fall back to Remotion in dojo.
+
 ## 2026-06-11 (showcase launch surface — open-source demo slice)
 
 ### Changed
