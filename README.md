@@ -11,23 +11,18 @@
 
 ## Showcases
 
-The current engine can already turn plain scene JSON into real MP4s in the browser. These demos are shared between the playground and docs, so the screenshots below come from the same scene data users can scrub and export.
+The current engine can turn plain scene JSON into demo-grade MP4s in the browser. These six verification scenes are intentionally showy: motion-design pacing, audio sync, clipped mockups, animated layout, media compositing, and cinematic text treatment from serializable documents.
 
-| Engine intro                                                              | TikTok captions                                                                        | Karaoke captions                                                                         | Launch display                                                                                 | Timed text                                                                                   |
-| ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
-| <img src="docs/assets/showcase/intro.png" alt="Engine intro" width="180"> | <img src="docs/assets/showcase/tiktok-captions.png" alt="TikTok captions" width="180"> | <img src="docs/assets/showcase/karaoke-captions.png" alt="Karaoke captions" width="180"> | <img src="docs/assets/showcase/launch-info-display.png" alt="Launch info display" width="180"> | <img src="docs/assets/showcase/timed-text-overlay.png" alt="Timed text overlay" width="180"> |
+| Demo                                                           | Preview                                                                                                                                          | What to watch                                                                                                                                                     |
+| -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| [Kinetic Typography](verification/edgy-kinetic-typography.mp4) | [<img src="verification/edgy-kinetic-typography-f75.png" alt="Kinetic typography poster" width="180">](verification/edgy-kinetic-typography.mp4) | 1080x1920@60: words slam in with spring scale, previous words dim into a stacked trail, an accent light sweeps across, and the tagline tracks in.                 |
+| [App Promo](verification/edgy-app-promo.mp4)                   | [<img src="verification/edgy-app-promo-f80.png" alt="App promo poster" width="180">](verification/edgy-app-promo.mp4)                            | Phone mockup pops in, three app screens slide inside a rounded overflow clip, notch stays above via `zIndex`, and feature bullets stagger from alternating sides. |
+| [Animated Chart](verification/edgy-animated-chart.mp4)         | [<img src="verification/edgy-animated-chart-f130.png" alt="Animated chart poster" width="180">](verification/edgy-animated-chart.mp4)            | Agent-generated data-viz: bars grow through eased `width` keyframes that drive real layout, with labels and percentages landing on the same frame grid.           |
+| [Beat Edit](verification/edgy-beat-edit.mp4)                   | [<img src="verification/edgy-beat-edit-f61.png" alt="Beat edit poster" width="180">](verification/edgy-beat-edit.mp4)                            | Turn sound on: synthesized drums, photo punches on each beat, snare flashes, Lottie stars, word slams, and per-section hue-shifted color grade.                   |
+| [Cinematic Title](verification/edgy-cinematic-title.mp4)       | [<img src="verification/edgy-cinematic-title-f150.png" alt="Cinematic title poster" width="180">](verification/edgy-cinematic-title.mp4)         | 1920x1080@24 film card: Ken Burns drift on graded footage, vignette, letterbox bars, and title tracking via animated `letterSpacing`.                             |
+| [Multicam Layout](verification/edgy-multicam.mp4)              | [<img src="verification/edgy-multicam-f100.png" alt="Multicam poster" width="180">](verification/edgy-multicam.mp4)                              | Four simultaneous video decoders in a 2x2 grid; at 2s, CAM 4 animates `left`/`top`/`width`/`height` to fullscreen with audio.                                     |
 
-- **Engine intro:** gradients, image assets, text layout, opacity keyframes.
-- **TikTok captions:** ASR word timestamps → springy one-word captions with strokes and measured highlight pills.
-- **Karaoke captions:** full-line captions with per-word color ramps driven by spoken timestamps.
-- **Launch info display:** a prompt-shaped launch screen with animated panels, scan lines, countdown text, and progress motion.
-- **Timed text overlay:** a written timing prompt turned into exact text nodes: `motionforge.dev` for the first 5 seconds, then `Coming soon...` for the final 10 seconds.
-- **Audio sync pulse:** a synthesized four-beat track (pure-function WAV data URL) with visuals locked to the beats — audible in the playground's preview, mixed into the exported MP4.
-- **Lottie sticker:** a vector Lottie document as a timeline citizen — frame-exact seek, two playback rates from one asset, exported like any other node.
-
-Try them locally with `pnpm dev`; the playground scene picker can scrub, play, and export each showcase to MP4. See [docs/showcase.md](docs/showcase.md) for source links and render commands.
-
-Today these prompt-style showcases are authored as scene JSON/preset code, not by a bundled natural-language compiler. The engine is ready for this workflow; the compiler/editor layer can sit above the same scene contract.
+Together they exercise animated layout (`width`, `left`, `top`, `borderRadius`, `letterSpacing`), per-section `filter` keyframes, Lottie synced to beats, nested overflow clipping, deterministic synthesized audio, and multi-video compositing. They are authored as scene JSON today; a natural-language compiler or editor can sit above the same contract.
 
 ## The bet
 

@@ -1,0 +1,218 @@
+{
+  "schemaVersion": 0,
+  "width": 1920,
+  "height": 1080,
+  "fps": 24,
+  "duration": 168,
+  "assets": {
+    "photo": {
+      "id": "photo",
+      "type": "image",
+      "src": "https://images.pexels.com/photos/255527/pexels-photo-255527.jpeg"
+    }
+  },
+  "nodes": [
+    {
+      "id": "bg",
+      "type": "div",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#000000"
+      }
+    },
+    {
+      "id": "plate",
+      "type": "img",
+      "assetId": "photo",
+      "from": 0,
+      "duration": 168,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1920,
+        "height": 1080,
+        "objectFit": "cover",
+        "filter": "sepia(35%) contrast(112%) brightness(82%) saturate(85%)"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(0px, 0px) scale(1.0)"
+            },
+            {
+              "frame": 167,
+              "value": "translate(-60px, -30px) scale(1.16)",
+              "easing": "easeInOut"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "vig-top",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": "100%",
+        "height": 280,
+        "background": "linear-gradient(180deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)"
+      }
+    },
+    {
+      "id": "vig-bottom",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "bottom": 0,
+        "width": "100%",
+        "height": 280,
+        "background": "linear-gradient(0deg, rgba(0,0,0,0.85) 0%, rgba(0,0,0,0) 100%)"
+      }
+    },
+    {
+      "id": "vig-left",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 320,
+        "height": "100%",
+        "background": "linear-gradient(90deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)"
+      }
+    },
+    {
+      "id": "vig-right",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "right": 0,
+        "top": 0,
+        "width": 320,
+        "height": "100%",
+        "background": "linear-gradient(270deg, rgba(0,0,0,0.7) 0%, rgba(0,0,0,0) 100%)"
+      }
+    },
+    {
+      "id": "bar-top",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": "100%",
+        "height": 130,
+        "backgroundColor": "#000000",
+        "zIndex": 5
+      }
+    },
+    {
+      "id": "bar-bottom",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "bottom": 0,
+        "width": "100%",
+        "height": 130,
+        "backgroundColor": "#000000",
+        "zIndex": 5
+      }
+    },
+    {
+      "id": "title",
+      "type": "text",
+      "text": "OPEN HAND",
+      "from": 24,
+      "duration": 144,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "width": "100%",
+        "top": 470,
+        "height": 120,
+        "fontSize": 96,
+        "fontWeight": 300,
+        "color": "#f5f1e8",
+        "textAlign": "center",
+        "letterSpacing": 60
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "letterSpacing",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 60
+            },
+            {
+              "frame": 60,
+              "value": 14,
+              "easing": "easeOut"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 36,
+              "value": 1,
+              "easing": "easeIn"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subtitle",
+      "type": "text",
+      "text": "a motionforge picture",
+      "from": 84,
+      "duration": 84,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "width": "100%",
+        "top": 610,
+        "height": 40,
+        "fontSize": 28,
+        "color": "#bdb4a3",
+        "textAlign": "center",
+        "letterSpacing": 10
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 30,
+              "value": 0.9,
+              "easing": "easeIn"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,346 @@
+{
+  "schemaVersion": 0,
+  "width": 1280,
+  "height": 720,
+  "fps": 30,
+  "duration": 150,
+  "assets": {
+    "clip": {
+      "id": "clip",
+      "type": "video",
+      "src": "https://videos.pexels.com/video-files/2821900/2821900-hd_1280_720_25fps.mp4"
+    }
+  },
+  "nodes": [
+    {
+      "id": "bg",
+      "type": "div",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#05070b"
+      }
+    },
+    {
+      "id": "cam-1",
+      "type": "video",
+      "assetId": "clip",
+      "videoStartTime": 0,
+      "playbackRate": 1,
+      "volume": 0,
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 25,
+        "top": 25,
+        "width": 600,
+        "height": 330,
+        "objectFit": "cover",
+        "borderRadius": 10,
+        "border": "3px solid #2a3744"
+      }
+    },
+    {
+      "id": "cam-1-tag",
+      "type": "div",
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 41,
+        "top": 41,
+        "width": 150,
+        "height": 36,
+        "backgroundColor": "rgba(8,10,14,0.78)",
+        "borderRadius": 8,
+        "zIndex": 2,
+        "display": "flex",
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "children": [
+        {
+          "id": "cam-1-tag-text",
+          "type": "text",
+          "text": "CAM 1 - LIVE",
+          "style": {
+            "width": "100%",
+            "height": 22,
+            "fontSize": 18,
+            "color": "#66f5d7",
+            "textAlign": "center"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cam-2",
+      "type": "video",
+      "assetId": "clip",
+      "videoStartTime": 4,
+      "playbackRate": 1,
+      "volume": 0,
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 655,
+        "top": 25,
+        "width": 600,
+        "height": 330,
+        "objectFit": "cover",
+        "borderRadius": 10,
+        "border": "3px solid #2a3744"
+      }
+    },
+    {
+      "id": "cam-2-tag",
+      "type": "div",
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 671,
+        "top": 41,
+        "width": 150,
+        "height": 36,
+        "backgroundColor": "rgba(8,10,14,0.78)",
+        "borderRadius": 8,
+        "zIndex": 2,
+        "display": "flex",
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "children": [
+        {
+          "id": "cam-2-tag-text",
+          "type": "text",
+          "text": "CAM 2 - +4s",
+          "style": {
+            "width": "100%",
+            "height": 22,
+            "fontSize": 18,
+            "color": "#66f5d7",
+            "textAlign": "center"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cam-3",
+      "type": "video",
+      "assetId": "clip",
+      "videoStartTime": 8,
+      "playbackRate": 1,
+      "volume": 0,
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 25,
+        "top": 365,
+        "width": 600,
+        "height": 330,
+        "objectFit": "cover",
+        "borderRadius": 10,
+        "border": "3px solid #2a3744"
+      }
+    },
+    {
+      "id": "cam-3-tag",
+      "type": "div",
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 41,
+        "top": 381,
+        "width": 150,
+        "height": 36,
+        "backgroundColor": "rgba(8,10,14,0.78)",
+        "borderRadius": 8,
+        "zIndex": 2,
+        "display": "flex",
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "children": [
+        {
+          "id": "cam-3-tag-text",
+          "type": "text",
+          "text": "CAM 3 - +8s",
+          "style": {
+            "width": "100%",
+            "height": 22,
+            "fontSize": 18,
+            "color": "#66f5d7",
+            "textAlign": "center"
+          }
+        }
+      ]
+    },
+    {
+      "id": "cam-hero",
+      "type": "video",
+      "assetId": "clip",
+      "videoStartTime": 2,
+      "playbackRate": 2,
+      "volume": 0.7,
+      "from": 0,
+      "duration": 150,
+      "style": {
+        "position": "absolute",
+        "left": 655,
+        "top": 365,
+        "width": 600,
+        "height": 330,
+        "objectFit": "cover",
+        "borderRadius": 10,
+        "border": "3px solid #ffd166",
+        "zIndex": 4
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "left",
+          "frames": [
+            {
+              "frame": 60,
+              "value": 655
+            },
+            {
+              "frame": 84,
+              "value": 0,
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "top",
+          "frames": [
+            {
+              "frame": 60,
+              "value": 365
+            },
+            {
+              "frame": 84,
+              "value": 0,
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "width",
+          "frames": [
+            {
+              "frame": 60,
+              "value": 600
+            },
+            {
+              "frame": 84,
+              "value": 1280,
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "height",
+          "frames": [
+            {
+              "frame": 60,
+              "value": 330
+            },
+            {
+              "frame": 84,
+              "value": 720,
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "borderRadius",
+          "frames": [
+            {
+              "frame": 60,
+              "value": 10
+            },
+            {
+              "frame": 84,
+              "value": 0
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "hero-tag",
+      "type": "div",
+      "from": 90,
+      "duration": 60,
+      "style": {
+        "position": "absolute",
+        "left": 40,
+        "top": 620,
+        "width": 360,
+        "height": 56,
+        "backgroundColor": "rgba(8,10,14,0.78)",
+        "borderRadius": 10,
+        "zIndex": 5,
+        "display": "flex",
+        "alignItems": "center",
+        "justifyContent": "center"
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            {
+              "frame": 0,
+              "value": "translate(-120px, 0px)"
+            },
+            {
+              "frame": 10,
+              "value": "translate(0px, 0px)",
+              "easing": "cubic-bezier(0.22, 1, 0.36, 1)"
+            }
+          ]
+        },
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            {
+              "frame": 0,
+              "value": 0
+            },
+            {
+              "frame": 5,
+              "value": 1,
+              "easing": "easeOut"
+            }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "hero-tag-text",
+          "type": "text",
+          "text": "CAM 4 - 2x SPEED - FULLSCREEN",
+          "style": {
+            "width": "100%",
+            "height": 26,
+            "fontSize": 20,
+            "color": "#ffd166",
+            "textAlign": "center"
+          }
+        }
+      ]
+    }
+  ]
+}
