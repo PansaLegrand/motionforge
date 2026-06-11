@@ -10,7 +10,8 @@
     "screenshot": "tsx src/screenshot.ts",
     "example": "tsx src/render-example.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "tsc -p tsconfig.json --noEmit"
+    "lint": "tsc -p tsconfig.json --noEmit",
+    "benchmark": "tsx src/benchmark.ts"
   },
   "dependencies": {
     "@motionforge/core": "workspace:*",

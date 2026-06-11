@@ -53,6 +53,12 @@ declare global {
       expected: RenderedFrame,
       received: RenderedFrame,
     ) => Promise<string>;
+    runGoldenBenchmark: (options: {
+      width: number;
+      height: number;
+      fps: number;
+      seconds: number;
+    }) => Promise<BenchmarkResult>;
     runGoldenVideoChecks: () => Promise<VideoCheck[]>;
     runGoldenAudioChecks: () => Promise<VideoCheck[]>;
   }
@@ -717,4 +723,206 @@ window.renderGoldenDiffPng = async (
 
   context.putImageData(image, 0, 0);
   return canvas.toDataURL("image/png").split(",")[1] ?? "";
+};
+
+
+export type BenchmarkStage = {
+  label: string;
+  frames: number;
+  totalMs: number;
+  msPerFrame: number;
+  outputKiB: number;
+};
+
+export type BenchmarkResult = {
+  stages: BenchmarkStage[];
+  /** Chromium-only JS heap snapshots in MiB, taken after each stage. */
+  heapMiB: Array<{ label: string; usedMiB: number | null }>;
+};
+
+/**
+ * Production-size performance benchmark: synthesizes footage at the target
+ * resolution with exportVideo (stage 1 — pure render+encode), then exports
+ * composites that decode it back through video nodes (stages 2 and 3 —
+ * decode + composite + encode, the real workload).
+ */
+window.runGoldenBenchmark = async ({ width, height, fps, seconds }) => {
+  const frames = Math.round(seconds * fps);
+  const stages: BenchmarkStage[] = [];
+  const heapMiB: BenchmarkResult["heapMiB"] = [];
+
+  const heap = (label: string) => {
+    const memory = (
+      performance as unknown as { memory?: { usedJSHeapSize: number } }
+    ).memory;
+    heapMiB.push({
+      label,
+      usedMiB: memory ? Math.round(memory.usedJSHeapSize / 1048576) : null,
+    });
+  };
+
+  const measure = async (label: string, scene: Scene): Promise<Blob> => {
+    const assets = await resolveAssets(scene);
+    const start = performance.now();
+    const { blob } = await exportVideo({ scene, assets });
+    const totalMs = performance.now() - start;
+    disposeAssets(assets);
+    stages.push({
+      label,
+      frames: scene.duration,
+      totalMs: Math.round(totalMs),
+      msPerFrame: Number((totalMs / scene.duration).toFixed(2)),
+      outputKiB: Math.round(blob.size / 1024),
+    });
+    heap(label);
+    return blob;
+  };
+
+  // Stage 1 — synthesize "footage": full-frame animated gradient + a moving
+  // box + text, so the encoder sees real per-frame change at every pixel row.
+  const sourceScene: Scene = {
+    schemaVersion: 0,
+    width,
+    height,
+    fps,
+    duration: frames,
+    assets: {},
+    nodes: [
+      {
+        id: "bg",
+        type: "div",
+        from: 0,
+        duration: frames,
+        style: {
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(135deg, #16222e 0%, #66f5d7 100%)",
+        },
+        animations: [
+          {
+            kind: "keyframes",
+            property: "opacity",
+            frames: [
+              { frame: 0, value: 0.6 },
+              { frame: Math.max(1, frames - 1), value: 1 },
+            ],
+          },
+        ],
+        children: [],
+      },
+      {
+        id: "mover",
+        type: "div",
+        from: 0,
+        duration: frames,
+        style: {
+          position: "absolute",
+          left: 0,
+          top: Math.round(height * 0.4),
+          width: Math.round(width * 0.2),
+          height: Math.round(height * 0.2),
+          backgroundColor: "#ef476f",
+          borderRadius: 24,
+        },
+        animations: [
+          {
+            kind: "keyframes",
+            property: "transform",
+            frames: [
+              { frame: 0, value: "translate(0px, 0px)" },
+              {
+                frame: Math.max(1, frames - 1),
+                value: `translate(${Math.round(width * 0.8)}px, 0px)`,
+              },
+            ],
+          },
+        ],
+        children: [],
+      },
+    ],
+  };
+
+  const sourceBlob = await measure(
+    `render+encode ${width}x${height} (no decode)`,
+    sourceScene,
+  );
+  const sourceUrl = URL.createObjectURL(sourceBlob);
+
+  // Stage 2 — one full-frame video node + caption (decode + composite + encode).
+  const oneVideo: Scene = {
+    schemaVersion: 0,
+    width,
+    height,
+    fps,
+    duration: frames,
+    assets: { clip: { id: "clip", type: "video", src: sourceUrl } },
+    nodes: [
+      {
+        id: "shot",
+        type: "video",
+        assetId: "clip",
+        from: 0,
+        duration: frames,
+        style: { width: "100%", height: "100%" },
+        children: [],
+      },
+      {
+        id: "caption",
+        type: "text",
+        text: "BENCHMARK CAPTION",
+        from: 0,
+        duration: frames,
+        style: {
+          position: "absolute",
+          left: 0,
+          width: "100%",
+          top: Math.round(height * 0.82),
+          height: Math.round(height * 0.08),
+          fontSize: Math.round(height * 0.05),
+          fontWeight: 800,
+          color: "#ffffff",
+          textAlign: "center",
+          textStroke: "6px #000000",
+        },
+        children: [],
+      },
+    ],
+  };
+
+  await measure("1 video node + caption", oneVideo);
+
+  // Stage 3 — two simultaneous decoders: full-frame + picture-in-picture at 2x rate.
+  const twoVideos: Scene = {
+    ...oneVideo,
+    assets: {
+      clip: { id: "clip", type: "video", src: sourceUrl },
+      pip: { id: "pip", type: "video", src: sourceUrl },
+    },
+    nodes: [
+      ...oneVideo.nodes,
+      {
+        id: "pip-shot",
+        type: "video",
+        assetId: "pip",
+        playbackRate: 2,
+        from: 0,
+        duration: frames,
+        style: {
+          position: "absolute",
+          left: Math.round(width * 0.65),
+          top: Math.round(height * 0.06),
+          width: Math.round(width * 0.3),
+          height: Math.round(height * 0.3),
+          borderRadius: 18,
+          objectFit: "cover",
+        },
+        children: [],
+      },
+    ],
+  };
+
+  await measure("2 video nodes (full + PiP @2x)", twoVideos);
+
+  URL.revokeObjectURL(sourceUrl);
+  return { stages, heapMiB };
 };

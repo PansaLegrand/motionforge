@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (1080p export benchmark — week-4 slice 4)
+
+### Changed
+
+- New repeatable benchmark: `pnpm --filter @motionforge/golden run benchmark [width height fps seconds]` — `window.runGoldenBenchmark` in the harness synthesizes full-motion footage at the target size (stage 1: pure render+encode), then exports composites decoding it through one and two video nodes (stages 2–3), reporting ms/frame, output size, and JS heap per stage. Results table in `docs/benchmarks.md`.
+- Measured (Apple Silicon, headless Chromium, AVC): 1080p 30 fps two-decoder export at **29 ms/frame — a 30 s scene exports in 26 s, faster than realtime**; vertical 1080×1920 has the same profile; heap flat (≤ 46 MiB) from 300 to 900 frames.
+
+### Tested
+
+- Three benchmark runs (1080p 10 s, 1080p 30 s, vertical 10 s); linear scaling and flat heap verified across lengths.
+
+### Notes
+
+- **Decision: worker-parallel export stays parked** — single-thread export already beats realtime at production sizes.
+- The real memory boundary is `BlobSource` full-file fetch (a 200 MB phone clip = ~200 MB heap before decoding), not frame processing; that is the number that will eventually justify streaming sources.
+- Chunked audio mixing remains queued as the long-scene cost (≈23 MiB/min whole-scene mix buffer, doubled by the player's preview cache).
+
 ## 2026-06-11 (timeline/stagger choreography — week-4 slice 3)
 
 ### Changed
