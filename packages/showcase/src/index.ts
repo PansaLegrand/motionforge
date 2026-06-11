@@ -841,6 +841,209 @@ export function timedTextOverlayScene(): Scene {
   });
 }
 
+/**
+ * Synthesizes the audio-sync demo track as a WAV data URL: four beeps on a
+ * 120 BPM grid (the last a fifth higher), 8 kHz mono 16-bit. Pure — the same
+ * bytes every run, so the scene stays deterministic end-to-end.
+ */
+export function beatTrackDataUrl(): string {
+  const rate = 8000;
+  const seconds = 2;
+  const samples = rate * seconds;
+  const beats = [0, 0.5, 1, 1.5];
+  const pcm = new Int16Array(samples);
+
+  for (let i = 0; i < samples; i += 1) {
+    const t = i / rate;
+    let value = 0;
+
+    beats.forEach((beat, index) => {
+      const dt = t - beat;
+
+      if (dt >= 0 && dt < 0.18) {
+        const freq = index < 3 ? 880 : 1320;
+        value += 0.6 * Math.exp(-dt * 22) * Math.sin(2 * Math.PI * freq * dt);
+      }
+    });
+
+    pcm[i] = Math.round(Math.max(-1, Math.min(1, value)) * 32767);
+  }
+
+  const data = new Uint8Array(44 + pcm.length * 2);
+  const view = new DataView(data.buffer);
+  const writeAscii = (offset: number, text: string) => {
+    for (let i = 0; i < text.length; i += 1) {
+      data[offset + i] = text.charCodeAt(i);
+    }
+  };
+
+  writeAscii(0, "RIFF");
+  view.setUint32(4, 36 + pcm.length * 2, true);
+  writeAscii(8, "WAVEfmt ");
+  view.setUint32(16, 16, true);
+  view.setUint16(20, 1, true); // PCM
+  view.setUint16(22, 1, true); // mono
+  view.setUint32(24, rate, true);
+  view.setUint32(28, rate * 2, true);
+  view.setUint16(32, 2, true);
+  view.setUint16(34, 16, true);
+  writeAscii(36, "data");
+  view.setUint32(40, pcm.length * 2, true);
+  new Int16Array(data.buffer, 44).set(pcm);
+
+  let binary = "";
+  for (let i = 0; i < data.length; i += 1) {
+    binary += String.fromCharCode(data[i] ?? 0);
+  }
+
+  return `data:audio/wav;base64,${btoa(binary)}`;
+}
+
+export function audioSyncPulseScene(): Scene {
+  // One pulse animation: a fast 1-frame rise into each beat, then an eased
+  // decay — the visual must land exactly on the audible beat (frames 0, 15,
+  // 30, 45 at 30 fps over the 120 BPM track).
+  const pulse = (peak: number): SceneNode["animations"] => [
+    {
+      kind: "keyframes",
+      property: "transform",
+      frames: [
+        { frame: 0, value: `scale(${peak})` },
+        { frame: 6, value: "scale(1)", easing: "easeOut" },
+        { frame: 14, value: "scale(1)" },
+        { frame: 15, value: `scale(${peak})` },
+        { frame: 21, value: "scale(1)", easing: "easeOut" },
+        { frame: 29, value: "scale(1)" },
+        { frame: 30, value: `scale(${peak})` },
+        { frame: 36, value: "scale(1)", easing: "easeOut" },
+        { frame: 44, value: "scale(1)" },
+        { frame: 45, value: `scale(${peak + 0.15})` },
+        { frame: 52, value: "scale(1)", easing: "easeOut" },
+      ],
+    },
+  ];
+
+  const beatDot = (index: number): SceneNode => ({
+    id: `beat-dot-${index + 1}`,
+    type: "div",
+    from: 0,
+    duration: 60,
+    style: {
+      position: "absolute",
+      left: 240 + index * 70,
+      top: 560,
+      width: 40,
+      height: 40,
+      borderRadius: 20,
+      backgroundColor: "#22303d",
+    },
+    animations: [
+      {
+        kind: "keyframes",
+        property: "backgroundColor",
+        frames: [
+          ...(index === 0
+            ? []
+            : [{ frame: index * 15 - 1, value: "#22303d" }]),
+          { frame: index * 15, value: index === 3 ? "#ffd166" : "#66f5d7" },
+          { frame: index * 15 + 10, value: "#22303d", easing: "easeOut" },
+        ],
+      },
+    ],
+    children: [],
+  });
+
+  return parseScene({
+    schemaVersion: 0,
+    width: 720,
+    height: 720,
+    fps: 30,
+    duration: 60,
+    assets: {
+      beats: { id: "beats", type: "audio", src: beatTrackDataUrl() },
+    },
+    nodes: [
+      {
+        id: "background",
+        type: "div",
+        from: 0,
+        duration: 60,
+        style: {
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(180deg, #0b1118 0%, #16222e 100%)",
+        },
+        children: [],
+      },
+      {
+        id: "pulse-ring",
+        type: "div",
+        from: 0,
+        duration: 60,
+        style: {
+          position: "absolute",
+          left: 210,
+          top: 170,
+          width: 300,
+          height: 300,
+          borderRadius: 150,
+          border: "10px solid #66f5d7",
+          backgroundColor: "rgba(102, 245, 215, 0.08)",
+        },
+        animations: pulse(1.22),
+        children: [],
+      },
+      {
+        id: "pulse-core",
+        type: "div",
+        from: 0,
+        duration: 60,
+        style: {
+          position: "absolute",
+          left: 305,
+          top: 265,
+          width: 110,
+          height: 110,
+          borderRadius: 55,
+          backgroundColor: "#66f5d7",
+          boxShadow: "0 0 60 rgba(102, 245, 215, 0.9)",
+        },
+        animations: pulse(1.35),
+        children: [],
+      },
+      {
+        id: "sync-caption",
+        type: "text",
+        text: "PREVIEW AND EXPORT SHARE THIS MIX",
+        from: 0,
+        duration: 60,
+        style: {
+          position: "absolute",
+          left: 60,
+          right: 60,
+          top: 622,
+          // Absolute text needs an explicit height: auto height fills the
+          // parent and the vertically-centered line block lands off-box.
+          height: 36,
+          fontSize: 24,
+          color: "#9fb3c8",
+          textAlign: "center",
+          letterSpacing: 2,
+        },
+        children: [],
+      },
+      ...[0, 1, 2, 3].map(beatDot),
+      {
+        id: "beat-audio",
+        type: "audio",
+        assetId: "beats",
+        from: 0,
+        duration: 60,
+      },
+    ],
+  });
+}
+
 export const showcaseScenes: ShowcaseScene[] = [
   {
     id: "intro",
@@ -906,6 +1109,20 @@ export const showcaseScenes: ShowcaseScene[] = [
     ],
     scene: timedTextOverlayScene(),
     posterFrame: 210,
+  },
+  {
+    id: "audio-sync-pulse",
+    title: "Audio Sync Pulse",
+    description:
+      "A synthesized four-beat track with visuals locked to the audible beats — hear it in preview, keep it in the export.",
+    proves: [
+      "audio preview",
+      "beat-locked keyframes",
+      "WAV data URLs",
+      "AAC export mix",
+    ],
+    scene: audioSyncPulseScene(),
+    posterFrame: 15,
   },
 ];
 

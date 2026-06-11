@@ -22,6 +22,7 @@ The current engine can already turn plain scene JSON into real MP4s in the brows
 - **Karaoke captions:** full-line captions with per-word color ramps driven by spoken timestamps.
 - **Launch info display:** a prompt-shaped launch screen with animated panels, scan lines, countdown text, and progress motion.
 - **Timed text overlay:** a written timing prompt turned into exact text nodes: `motionforge.dev` for the first 5 seconds, then `Coming soon...` for the final 10 seconds.
+- **Audio sync pulse:** a synthesized four-beat track (pure-function WAV data URL) with visuals locked to the beats — audible in the playground's preview, mixed into the exported MP4.
 
 Try them locally with `pnpm dev`; the playground scene picker can scrub, play, and export each showcase to MP4. See [docs/showcase.md](docs/showcase.md) for source links and render commands.
 

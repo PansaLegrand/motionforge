@@ -10,6 +10,7 @@ describe("showcase scenes", () => {
       "karaoke-captions",
       "launch-info-display",
       "timed-text-overlay",
+      "audio-sync-pulse",
     ]);
 
     for (const entry of showcaseScenes) {

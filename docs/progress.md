@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (audio-sync showcase scene — week-4 slice 1)
+
+### Changed
+
+- Sixth showcase scene **Audio Sync Pulse**: a synthesized four-beat track (pure-function WAV data URL — `beatTrackDataUrl()`, same bytes every run) with visuals locked to the audible beats: pulsing ring/core on frames 0/15/30/45 and per-beat indicator dots. First scene to exercise the player's audio preview in the playground and the AAC export mix end-to-end from showcase data.
+- Engine sharp edge found while building it: **absolutely positioned text with auto height resolves to the parent's height**, so the vertically-centered line block lands off-canvas. Documented in `llms.txt` and scene-format (give absolute text an explicit `height`); intrinsic auto-height for text recorded as a follow-up.
+- README/showcase docs gained the new scene + poster.
+
+### Tested
+
+- Caught the invisible-caption bug by pixel-sampling the rendered poster, isolated it with an `applyScenePatch` debug render (loud red text — still absent), then diagnosed via `layoutScene` box inspection (box `y:640, h:720`). Fixed with explicit height and re-verified by pixel count.
+- Export: 60 frames → 254 KiB MP4, **avc + aac**, in 320 ms; poster frame visually verified (beat-2 dot lit at frame 15).
+- Playwright: selecting the scene in the playground and playing attaches WebAudio and advances frames with no console errors.
+- Full `pnpm test` and `pnpm build`/`typecheck` green.
+
+### Notes
+
+- Headless Chromium's null audio device free-runs (~1.5× wall clock), and the audio-master-clock design follows it — playback runs fast in headless tests. Real hardware is fine. Follow-up: clamp re-anchoring to wall-clock plausibility so a free-running audio clock can't drag the frame clock.
+- The eared check (does it *sound* beat-locked) is a maintainer task in a real browser tab: `pnpm dev` → Audio Sync Pulse → Play.
+
 ## 2026-06-11 (golden diff artifacts — week-3 slice 3)
 
 ### Changed

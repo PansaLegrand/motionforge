@@ -130,6 +130,7 @@ Validation is intentionally stricter than implementation: a property may validat
 - Words wrap when a line would exceed the node's box width, measured with the resolved font (including `letterSpacing`). Runs of whitespace collapse to single spaces, like HTML text.
 - A single word wider than the box gets its own line and is horizontally condensed to fit rather than overflowing.
 - Lines are spaced by `lineHeight` and the whole line block is centered vertically in the node's box. `textAlign` positions each line horizontally.
+- Absolutely positioned text nodes should set an explicit `height`: auto height resolves to the parent's height, so the centered line block lands far below `top` (typically off-canvas). Intrinsic auto-height for text is a known follow-up.
 - `textStroke` uses a compact shorthand such as `"6px #000000"` or `"10% rgba(0,0,0,0.8)"`. Invalid or non-positive strokes are ignored rather than failing the render.
 - `textBackgroundColor` draws one rounded fitted background per rendered line. `textBackgroundPadding` sets both axes; `textBackgroundPaddingX`/`textBackgroundPaddingY` override per axis; `textBackgroundRadius` rounds each line background. Backgrounds paint before `textStroke` and fill.
 - Wrapping happens at render time using real font metrics, so flex layout's intrinsic text sizing still uses the heuristic estimate documented above; give text nodes an explicit `width`/`height` when exact geometry matters.
