@@ -45,6 +45,7 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@motionforge/export": "workspace:*",
     "@motionforge/renderer-canvas2d": "workspace:*",
     "@motionforge/schema": "workspace:*"
   },

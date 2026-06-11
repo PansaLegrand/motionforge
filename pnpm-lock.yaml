@@ -80,6 +80,9 @@ importers:
 
   packages/player:
     dependencies:
+      '@motionforge/export':
+        specifier: workspace:*
+        version: link:../export
       '@motionforge/renderer-canvas2d':
         specifier: workspace:*
         version: link:../renderer-canvas2d

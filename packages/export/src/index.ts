@@ -343,7 +343,7 @@ export async function exportVideo(
   // added while the output is pending.
   const startFrame = options.startFrame ?? 0;
   const endFrame = options.endFrame ?? scene.duration - 1;
-  const mixedAudio = await buildMixedAudio(scene, assets, startFrame, endFrame);
+  const mixedAudio = await mixSceneAudio(scene, assets, startFrame, endFrame);
   let audioSource: AudioBufferSource | null = null;
   let audioCodec: AudioCodec | null = null;
 
@@ -423,10 +423,12 @@ const MIX_SAMPLE_RATE = 48_000;
 const MIX_CHANNELS = 2;
 
 /**
- * Decodes and mixes every audible audio node into a single AudioBuffer
- * covering the export range, or null when the scene has none.
+ * Decodes and mixes every audible node (audio nodes and video-node
+ * soundtracks) into a single AudioBuffer covering the frame range, or null
+ * when the scene has nothing audible. Exported so the player's audio
+ * preview plays the exact mix the export muxes.
  */
-async function buildMixedAudio(
+export async function mixSceneAudio(
   scene: Scene,
   assets: ResolvedAssets,
   startFrame: number,

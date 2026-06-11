@@ -6,6 +6,9 @@ import {
   resolveAssets,
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
+import { WebAudioPreview, type AudioPreview } from "./audio.js";
+
+export { WebAudioPreview, type AudioPreview } from "./audio.js";
 
 /**
  * Maps wall-clock time to scene frames. This is the only place in the
@@ -125,6 +128,12 @@ export type PlayerOptions = {
    */
   assets?: ResolvedAssets;
   loop?: boolean;
+  /**
+   * Audio preview. Defaults to a WebAudioPreview when the environment has
+   * AudioContext; pass `false` to disable sound, or your own AudioPreview.
+   * Preview audio is best-effort — the export is the audio source of truth.
+   */
+  audio?: AudioPreview | false;
   /** Injectable time source for tests; defaults to performance.now. */
   now?: () => number;
   /** Injectable frame scheduler for tests; defaults to requestAnimationFrame. */
@@ -155,6 +164,7 @@ export class Player {
   private rafHandle: number | null = null;
   private rendering = false;
   private disposed = false;
+  private audio: AudioPreview | null = null;
 
   /** @internal — use createPlayer(). */
   constructor(
@@ -215,6 +225,8 @@ export class Player {
     }
 
     this.clock.play(this.now());
+    const startFrame = this.clock.frameAt(this.now()).frame;
+    this.audio?.start(startFrame / this.scene.fps);
     this.emit("play", this.renderedFrame);
     this.scheduleTick();
   }
@@ -227,6 +239,7 @@ export class Player {
     }
 
     this.clock.pause(this.now());
+    this.audio?.stop();
     this.stopTicking();
     this.emit("pause", this.clock.frameAt(this.now()).frame);
   }
@@ -235,7 +248,13 @@ export class Player {
   async seek(frame: number): Promise<void> {
     this.assertAlive();
     this.clock.seek(frame, this.now());
-    await this.renderFrame(this.clock.frameAt(this.now()).frame);
+    const target = this.clock.frameAt(this.now()).frame;
+
+    if (this.clock.playing) {
+      this.audio?.start(target / this.scene.fps);
+    }
+
+    await this.renderFrame(target);
   }
 
   /** Stops playback and releases player-owned assets. */
@@ -247,10 +266,17 @@ export class Player {
     this.stopTicking();
     this.disposed = true;
     this.listeners.clear();
+    this.audio?.dispose();
+    this.audio = null;
 
     if (this.ownsAssets && this.assets) {
       disposeAssets(this.assets);
     }
+  }
+
+  /** @internal — wired by createPlayer() after load() decides audibility. */
+  attachAudio(audio: AudioPreview): void {
+    this.audio = audio;
   }
 
   /** @internal — first paint from createPlayer(). */
@@ -281,7 +307,30 @@ export class Player {
       return;
     }
 
+    // Audio hardware is the steadier clock: when the frame clock drifts more
+    // than one frame from the audio position, re-anchor the frame clock. A
+    // skipped video frame is invisible; skipped audio is not.
+    const audioPosition = this.audio?.position();
+
+    if (audioPosition != null) {
+      const audioFrame = Math.floor(audioPosition * this.scene.fps);
+      const clockFrame = this.clock.frameAt(this.now()).frame;
+
+      if (
+        Math.abs(audioFrame - clockFrame) > 1 &&
+        audioFrame < this.clock.durationInFrames
+      ) {
+        this.clock.seek(audioFrame, this.now());
+      }
+    }
+
     const { frame, ended } = this.clock.frameAt(this.now());
+
+    // Loop wrap: the clock jumped backwards, so the audio source (which
+    // plays linearly) must restart from the wrapped position.
+    if (frame < this.renderedFrame && this.clock.loop) {
+      this.audio?.start(frame / this.scene.fps);
+    }
 
     if (frame !== this.renderedFrame) {
       await this.renderFrame(frame);
@@ -289,6 +338,7 @@ export class Player {
 
     if (ended) {
       this.clock.pause(this.now());
+      this.audio?.stop();
       this.emit("ended", frame);
       return;
     }
@@ -347,6 +397,23 @@ export async function createPlayer(options: PlayerOptions): Promise<Player> {
   const assets = options.assets ?? (needsAssets ? await resolveAssets(scene) : undefined);
 
   const player = new Player(scene, options, assets, ownsAssets);
+
+  // Best-effort audio preview: attach only when the scene actually has
+  // something audible, so silent scenes never touch AudioContext.
+  if (options.audio !== false) {
+    const audio =
+      options.audio ??
+      (WebAudioPreview.supported() ? new WebAudioPreview() : null);
+
+    if (audio) {
+      if (await audio.load(scene, assets)) {
+        player.attachAudio(audio);
+      } else {
+        audio.dispose();
+      }
+    }
+  }
+
   await player.renderInitialFrame();
   return player;
 }

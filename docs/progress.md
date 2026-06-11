@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-11 (player audio preview — week-2 slice 3)
+
+### Changed
+
+- `@motionforge/export`: the internal mixed-track builder is now public as `mixSceneAudio(scene, assets, startFrame, endFrame)` so preview plays the exact mix the export muxes.
+- `@motionforge/player`: scenes with audible nodes get sound during preview.
+  - `AudioPreview` interface + `WebAudioPreview` implementation: the scene mixes once into a cached `AudioBuffer`; play/seek restart one `AudioBufferSourceNode` at an offset (no re-mixing). `AudioContext` is created lazily inside `play()` (user gesture → autoplay-safe); capability-gated, silent fallback.
+  - Audio is the master clock: ticks re-anchor the frame clock to the audio position past one frame of drift. Loop wraps restart the source; `ended` stops it; `dispose()` closes the context.
+  - `audio` option: omit for the default, pass an `AudioPreview` to substitute (how tests drive it), or `false` to disable.
+
+### Tested
+
+- `pnpm --filter @motionforge/player test` (15 tests; 4 new with a recording fake: start-at-scene-time/stop-on-pause/no-start-while-paused-seek, mid-playback seek restarts at the new offset, drift re-anchor snaps the frame clock to the audio frame, inaudible scenes never attach audio)
+- Playwright playground smoke re-run green (silent scenes unaffected).
+- `pnpm build`, `pnpm typecheck`, full `pnpm test` (126 unit tests).
+
+### Notes
+
+- Audible playback was verified structurally (fake clock) and the mix math is already RMS-verified in the golden harness; an eared end-to-end check in a real browser tab is worth doing when the playground gains an audio showcase scene.
+- Whole-scene mix buffer ≈ 23 MB/min at 48 kHz stereo; chunked mixing remains on the robustness list.
+
 ## 2026-06-11 (video nodes contribute audio — week-2 slice 2)
 
 ### Changed

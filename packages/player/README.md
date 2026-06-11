@@ -24,13 +24,13 @@ player.dispose();
 
 Events: `frame`, `play`, `pause`, `ended` (non-looping playback pauses on the final frame). `currentFrame` is the last rendered frame.
 
-## Audio preview (design — lands next)
+## Audio preview
 
-Export already mixes audio deterministically (`collectAudioPlacements()` + `mixAudioSegments()` in `@motionforge/export`). Preview reuses that math instead of duplicating timing logic:
+Scenes with audible nodes (audio nodes, or video nodes whose clips carry a soundtrack) play sound during preview automatically:
 
-1. On `play()`, build (or reuse) the scene's mixed stereo buffer via the same pure mix functions, sliced from the current frame: `offsetSeconds = frame / fps`.
-2. Play it through one `AudioBufferSourceNode` on an `AudioContext`; `pause()`/`seek()` stop the source and re-slice. No per-node Web Audio graph — one source, one gain.
-3. Drift correction: each tick compares `audioContext.currentTime − startTime` against the clock's elapsed time; if they diverge past one frame, the *clock* re-anchors to audio (audio hardware is the steadier reference; a skipped video frame is invisible, a skipped audio buffer is not).
-4. The export path stays the source of truth: preview audio is best-effort and a capability check (`AudioContext` present, user-gesture unlock) gates it, mirroring how export gates on WebCodecs.
+- The scene's audio is mixed **once** with the exact pure functions the export uses (`mixSceneAudio` from `@motionforge/export`) and cached as a single `AudioBuffer`. Play and seek just restart one `AudioBufferSourceNode` at an offset — no re-mixing, no per-node Web Audio graph.
+- **Audio is the master clock.** Each tick compares the frame clock against the audio position; past one frame of divergence, the frame clock re-anchors to audio. A skipped video frame is invisible; skipped audio is not.
+- **Best-effort by design.** No `AudioContext` (or a custom `audio: false`) means silent preview; the `AudioContext` is created lazily inside `play()`, which is normally a user gesture, satisfying autoplay policies. The exported file remains the audio source of truth.
+- Bring your own implementation via the `audio` option (`AudioPreview` interface) — that's also how the deterministic tests drive it.
 
-Known cost: re-mixing on every seek is O(scene audio). Fine for short scenes; long scenes want the chunked mixing already planned for export (`testing-strategy.md` robustness list).
+Known cost: the whole-scene mix is one buffer in memory (48 kHz stereo ≈ 23 MB/min). Fine for short scenes; long scenes want chunked mixing, tracked in the testing-strategy robustness list.

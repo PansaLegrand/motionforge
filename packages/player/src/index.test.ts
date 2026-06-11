@@ -228,3 +228,114 @@ describe("Player", () => {
     expect(() => player.play()).toThrow(/disposed/);
   });
 });
+
+/** Records calls; position is settable to simulate the audio clock. */
+function fakeAudio(audible = true) {
+  const calls: string[] = [];
+  let playingPosition: number | null = null;
+
+  return {
+    calls,
+    setPosition(seconds: number | null) {
+      playingPosition = seconds;
+    },
+    preview: {
+      load: async () => audible,
+      start: (at: number) => void calls.push(`start@${at.toFixed(3)}`),
+      stop: () => void calls.push("stop"),
+      position: () => playingPosition,
+      dispose: () => void calls.push("dispose"),
+    },
+  };
+}
+
+describe("Player audio preview", () => {
+  it("starts audio at the current scene time and stops on pause", async () => {
+    const driver = fakeDriver();
+    const audio = fakeAudio();
+
+    const player = await createPlayer({
+      context: fakeContext(),
+      scene: testScene,
+      audio: audio.preview,
+      now: driver.now,
+      requestFrame: driver.requestFrame,
+      cancelFrame: driver.cancelFrame,
+    });
+
+    await player.seek(3);
+    player.play();
+    expect(audio.calls).toEqual(["start@0.100"]); // frame 3 at 30fps
+
+    player.pause();
+    expect(audio.calls).toEqual(["start@0.100", "stop"]);
+
+    // Seeking while paused must not start sound.
+    await player.seek(5);
+    expect(audio.calls).toEqual(["start@0.100", "stop"]);
+
+    player.dispose();
+    expect(audio.calls).toContain("dispose");
+  });
+
+  it("seek during playback restarts audio at the new offset", async () => {
+    const driver = fakeDriver();
+    const audio = fakeAudio();
+
+    const player = await createPlayer({
+      context: fakeContext(),
+      scene: testScene,
+      audio: audio.preview,
+      now: driver.now,
+      requestFrame: driver.requestFrame,
+      cancelFrame: driver.cancelFrame,
+    });
+
+    player.play();
+    await player.seek(6);
+    expect(audio.calls).toEqual(["start@0.000", "start@0.200"]);
+    player.dispose();
+  });
+
+  it("re-anchors the frame clock to the audio position on drift", async () => {
+    const driver = fakeDriver();
+    const audio = fakeAudio();
+
+    const player = await createPlayer({
+      context: fakeContext(),
+      scene: testScene,
+      audio: audio.preview,
+      now: driver.now,
+      requestFrame: driver.requestFrame,
+      cancelFrame: driver.cancelFrame,
+    });
+
+    player.play();
+    // Wall clock advances one frame, but the audio clock reports frame 7 —
+    // more than one frame ahead, so the player must snap to audio.
+    audio.setPosition(7 / 30);
+    await driver.step(34);
+    expect(player.currentFrame).toBe(7);
+    player.dispose();
+  });
+
+  it("does not attach audio when the scene has nothing audible", async () => {
+    const driver = fakeDriver();
+    const audio = fakeAudio(false);
+
+    const player = await createPlayer({
+      context: fakeContext(),
+      scene: testScene,
+      audio: audio.preview,
+      now: driver.now,
+      requestFrame: driver.requestFrame,
+      cancelFrame: driver.cancelFrame,
+    });
+
+    player.play();
+    player.pause();
+    // load() said inaudible: the preview was disposed, never started.
+    expect(audio.calls).toEqual(["dispose"]);
+    player.dispose();
+  });
+});
