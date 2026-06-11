@@ -881,6 +881,66 @@ export const fixtures: GoldenFixture[] = [
     },
   },
   {
+    kind: "exact",
+    id: "caption-fitted-text-background",
+    description:
+      "Caption text draws a measured per-line background behind stroked glyphs.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 360,
+      height: 220,
+      fps: 30,
+      duration: 1,
+      assets: {
+        GoldenSans: {
+          id: "GoldenSans",
+          type: "font",
+          src: "/fonts/inter-700-latin.woff2",
+        },
+      },
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            background: "linear-gradient(180deg, #17202a 0%, #244f46 100%)",
+          },
+          children: [],
+        },
+        {
+          id: "caption",
+          type: "text",
+          text: "MEASURED\nPILLS",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 0,
+            top: 48,
+            width: "100%",
+            height: 124,
+            fontFamily: "GoldenSans",
+            fontSize: 42,
+            lineHeight: 1.15,
+            color: "#ffffff",
+            textAlign: "center",
+            textStroke: "5px #000000",
+            textBackgroundColor: "rgba(255, 209, 102, 0.24)",
+            textBackgroundPaddingX: 22,
+            textBackgroundPaddingY: 6,
+            textBackgroundRadius: 20,
+          },
+          children: [],
+        },
+      ],
+    },
+  },
+  {
     kind: "probe",
     id: "multiline-explicit-newline",
     description:

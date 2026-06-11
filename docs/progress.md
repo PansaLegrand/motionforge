@@ -2,14 +2,16 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
-## 2026-06-11 (caption-grade text: text stroke — roadmap slice 12, part 1)
+## 2026-06-11 (caption-grade text — roadmap slice 12)
 
 ### Changed
 
-- `@motionforge/schema`: added `textStroke` to the supported style contract and regenerated `scene.schema.json`.
-- `@motionforge/renderer-canvas2d`: text nodes now parse `textStroke` as a compact `<width> <color>` shorthand, resolve numeric/`px`/`%` widths against `fontSize`, and paint the outline before the fill.
-- Added an exact embedded-font golden fixture, `text-stroke-embedded-font`, so stroked glyph pixels are covered deterministically.
-- Updated the scene-format support matrix and `llms.txt` so the public contract and agent-facing crib sheet match the implementation.
+- `@motionforge/schema`: added the caption text style contract and regenerated `scene.schema.json`: `textStroke`, `textBackgroundColor`, `textBackgroundPadding`, `textBackgroundPaddingX`, `textBackgroundPaddingY`, and `textBackgroundRadius`.
+- `@motionforge/renderer-canvas2d`: text nodes now parse `textStroke` as a compact `<width> <color>` shorthand, resolve numeric/`px`/`%` widths against `fontSize`, and paint the outline before fill.
+- `@motionforge/renderer-canvas2d`: `textBackgroundColor` draws one measured, rounded background per rendered line after wrapping and before stroke/fill. Padding and radius resolve against `fontSize`; negative values clamp to zero.
+- `@motionforge/presets`: caption generators now apply `textStroke` by default. `tiktokCaptions()` no longer hand-sizes highlight wrapper boxes; highlighted words carry measured background styles directly on their `text` nodes.
+- Added exact embedded-font goldens: `text-stroke-embedded-font` for the outline path and `caption-fitted-text-background` for stroked text over fitted per-line pills.
+- Updated the scene-format support matrix, presets docs, examples notes, and `llms.txt` so the public contract and agent-facing crib sheet match the implementation.
 
 ### Tested
 
@@ -17,12 +19,12 @@ This is the living project log. Every meaningful implementation slice should rec
 - `pnpm --filter @motionforge/renderer-canvas2d test`
 - `pnpm build`
 - `pnpm typecheck`
-- `pnpm test` (85 unit tests)
-- `pnpm golden:test` (16 golden fixtures, export smoke, video/audio integration checks)
+- `pnpm test` (88 unit tests)
+- `pnpm golden:test` (17 golden fixtures, export smoke, video/audio integration checks)
 
 ### Notes
 
-- Slice 12 is intentionally not marked complete yet. Fitted per-line caption backgrounds and preset integration are the next small step.
+- Slice 12 is complete. The next planned step is the dojo adapter spike: one real `CompositionData` converted into a motionforge scene, then a classified gap list.
 
 ## 2026-06-11 (0.2.0 publish prep — roadmap slice 11, credential steps pending)
 

@@ -3,6 +3,7 @@ import { sampleScene } from "@motionforge/core";
 import {
   computeObjectFit,
   parseLinearGradient,
+  parseTextBackground,
   parseTextStroke,
   renderStill,
   videoSourceTime,
@@ -241,6 +242,50 @@ describe("parseTextStroke", () => {
     expect(parseTextStroke("nope")).toBeNull();
     expect(parseTextStroke("0px #000000")).toBeNull();
     expect(parseTextStroke("-2px #000000")).toBeNull();
+  });
+});
+
+describe("parseTextBackground", () => {
+  it("returns null without a background color", () => {
+    expect(parseTextBackground({})).toBeNull();
+  });
+
+  it("parses fitted text background controls", () => {
+    expect(
+      parseTextBackground(
+        {
+          textBackgroundColor: "rgba(255, 209, 102, 0.16)",
+          textBackgroundPaddingX: 24,
+          textBackgroundPaddingY: "10%",
+          textBackgroundRadius: "8px",
+        },
+        40,
+      ),
+    ).toEqual({
+      color: "rgba(255, 209, 102, 0.16)",
+      paddingX: 24,
+      paddingY: 4,
+      radius: 8,
+    });
+  });
+
+  it("uses shared padding as the axis fallback and clamps negative values", () => {
+    expect(
+      parseTextBackground(
+        {
+          textBackgroundColor: "#111111",
+          textBackgroundPadding: 12,
+          textBackgroundPaddingX: -4,
+          textBackgroundRadius: -2,
+        },
+        40,
+      ),
+    ).toEqual({
+      color: "#111111",
+      paddingX: 0,
+      paddingY: 12,
+      radius: 0,
+    });
   });
 });
 

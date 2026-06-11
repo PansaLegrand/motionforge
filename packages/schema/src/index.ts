@@ -38,6 +38,11 @@ export const supportedStyleKeys = [
   "textAlign",
   "textShadow",
   "textStroke",
+  "textBackgroundColor",
+  "textBackgroundPadding",
+  "textBackgroundPaddingX",
+  "textBackgroundPaddingY",
+  "textBackgroundRadius",
   "objectFit",
   "objectPosition",
 ] as const;
@@ -88,6 +93,11 @@ export const styleSchema = z
     textAlign: z.enum(["left", "center", "right"]).optional(),
     textShadow: z.string().optional(),
     textStroke: z.string().optional(),
+    textBackgroundColor: z.string().optional(),
+    textBackgroundPadding: lengthValueSchema.optional(),
+    textBackgroundPaddingX: lengthValueSchema.optional(),
+    textBackgroundPaddingY: lengthValueSchema.optional(),
+    textBackgroundRadius: lengthValueSchema.optional(),
     objectFit: z
       .enum(["contain", "cover", "fill", "none", "scale-down"])
       .optional(),

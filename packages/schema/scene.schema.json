@@ -262,6 +262,21 @@
                   "textStroke": {
                     "type": "string"
                   },
+                  "textBackgroundColor": {
+                    "type": "string"
+                  },
+                  "textBackgroundPadding": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "textBackgroundPaddingX": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "textBackgroundPaddingY": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "textBackgroundRadius": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
                   "objectFit": {
                     "type": "string",
                     "enum": [

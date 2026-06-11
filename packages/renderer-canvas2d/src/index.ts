@@ -713,10 +713,29 @@ function drawText(
   // single-line behavior when there is exactly one line.
   const firstLineY =
     box.y + box.height / 2 - ((lines.length - 1) * lineHeight) / 2;
+  const background = parseTextBackground(style, fontSize);
 
   lines.forEach((line, index) => {
     if (line !== "") {
       const y = firstLineY + index * lineHeight;
+      const measuredWidth = Math.min(context.measureText(line).width, box.width);
+
+      if (background) {
+        drawTextBackground(context, {
+          x: textLineX(
+            style.textAlign,
+            box,
+            x,
+            measuredWidth,
+            background.paddingX,
+          ),
+          y: y - lineHeight / 2 - background.paddingY,
+          width: measuredWidth + background.paddingX * 2,
+          height: lineHeight + background.paddingY * 2,
+          radius: background.radius,
+          color: background.color,
+        });
+      }
 
       if (stroke) {
         context.strokeText(line, x, y, box.width);
@@ -725,6 +744,24 @@ function drawText(
       context.fillText(line, x, y, box.width);
     }
   });
+}
+
+function textLineX(
+  align: SceneStyle["textAlign"],
+  box: LayoutBox,
+  textX: number,
+  textWidth: number,
+  paddingX: number,
+): number {
+  if (align === "center") {
+    return textX - textWidth / 2 - paddingX;
+  }
+
+  if (align === "right") {
+    return textX - textWidth - paddingX;
+  }
+
+  return box.x - paddingX;
 }
 
 function resolveTransformOrigin(
@@ -1019,6 +1056,74 @@ export function parseTextStroke(
     width,
     color: match[2]?.trim() || "#000000",
   };
+}
+
+export type TextBackground = {
+  color: string;
+  paddingX: number;
+  paddingY: number;
+  radius: number;
+};
+
+export function parseTextBackground(
+  style: SceneStyle,
+  fontSize = 24,
+): TextBackground | null {
+  if (!style.textBackgroundColor) {
+    return null;
+  }
+
+  const padding = readLength(style.textBackgroundPadding, fontSize, 0);
+  const paddingX = readLength(style.textBackgroundPaddingX, fontSize, padding);
+  const paddingY = readLength(style.textBackgroundPaddingY, fontSize, padding);
+  const radius = readLength(style.textBackgroundRadius, fontSize, 0);
+
+  return {
+    color: style.textBackgroundColor,
+    paddingX: Math.max(0, paddingX),
+    paddingY: Math.max(0, paddingY),
+    radius: Math.max(0, radius),
+  };
+}
+
+function drawTextBackground(
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+  background: {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    radius: number;
+    color: string;
+  },
+): void {
+  context.save();
+  context.shadowColor = "transparent";
+  context.shadowBlur = 0;
+  context.shadowOffsetX = 0;
+  context.shadowOffsetY = 0;
+  context.fillStyle = background.color;
+
+  if (background.radius > 0) {
+    roundedRect(
+      context,
+      background.x,
+      background.y,
+      background.width,
+      background.height,
+      background.radius,
+    );
+    context.fill();
+  } else {
+    context.fillRect(
+      background.x,
+      background.y,
+      background.width,
+      background.height,
+    );
+  }
+
+  context.restore();
 }
 
 function roundedRect(

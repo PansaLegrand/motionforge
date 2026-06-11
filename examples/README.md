@@ -26,6 +26,8 @@ asset — all from one JSON document, no code.
 The same caption track, generated instead of hand-written: one
 `tiktokCaptions(words, { fps, highlightIndices })` call from
 [`@motionforge/presets`](../packages/presets) replaces ~300 lines of JSON.
+The generated version uses renderer-measured text pills (`textBackgroundColor`
+and padding/radius on text nodes) instead of hand-sized wrapper boxes.
 
 ```sh
 pnpm build

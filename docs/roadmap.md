@@ -43,11 +43,13 @@ This is simultaneously the agent-facing animation vocabulary and the compiler th
 
 ## Week 4 — dojo readiness
 
+Status: slice 12 is complete; slice 13 is next.
+
 ### Slice 12: Caption-grade text (1 day)
 
 The two text features every caption template needs: `textStroke` (outline, the classic TikTok/Shorts look) and text-fitted backgrounds (pill sized to measured text per line, not a hand-sized box). Both additive style properties.
 
-**Done when:** an exact golden shows stroked text on a fitted pill, and the presets caption generator uses them.
+**Done:** exact goldens cover stroked glyphs and stroked caption text on fitted per-line pills; `tiktokCaptions()` emits measured background styles instead of hand-sized wrapper boxes.
 
 ### Slice 13: dojo adapter spike (1 day, in the dojo repo — task chip ready)
 

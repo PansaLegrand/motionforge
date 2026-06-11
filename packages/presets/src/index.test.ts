@@ -105,15 +105,24 @@ describe("tiktokCaptions", () => {
     expect(children[4]).toMatchObject({ from: 120, duration: 30 });
   });
 
-  it("wraps highlighted words in pills and colors them", () => {
+  it("adds fitted backgrounds and strokes to highlighted words", () => {
     const children = captions.children ?? [];
     const highlighted = children[1]?.children?.[0];
     const plain = children[0]?.children?.[0];
 
-    expect(highlighted?.id).toBe("caption-w1-pill");
-    expect(highlighted?.children?.[0]?.style?.color).toBe("#ffd166");
+    expect(highlighted?.id).toBe("caption-w1-text");
+    expect(highlighted?.style?.color).toBe("#ffd166");
+    expect(highlighted?.style?.textStroke).toBe("8px #000000");
+    expect(highlighted?.style?.textBackgroundColor).toBe(
+      "rgba(255, 209, 102, 0.16)",
+    );
+    expect(highlighted?.style?.textBackgroundPaddingX).toBe(56);
+    expect(highlighted?.style?.textBackgroundPaddingY).toBe(25);
+    expect(highlighted?.style?.textBackgroundRadius).toBe(36);
     expect(plain?.id).toBe("caption-w0-text");
     expect(plain?.style?.color).toBe("#ffffff");
+    expect(plain?.style?.textStroke).toBe("8px #000000");
+    expect(plain?.style?.textBackgroundColor).toBeUndefined();
   });
 });
 
@@ -140,5 +149,6 @@ describe("karaokeCaptions", () => {
       [48, "#ffd166"],
       [50, "#ffffff"],
     ]);
+    expect(second?.style?.textStroke).toBe("8px #000000");
   });
 });

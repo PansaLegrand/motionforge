@@ -39,10 +39,10 @@ const track = tiktokCaptions(
   { fps: 30, highlightIndices: [1] },
 );
 
-scene.nodes.push(track); // one-word-at-a-time style with pop + highlight pills
+scene.nodes.push(track); // one-word-at-a-time style with pop + measured highlight pills
 ```
 
-`tiktokCaptions` renders one word at a time (each word holds until the next starts); `karaokeCaptions` keeps the whole line visible and ramps each word's color while it is spoken.
+`tiktokCaptions` renders one word at a time (each word holds until the next starts); highlighted words use `textBackgroundColor`/padding/radius on the text node itself, so pill widths come from the renderer's font measurement instead of character-count guesses. Caption presets also apply `textStroke` by default. `karaokeCaptions` keeps the whole line visible and ramps each word's color while it is spoken.
 
 ## License
 

@@ -40,7 +40,7 @@ describe("scene schema", () => {
     );
   });
 
-  it("accepts textStroke shorthand", () => {
+  it("accepts caption text styling shorthands", () => {
     const result = validateScene({
       schemaVersion: 0,
       width: 1920,
@@ -54,6 +54,10 @@ describe("scene schema", () => {
           text: "Hello",
           style: {
             textStroke: "6px #000000",
+            textBackgroundColor: "rgba(255, 209, 102, 0.16)",
+            textBackgroundPaddingX: 48,
+            textBackgroundPaddingY: "12px",
+            textBackgroundRadius: "30%",
           },
         },
       ],

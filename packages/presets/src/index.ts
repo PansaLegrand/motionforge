@@ -185,6 +185,7 @@ export type CaptionStyle = {
   /** Color of highlighted words (TikTok) or the active word (karaoke). */
   highlightColor?: string;
   textShadow?: string;
+  textStroke?: string;
 };
 
 const captionStyleDefaults: Required<CaptionStyle> = {
@@ -194,6 +195,7 @@ const captionStyleDefaults: Required<CaptionStyle> = {
   color: "#ffffff",
   highlightColor: "#ffd166",
   textShadow: "0 10 40 rgba(0,0,0,0.55)",
+  textStroke: "8px #000000",
 };
 
 export type CaptionArea = {
@@ -208,13 +210,15 @@ export type TikTokCaptionOptions = {
   /** Vertical band the captions occupy (defaults: top "40%", height "20%"). */
   area?: CaptionArea;
   style?: CaptionStyle;
-  /** Indices of words to render in highlightColor with a pill behind them. */
+  /** Indices of words to render in highlightColor with a fitted pill behind them. */
   highlightIndices?: number[];
-  /** Pill behind highlighted words; widths derive from word length. */
+  /** Fitted background behind highlighted words. */
   pill?: {
     color?: string;
     radius?: number;
     paddingX?: number;
+    paddingY?: number;
+    /** @deprecated Use paddingY. Kept as a compatibility hint for older callers. */
     heightRatio?: number;
   };
   /** Entrance pop per word (set false to disable). */
@@ -245,7 +249,13 @@ export function tiktokCaptions(
     color: options.pill?.color ?? "rgba(255, 209, 102, 0.16)",
     radius: options.pill?.radius ?? 36,
     paddingX: options.pill?.paddingX ?? 56,
-    heightRatio: options.pill?.heightRatio ?? 1.7,
+    paddingY:
+      options.pill?.paddingY ??
+      Math.round(
+        ((options.pill?.heightRatio ?? 1.7) * style.fontSize -
+          style.fontSize * 1.25) /
+          2,
+      ),
   };
   const pop = options.pop === false ? null : (options.pop ?? {});
   const hold = options.holdBetweenWords ?? true;
@@ -261,12 +271,23 @@ export function tiktokCaptions(
       type: "text",
       text: entry.word,
       style: {
+        width: "100%",
+        height: "100%",
         fontFamily: style.fontFamily,
         fontSize: style.fontSize,
         fontWeight: style.fontWeight,
         color: highlight.has(index) ? style.highlightColor : style.color,
         textAlign: "center",
         textShadow: style.textShadow,
+        textStroke: style.textStroke,
+        ...(highlight.has(index)
+          ? {
+              textBackgroundColor: pill.color,
+              textBackgroundPaddingX: pill.paddingX,
+              textBackgroundPaddingY: Math.max(0, pill.paddingY),
+              textBackgroundRadius: pill.radius,
+            }
+          : {}),
       },
       animations: pop
         ? popIn({
@@ -276,36 +297,6 @@ export function tiktokCaptions(
           })
         : [],
     };
-
-    const content: SceneNode = highlight.has(index)
-      ? {
-          id: `${prefix}-w${index}-pill`,
-          type: "div",
-          style: {
-            width:
-              entry.word.length * style.fontSize * 0.62 + pill.paddingX * 2,
-            height: Math.round(style.fontSize * pill.heightRatio),
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: pill.color,
-            borderRadius: pill.radius,
-          },
-          animations: pop
-            ? [
-                {
-                  kind: "keyframes",
-                  property: "opacity",
-                  frames: [
-                    { frame: 0, value: 0 },
-                    { frame: 5, value: 1, easing: "easeOut" },
-                  ],
-                },
-              ]
-            : [],
-          children: [textNode],
-        }
-      : textNode;
 
     return {
       id: `${prefix}-w${index}`,
@@ -322,7 +313,7 @@ export function tiktokCaptions(
         alignItems: "center",
         justifyContent: "center",
       },
-      children: [content],
+      children: [textNode],
     };
   });
 
@@ -415,6 +406,7 @@ export function karaokeCaptions(
         color: style.color,
         textAlign: "center",
         textShadow: style.textShadow,
+        textStroke: style.textStroke,
       },
       animations: [animation("color", strict)],
     } satisfies SceneNode;
