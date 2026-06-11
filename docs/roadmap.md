@@ -57,13 +57,15 @@ Ultimate goal: a user chats, uploads media, and gets a video — previewed and e
 - ✅ **RFC 0001 — scene patch ops** (`docs/rfcs/0001-scene-patch-ops.md`): id-addressed transactional patch vocabulary + mechanical eval harness design (generate/edit/repair suites).
 - ✅ **User-oriented docs**: `docs/guides/getting-started.md`.
 
-### Week 2 — close the measured gaps, make preview real
+### Week 2 — close the measured gaps, make preview real (engine side ✅)
 
-- **A**: remaining spike engine items as templates demand them; video nodes contributing audio (`styles.volume` on clips).
-- **B**: player audio preview (per the design: reuse export's pure mix, one AudioBufferSource, clock re-anchors to audio on drift); thin React wrapper for the editor.
-- **C**: productionize the converter as a real adapter package (font manifest from the editor's fontsource set, full animation-name coverage, unit normalization, `translateX` → `translate` rewrites).
-- **D**: implement `applyScenePatch` + `scenePatchSchema` per RFC 0001; eval harness runner with the generate suite.
-- **E**: docs site skeleton; example gallery growth.
+- ✅ **A**: video nodes contribute their clip audio to exports (`volume` on video nodes; placements track head clipping; `playbackRate` retimes audio varispeed-style, RMS-verified through two AAC passes).
+- ✅ **B**: player audio preview — `WebAudioPreview` plays the exact export mix (`mixSceneAudio` now public) through one cached buffer + `AudioBufferSourceNode`; audio is the master clock (frame clock re-anchors on drift); injectable `AudioPreview` keeps tests deterministic.
+- ✅ **D**: `applyScenePatch`/`scenePatchSchema` implemented per RFC 0001 (ten transactional id-addressed ops, closest-id hints, full revalidation); `llms.txt` teaches patching over re-emission.
+- ◻ **C**: adapter productionization lives in the downstream editor's own repo (font manifest, animation-name coverage, unit normalization, `translateX` rewrites) — next up, outside this codebase.
+- ◻ **D**: eval harness runner (generate suite) — pending.
+- ◻ **E**: docs site skeleton — pending; `docs/guides/getting-started.md` is the seed content.
+- ◻ **B**: thin React wrapper — deferred until the editor integration consumes it.
 
 ### Week 3 — integration behind a flag, chat loop v1
 
