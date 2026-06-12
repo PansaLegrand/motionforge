@@ -102,12 +102,12 @@ import { popIn, tiktokCaptions } from "@motionforge/presets";
 // keyframes for any node:
 node.animations = popIn({ durationInFrames: 12 });
 
-// a whole caption track from ASR word timestamps:
-const captionNodes = tiktokCaptions(
+// a whole caption track from ASR word timestamps — one container node, words as children:
+const captionTrack = tiktokCaptions(
   [{ word: "never", startMs: 0, endMs: 280 }, { word: "gonna", startMs: 280, endMs: 520 }],
   { fps: 30 },
 );
-scene.nodes.push(...captionNodes);
+scene.nodes.push(captionTrack);
 ```
 
 `tiktokCaptions` / `karaokeCaptions` produce the word-timed, stroked, pill-backgrounded caption styles you know from short-form video — as plain scene data you can inspect and tweak.

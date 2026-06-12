@@ -45,7 +45,7 @@ This is simultaneously the agent-facing animation vocabulary and the compiler th
 
 Slice 12 landed: `textStroke` and text-fitted per-line backgrounds, with exact goldens; `tiktokCaptions()` emits measured background styles.
 
-## The 5-week plan (current — open-source first)
+## The 5-week plan (complete — open-source first)
 
 Ultimate goal: a user chats, uploads media, and gets a video — previewed and exported in the browser. motionforge is the open-source engine that makes that product *assemblable*: deterministic rendering, an agent-native scene contract, and in-browser export. Downstream products (commercial or otherwise) are consumers we learn requirements from, not work items here.
 
@@ -93,6 +93,59 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ◻ Maintainer: GitHub push + CI, `@motionforge` npm scope + `pnpm publish -r`, tag `v0.3.0`, deploy the playground, eared audio check.
 - Docs site: deferred by choice — the guides + README are launch-sufficient; pick a platform (VitePress et al) post-launch.
 
-## Explicitly deferred (unchanged)
+## Phase 2 — the agent loop (current — chat-first)
 
-React/JSX authoring adapter, editor-product integrations, CanvasKit renderer, Tauri desktop, MCP server (wraps patch ops once they exist), streaming video sources, visualizer overlays, CRDT/concurrent editing.
+North-star demo: upload a clip → type "add TikTok-style subtitles and a title that pops in" → captions appear, preview plays with sound → Export MP4. No server anywhere.
+
+Decisions recorded 2026-06-12:
+
+- **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and *is* the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.
+- **Agent distribution ships as an Agent Skill (SKILL.md) first, not an MCP server.** Skills don't replace MCP — they're instructions + scripts for filesystem/bash agents (Claude Code), while MCP is a tool protocol for any client — but for an npm library the skill is the cheaper, more current packaging: the agent installs the packages and runs scripts directly. A thin MCP server can wrap the same scripts later if demand shows; both share one script layer.
+- **Client-side ASR (whisper via transformers.js) is deferred to the next cycle.** The caption presets already accept word timings, so the chat app ships with a paste-transcript path; ASR becomes the second marketing wave, spiked before commitment like Lottie was.
+
+### Week 1 — publish + baseline (gates everything public)
+
+- Maintainer publish steps: GitHub push + green CI, claim the `@motionforge` npm scope (note: unscoped `motionforge` is taken by an unrelated package — scoped names only, check it before announcing), `pnpm publish -r` 0.3.0, tag, deploy the playground, eared audio check.
+- Clean-machine verification: `npm install` all six packages outside the monorepo, render a frame, export an MP4; fix install/docs gaps found.
+- **Eval baseline**: run `tools/agent-eval` generate + edit suites against 1–2 real models; commit the numbers. Add the designed repair suite (invalid scene + validator errors → fixing patch).
+- **Engine: intrinsic text auto-height** — metrics-provider abstraction so flex intrinsic sizing measures text with the same font metrics render uses (replaces the character-count heuristic, the sharpest documented edge for LLM-generated scenes).
+
+**Done when:** packages install from a clean machine; baseline eval numbers are committed; a text-auto-height golden passes.
+
+### Week 2 — `apps/chat` skeleton (Next.js)
+
+- Scaffold the client-only Next.js app: chat pane beside a `@motionforge/player` preview; local-storage BYO key; `llms.txt`-derived system prompt.
+- Conversation protocol: model emits a full scene on the first turn, **patch ops on every later turn** (dogfoods RFC 0001 as the edit vocabulary).
+- Auto-repair loop: validation errors are fed back to the model (bounded retries), surfaced in the UI as a visible "fixing…" step — the eval harness's repair suite, live.
+
+**Done when:** on localhost, a typed sentence becomes a valid scene playing with audio, and a follow-up instruction lands as a patch, not a re-emission.
+
+### Week 3 — real media + export in the chat app
+
+- Client-side uploads: image/video/audio become object-URL scene assets; the prompt context lists available assets (id, type, duration, dimensions) so the model can reference them.
+- One-click MP4 export with progress UI.
+- **Large-file reality check**: real phone footage (100–500 MB) through upload → preview → export; if `BlobSource` full-file fetch hurts, scope the streaming-source spike.
+- Captions without ASR: paste a transcript / word timings → `tiktokCaptions()`/`karaokeCaptions()` through chat.
+- Tune prompts against eval failures; re-run; record the delta.
+
+**Done when:** the north-star demo runs end to end with a pasted transcript standing in for ASR.
+
+### Week 4 — polish + public launch of the chat app
+
+- First-touch quality: template/suggestion chips backed by `timeline()` + presets so the first generation looks designed, not default.
+- Honest edges: Safari capability messaging, export-unsupported fallbacks, empty/error states, usable narrow-viewport layout.
+- Deploy (Vercel or Pages), record the demo video + GIFs, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo.
+
+**Done when:** a public URL + demo video exist and the launch is posted.
+
+### Week 5 — agent distribution + launch fallout
+
+- **motionforge Agent Skill**: SKILL.md + scripts — `validate-scene`, `render-frame` (PNG, so the agent *sees* its work), `export-mp4` — installable in Claude Code. The self-correction GIF (render → notice clipped title → patch → re-render) is the second marketing wave.
+- Thin MCP server wrapping the same scripts **only if demand shows** in launch feedback.
+- Launch fallout: issue triage, good-first-issues, docs gaps reported by real users.
+
+**Done when:** a fresh Claude Code session with the skill installed produces and visually verifies a video with no chat app involved.
+
+## Explicitly deferred (updated 2026-06-12)
+
+Client-side ASR (next cycle, spike first), manual editor UI (downstream consumers; the patch API is the editor backend), docs-site platform choice, React/JSX authoring adapter, editor-product integrations, CanvasKit renderer, Tauri desktop, streaming video sources (unless week 3 forces the spike), visualizer overlays, CRDT/concurrent editing.
