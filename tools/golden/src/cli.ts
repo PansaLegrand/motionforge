@@ -371,19 +371,23 @@ function evaluateProbes(
 
   for (const probe of fixture.probes) {
     // A probe with toX scans the row segment [x, toX] and passes if any pixel
-    // matches; a point probe checks the single pixel at (x, y).
+    // matches; a point probe checks the single pixel at (x, y). An `absent`
+    // probe inverts this: it passes only when no pixel matches.
     const xs = probe.toX === undefined ? [probe.x] : range(probe.x, probe.toX);
     const pixels = xs.map((x) => readPixel(frame, x, probe.y));
     const anyMatch = pixels.some((rgba) => probeMatches(probe, rgba));
 
-    if (!anyMatch) {
+    if (anyMatch === (probe.absent ?? false)) {
       const sample = pixels[Math.floor(pixels.length / 2)] ?? [0, 0, 0, 0];
       const where =
         probe.toX === undefined
           ? `at (${probe.x}, ${probe.y})`
           : `in row ${probe.y}, x ${probe.x}..${probe.toX}`;
+      const verdict = probe.absent
+        ? "found an unexpected matching pixel"
+        : "found no matching pixel";
       failures.push(
-        `${fixture.id}: ${probe.label} found no matching pixel ${where} ` +
+        `${fixture.id}: ${probe.label} ${verdict} ${where} ` +
           `(minAlpha=${probe.minAlpha ?? "-"}, notRgb=${probe.notRgb?.join(",") ?? "-"}, sample=${sample.join(",")})`,
       );
     }

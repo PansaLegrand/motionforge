@@ -1,10 +1,16 @@
 import {
   evaluateScene,
   layoutScene,
+  wrapTextLines,
   type LayoutBox,
+  type MeasureTextLine,
   type ResolvedNode,
 } from "@motionforge/core";
 import { parseScene, type Scene, type SceneStyle } from "@motionforge/schema";
+
+// Re-exported so existing imports keep working; the implementation moved to
+// @motionforge/core where layout uses it for intrinsic text sizing.
+export { wrapTextLines };
 import {
   ALL_FORMATS,
   AudioBufferSink,
@@ -600,7 +606,9 @@ export function renderStill(
   options: RenderOptions = {},
 ): void {
   const resolved = evaluateScene(scene, frame);
-  const layout = layoutScene(resolved);
+  const layout = layoutScene(resolved, {
+    measureTextLine: createContextTextMeasurer(context),
+  });
 
   if (options.clear ?? true) {
     context.clearRect(0, 0, scene.width, scene.height);
@@ -609,6 +617,41 @@ export function renderStill(
   for (const box of sortByZIndex(layout.boxes)) {
     drawBox(context, box, options.assets, layout.frame);
   }
+}
+
+/**
+ * Layout-side text measurement backed by the render context, so intrinsic
+ * text boxes wrap exactly like drawText paints. Mutates the context's font
+ * state; every draw routine sets its own font before drawing, and
+ * letterSpacing is reset after each measurement because nothing else does.
+ */
+function createContextTextMeasurer(
+  context: CanvasRenderingContext2D | OffscreenCanvasRenderingContext2D,
+): MeasureTextLine {
+  return (line, style, fontSize) => {
+    context.font = canvasFont(style, fontSize);
+    const letterSpacing = readLength(style.letterSpacing, fontSize, 0);
+    const spaced = letterSpacing !== 0 && "letterSpacing" in context;
+
+    if (spaced) {
+      context.letterSpacing = `${letterSpacing}px`;
+    }
+
+    const width = context.measureText(line).width;
+
+    if (spaced) {
+      context.letterSpacing = "0px";
+    }
+
+    return width;
+  };
+}
+
+function canvasFont(style: SceneStyle, fontSize: number): string {
+  const fontFamily = style.fontFamily ?? "system-ui, sans-serif";
+  const fontWeight = style.fontWeight ?? 400;
+  const fontStyle = style.fontStyle ?? "normal";
+  return `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
 }
 
 /**
@@ -1066,109 +1109,6 @@ function drawBorder(
   context.restore();
 }
 
-/**
- * Splits text into rendered lines: explicit "\n" always breaks, and words
- * wrap when a line would exceed maxWidth. A single run wider than maxWidth
- * (CJK text has no spaces, so a whole paragraph is one "word") breaks by
- * grapheme cluster so every script wraps instead of being condensed; only a
- * single grapheme wider than the box is clamped by fillText at draw time.
- */
-export function wrapTextLines(
-  text: string,
-  maxWidth: number,
-  measure: (line: string) => number,
-): string[] {
-  const lines: string[] = [];
-
-  for (const paragraph of text.split("\n")) {
-    const words = paragraph.split(/\s+/).filter((word) => word.length > 0);
-
-    if (words.length === 0) {
-      lines.push("");
-      continue;
-    }
-
-    let current = "";
-
-    for (const word of words) {
-      const candidate = current === "" ? word : `${current} ${word}`;
-
-      if (current !== "" && measure(candidate) > maxWidth) {
-        lines.push(current);
-        current = word;
-      } else {
-        current = candidate;
-      }
-
-      // The line so far may exceed the box on its own (spaceless scripts,
-      // long URLs): emit grapheme-fitted lines until the remainder fits.
-      while (measure(current) > maxWidth) {
-        const broken = breakByGrapheme(current, maxWidth, measure);
-
-        if (broken === null) {
-          break; // single grapheme wider than the box: clamp at draw time
-        }
-
-        lines.push(broken.fit);
-        current = broken.rest;
-      }
-    }
-
-    lines.push(current);
-  }
-
-  return lines;
-}
-
-/**
- * Largest grapheme-cluster prefix of `text` that fits `maxWidth` (at least
- * one cluster), plus the remainder. Returns null when the text cannot be
- * split further. Grapheme segmentation keeps emoji and combining marks
- * intact; falls back to code points where Intl.Segmenter is unavailable.
- */
-function breakByGrapheme(
-  text: string,
-  maxWidth: number,
-  measure: (line: string) => number,
-): { fit: string; rest: string } | null {
-  const clusters = splitGraphemes(text);
-
-  if (clusters.length <= 1) {
-    return null;
-  }
-
-  let fit = clusters[0] ?? "";
-  let index = 1;
-
-  while (index < clusters.length) {
-    const candidate = fit + clusters[index];
-
-    if (measure(candidate) > maxWidth) {
-      break;
-    }
-
-    fit = candidate;
-    index += 1;
-  }
-
-  if (index >= clusters.length) {
-    return null; // everything fits after all (measurement settled)
-  }
-
-  return { fit, rest: clusters.slice(index).join("") };
-}
-
-function splitGraphemes(text: string): string[] {
-  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
-    const segmenter = new Intl.Segmenter(undefined, {
-      granularity: "grapheme",
-    });
-    return Array.from(segmenter.segment(text), (entry) => entry.segment);
-  }
-
-  return Array.from(text);
-}
-
 function resolveLineHeight(
   value: number | string | undefined,
   fontSize: number,
@@ -1188,10 +1128,7 @@ function drawText(
   style: SceneStyle,
 ): void {
   const fontSize = readLength(style.fontSize, box.height, 24);
-  const fontFamily = style.fontFamily ?? "system-ui, sans-serif";
-  const fontWeight = style.fontWeight ?? 400;
-  const fontStyle = style.fontStyle ?? "normal";
-  context.font = `${fontStyle} ${fontWeight} ${fontSize}px ${fontFamily}`;
+  context.font = canvasFont(style, fontSize);
   context.fillStyle = style.color ?? "#ffffff";
   context.textAlign = style.textAlign ?? "left";
   context.textBaseline = "middle";

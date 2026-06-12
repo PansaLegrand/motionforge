@@ -89,6 +89,8 @@ export type ProbeGoldenFixture = {
     toX?: number;
     minAlpha?: number;
     notRgb?: [number, number, number];
+    /** Inverts the probe: it passes only when NO pixel in the segment matches. */
+    absent?: boolean;
   }>;
 };
 
@@ -1136,6 +1138,113 @@ export const fixtures: GoldenFixture[] = [
         x: 100,
         y: 112,
         toX: 220,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+    ],
+  },
+  {
+    kind: "probe",
+    id: "text-auto-height",
+    description:
+      "Text without an explicit height gets its intrinsic wrapped height: a top-anchored block starts at `top` instead of centering in the parent, and a bottom-anchored block sits just above `bottom`.",
+    frame: 0,
+    scene: {
+      schemaVersion: 0,
+      width: 320,
+      height: 180,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "background",
+          type: "div",
+          from: 0,
+          duration: 1,
+          style: {
+            width: "100%",
+            height: "100%",
+            backgroundColor: "#101820",
+          },
+          children: [],
+        },
+        {
+          id: "top-anchored",
+          type: "text",
+          text: "AAAA BBBB",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 100,
+            top: 40,
+            width: 120,
+            fontFamily: "Arial, sans-serif",
+            fontSize: 30,
+            fontWeight: 700,
+            lineHeight: 1.5,
+            color: "#ffffff",
+          },
+          children: [],
+        },
+        {
+          id: "bottom-anchored",
+          type: "text",
+          text: "SSSS",
+          from: 0,
+          duration: 1,
+          style: {
+            position: "absolute",
+            left: 10,
+            bottom: 20,
+            width: 80,
+            fontFamily: "Arial, sans-serif",
+            fontSize: 30,
+            fontWeight: 700,
+            lineHeight: 1.5,
+            color: "#ffffff",
+          },
+          children: [],
+        },
+      ],
+    },
+    // "AAAA BBBB" wraps to two lines in the 120px box; intrinsic height is
+    // 2 × 45 = 90, so the box spans y 40..130 with line centers at 62.5 and
+    // 107.5. Under the old fill-parent fallback the block centered at y=130
+    // (lines at 107.5/152.5). The subtitle is one 45px line anchored above
+    // bottom: 20 — box y 115..160, line center 137.5 (previously 80).
+    probes: [
+      {
+        label: "top-anchored first line starts at `top`",
+        x: 100,
+        y: 62,
+        toX: 220,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+      {
+        label: "top-anchored second line follows at lineHeight pitch",
+        x: 100,
+        y: 107,
+        toX: 220,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+      },
+      {
+        label: "no third-line pixels below the intrinsic box",
+        x: 100,
+        y: 152,
+        toX: 220,
+        minAlpha: 255,
+        notRgb: [16, 24, 32],
+        absent: true,
+      },
+      {
+        label: "bottom-anchored subtitle sits just above `bottom`",
+        x: 10,
+        y: 137,
+        toX: 90,
         minAlpha: 255,
         notRgb: [16, 24, 32],
       },

@@ -666,18 +666,156 @@ export type LayoutScene = Omit<ResolvedScene, "nodes"> & {
   boxes: LayoutBox[];
 };
 
-export function layoutScene(scene: ResolvedScene): LayoutScene {
+/**
+ * Measures the width of a single already-broken line of text. `fontSize` is
+ * pre-resolved by layout; implementations must honor it plus the style's
+ * family/weight/style/letterSpacing so layout and paint agree on wrapping.
+ */
+export type MeasureTextLine = (
+  line: string,
+  style: SceneStyle,
+  fontSize: number,
+) => number;
+
+export type LayoutOptions = {
+  /**
+   * Real text measurement (e.g. canvas measureText). Without it, layout falls
+   * back to a character-count heuristic that over/under-estimates by font.
+   */
+  measureTextLine?: MeasureTextLine;
+};
+
+/**
+ * The renderer-free fallback: average glyph width as a fontSize ratio. Kept as
+ * the default so layout stays usable in plain Node, but renderers should pass
+ * their own measurement for wrap-exact boxes.
+ */
+const heuristicMeasureTextLine: MeasureTextLine = (line, _style, fontSize) =>
+  line.length * fontSize * 0.58;
+
+/**
+ * Splits text into rendered lines: explicit "\n" always breaks, and words
+ * wrap when a line would exceed maxWidth. A single run wider than maxWidth
+ * (CJK text has no spaces, so a whole paragraph is one "word") breaks by
+ * grapheme cluster so every script wraps instead of being condensed; only a
+ * single grapheme wider than the box is clamped by fillText at draw time.
+ */
+export function wrapTextLines(
+  text: string,
+  maxWidth: number,
+  measure: (line: string) => number,
+): string[] {
+  const lines: string[] = [];
+
+  for (const paragraph of text.split("\n")) {
+    const words = paragraph.split(/\s+/).filter((word) => word.length > 0);
+
+    if (words.length === 0) {
+      lines.push("");
+      continue;
+    }
+
+    let current = "";
+
+    for (const word of words) {
+      const candidate = current === "" ? word : `${current} ${word}`;
+
+      if (current !== "" && measure(candidate) > maxWidth) {
+        lines.push(current);
+        current = word;
+      } else {
+        current = candidate;
+      }
+
+      // The line so far may exceed the box on its own (spaceless scripts,
+      // long URLs): emit grapheme-fitted lines until the remainder fits.
+      while (measure(current) > maxWidth) {
+        const broken = breakByGrapheme(current, maxWidth, measure);
+
+        if (broken === null) {
+          break; // single grapheme wider than the box: clamp at draw time
+        }
+
+        lines.push(broken.fit);
+        current = broken.rest;
+      }
+    }
+
+    lines.push(current);
+  }
+
+  return lines;
+}
+
+/**
+ * Largest grapheme-cluster prefix of `text` that fits `maxWidth` (at least
+ * one cluster), plus the remainder. Returns null when the text cannot be
+ * split further. Grapheme segmentation keeps emoji and combining marks
+ * intact; falls back to code points where Intl.Segmenter is unavailable.
+ */
+function breakByGrapheme(
+  text: string,
+  maxWidth: number,
+  measure: (line: string) => number,
+): { fit: string; rest: string } | null {
+  const clusters = splitGraphemes(text);
+
+  if (clusters.length <= 1) {
+    return null;
+  }
+
+  let fit = clusters[0] ?? "";
+  let index = 1;
+
+  while (index < clusters.length) {
+    const candidate = fit + clusters[index];
+
+    if (measure(candidate) > maxWidth) {
+      break;
+    }
+
+    fit = candidate;
+    index += 1;
+  }
+
+  if (index >= clusters.length) {
+    return null; // everything fits after all (measurement settled)
+  }
+
+  return { fit, rest: clusters.slice(index).join("") };
+}
+
+function splitGraphemes(text: string): string[] {
+  if (typeof Intl !== "undefined" && "Segmenter" in Intl) {
+    const segmenter = new Intl.Segmenter(undefined, {
+      granularity: "grapheme",
+    });
+    return Array.from(segmenter.segment(text), (entry) => entry.segment);
+  }
+
+  return Array.from(text);
+}
+
+export function layoutScene(
+  scene: ResolvedScene,
+  options: LayoutOptions = {},
+): LayoutScene {
   const root = { x: 0, y: 0, width: scene.width, height: scene.height };
+  const measure = options.measureTextLine ?? heuristicMeasureTextLine;
 
   return {
     ...scene,
-    boxes: scene.nodes.map((node) => layoutNode(node, root)),
+    boxes: scene.nodes.map((node) => layoutNode(node, root, measure)),
   };
 }
 
 function layoutNode(
   node: ResolvedNode,
   containingBlock: { x: number; y: number; width: number; height: number },
+  measure: MeasureTextLine,
+  // Flex parents size their children during distribution; the child box must
+  // keep that assigned height instead of re-deriving an intrinsic one.
+  sizedByParent = false,
 ): LayoutBox {
   const style = node.style ?? {};
   const inset = readLength(style.inset, containingBlock.width, 0);
@@ -714,8 +852,27 @@ function layoutNode(
     style.maxWidth,
     containingBlock.width,
   );
+  // Text with auto height gets its intrinsic height (wrapped lines ×
+  // lineHeight) instead of filling the containing block — CSS block
+  // semantics, and what keeps `top`-anchored text from centering off-canvas.
+  // Absolute nodes with both top and bottom set stay inset-constrained.
+  const intrinsicHeight =
+    node.type === "text" &&
+    style.height === undefined &&
+    !sizedByParent &&
+    !(
+      style.position === "absolute" &&
+      style.top !== undefined &&
+      style.bottom !== undefined
+    )
+      ? textIntrinsicHeight(node, width, measure)
+      : undefined;
   const height = clampLength(
-    resolveLength(style.height, containingBlock.height, heightFallback),
+    resolveLength(
+      style.height,
+      containingBlock.height,
+      intrinsicHeight ?? heightFallback,
+    ),
     style.minHeight,
     style.maxHeight,
     containingBlock.height,
@@ -746,8 +903,8 @@ function layoutNode(
 
   const children =
     style.display === "flex"
-      ? layoutFlexChildren(node.children, content, style)
-      : node.children.map((child) => layoutNode(child, content));
+      ? layoutFlexChildren(node.children, content, style, measure)
+      : node.children.map((child) => layoutNode(child, content, measure));
 
   return {
     id: node.id,
@@ -764,6 +921,7 @@ function layoutFlexChildren(
   children: ResolvedNode[],
   content: { x: number; y: number; width: number; height: number },
   style: SceneStyle,
+  measure: MeasureTextLine,
 ): LayoutBox[] {
   const direction = style.flexDirection ?? "row";
   const gap = readLength(
@@ -772,13 +930,18 @@ function layoutFlexChildren(
     0,
   );
   const childBoxes = children.map((child) => {
-    const estimatedWidth = estimateNodeWidth(child);
-    const estimatedHeight = estimateNodeHeight(child);
+    const estimatedWidth = estimateNodeWidth(child, measure);
     let childWidth = resolveLength(
       child.style.width,
       content.width,
       Math.min(content.width, estimatedWidth),
     );
+    // Height is estimated after the width is known so wrapped text reserves
+    // one slot per rendered line, not per explicit "\n".
+    const estimatedHeight =
+      child.type === "text"
+        ? textIntrinsicHeight(child, childWidth, measure)
+        : 0;
     let childHeight = resolveLength(
       child.style.height,
       content.height,
@@ -832,18 +995,28 @@ function layoutFlexChildren(
 
     const box =
       direction === "row"
-        ? layoutNode(child, {
-            x: content.x + cursor,
-            y: content.y + crossOffset,
-            width,
-            height,
-          })
-        : layoutNode(child, {
-            x: content.x + crossOffset,
-            y: content.y + cursor,
-            width,
-            height,
-          });
+        ? layoutNode(
+            child,
+            {
+              x: content.x + cursor,
+              y: content.y + crossOffset,
+              width,
+              height,
+            },
+            measure,
+            true,
+          )
+        : layoutNode(
+            child,
+            {
+              x: content.x + crossOffset,
+              y: content.y + cursor,
+              width,
+              height,
+            },
+            measure,
+            true,
+          );
 
     cursor += (direction === "row" ? width : height) + gap + betweenGap;
     return box;
@@ -870,26 +1043,39 @@ function clampLength(
   return clamped;
 }
 
-function estimateNodeWidth(node: ResolvedNode): number {
+function estimateNodeWidth(
+  node: ResolvedNode,
+  measure: MeasureTextLine,
+): number {
   if (node.type === "text") {
     const fontSize = readLength(node.style.fontSize, 0, 24);
-    const longestLine = (node.text ?? " ")
+    return (node.text ?? " ")
       .split("\n")
-      .reduce((longest, line) => Math.max(longest, line.length), 1);
-    return longestLine * fontSize * 0.58;
+      .reduce(
+        (longest, line) => Math.max(longest, measure(line, node.style, fontSize)),
+        0,
+      );
   }
 
   return 0;
 }
 
-function estimateNodeHeight(node: ResolvedNode): number {
-  if (node.type === "text") {
-    const fontSize = readLength(node.style.fontSize, 0, 24);
-    const lineCount = (node.text ?? "").split("\n").length;
-    return lineCount * resolveLineHeight(node.style.lineHeight, fontSize);
-  }
-
-  return 0;
+/**
+ * Intrinsic height of a text node when wrapped to `width`: rendered line
+ * count × lineHeight, using the same line breaking the renderer paints with.
+ * Percent fontSize has no stable basis before the box exists and resolves
+ * against zero — use absolute font sizes on auto-height text.
+ */
+function textIntrinsicHeight(
+  node: ResolvedNode,
+  width: number,
+  measure: MeasureTextLine,
+): number {
+  const fontSize = readLength(node.style.fontSize, 0, 24);
+  const lines = wrapTextLines(node.text ?? "", width, (line) =>
+    measure(line, node.style, fontSize),
+  );
+  return lines.length * resolveLineHeight(node.style.lineHeight, fontSize);
 }
 
 function resolveLineHeight(

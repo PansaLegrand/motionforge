@@ -140,7 +140,7 @@ Validation is intentionally stricter than implementation: a property may validat
 - Words wrap when a line would exceed the node's box width, measured with the resolved font (including `letterSpacing`). Runs of whitespace collapse to single spaces, like HTML text.
 - A single word wider than the box gets its own line and is horizontally condensed to fit rather than overflowing.
 - Lines are spaced by `lineHeight` and the whole line block is centered vertically in the node's box. `textAlign` positions each line horizontally.
-- Absolutely positioned text nodes should set an explicit `height`: auto height resolves to the parent's height, so the centered line block lands far below `top` (typically off-canvas). Intrinsic auto-height for text is a known follow-up.
+- **Auto height is intrinsic**: a text node without an explicit `height` is exactly as tall as its wrapped line count × `lineHeight`, measured with the same font metrics the renderer paints with. Top-anchored text starts at `top`; bottom-anchored text sits its own height above `bottom`. Only absolute nodes with *both* `top` and `bottom` set take the inset-constrained height instead. Percent `fontSize` has no stable basis before the box exists — use absolute font sizes on auto-height text.
 
 #### International text
 
@@ -150,7 +150,7 @@ Validation is intentionally stricter than implementation: a property may validat
 - **Fonts**: any script renders with system-font fallback out of the box; for deterministic cross-machine output, register a `font` asset covering the script (e.g. a Noto Sans SC/JP/KR or Noto Naskh woff2). CJK fonts are large — prefer subsetted files.
 - `textStroke` uses a compact shorthand such as `"6px #000000"` or `"10% rgba(0,0,0,0.8)"`. Invalid or non-positive strokes are ignored rather than failing the render.
 - `textBackgroundColor` draws one rounded fitted background per rendered line. `textBackgroundPadding` sets both axes; `textBackgroundPaddingX`/`textBackgroundPaddingY` override per axis; `textBackgroundRadius` rounds each line background. Backgrounds paint before `textStroke` and fill.
-- Wrapping happens at render time using real font metrics, so flex layout's intrinsic text sizing still uses the heuristic estimate documented above; give text nodes an explicit `width`/`height` when exact geometry matters.
+- Layout and render share one line-breaking implementation: the renderer passes its canvas measurement into layout, so intrinsic text boxes (auto height, flex sizing) wrap exactly like the painted text. Outside a renderer (plain-Node `layoutScene` without a `measureTextLine` option), a character-count heuristic stands in for real metrics.
 
 Anything not in this table is rejected at validation time with an actionable message. Silent visual drift is treated as a bug; if you find a property behaving differently than this table says, file an issue.
 

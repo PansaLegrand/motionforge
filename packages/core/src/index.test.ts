@@ -294,6 +294,108 @@ describe("layout", () => {
   });
 });
 
+describe("intrinsic text auto-height", () => {
+  // Deterministic stand-in for canvas measurement: every character is 10px.
+  const measureTextLine = (line: string) => line.length * 10;
+
+  function layoutWithMeasure(builder: ReturnType<typeof composition>) {
+    return layoutScene(evaluateScene(builder.toJSON(), 0), {
+      measureTextLine,
+    });
+  }
+
+  it("sizes top-anchored absolute text to its wrapped line count", () => {
+    const layout = layoutWithMeasure(
+      composition({ width: 200, height: 400, fps: 30, duration: 1 }).children(
+        text("aaaa bbbb", {
+          id: "title",
+          style: { position: "absolute", left: 0, top: 30, width: 50, fontSize: 20 },
+        }),
+      ),
+    );
+    const title = layout.boxes.find((box) => box.id === "title");
+
+    // "aaaa bbbb" measures 90px, the box is 50px: two lines at the default
+    // 1.25 lineHeight = 2 × 25, instead of filling the 400px parent.
+    expect(title?.y).toBe(30);
+    expect(title?.height).toBe(50);
+  });
+
+  it("anchors bottom-positioned auto-height text just above `bottom`", () => {
+    const layout = layoutWithMeasure(
+      composition({ width: 200, height: 400, fps: 30, duration: 1 }).children(
+        text("abc", {
+          id: "subtitle",
+          style: { position: "absolute", left: 0, bottom: 40, width: 100, fontSize: 20 },
+        }),
+      ),
+    );
+    const subtitle = layout.boxes.find((box) => box.id === "subtitle");
+
+    expect(subtitle?.height).toBe(25);
+    expect(subtitle?.y).toBe(400 - 40 - 25);
+  });
+
+  it("keeps top+bottom constrained heights and explicit heights", () => {
+    const layout = layoutWithMeasure(
+      composition({ width: 200, height: 400, fps: 30, duration: 1 }).children(
+        text("abc", {
+          id: "constrained",
+          style: { position: "absolute", top: 50, bottom: 50, fontSize: 20 },
+        }),
+        text("abc", {
+          id: "explicit",
+          style: { position: "absolute", top: 0, height: 80, fontSize: 20 },
+        }),
+      ),
+    );
+
+    expect(layout.boxes.find((box) => box.id === "constrained")?.height).toBe(
+      300,
+    );
+    expect(layout.boxes.find((box) => box.id === "explicit")?.height).toBe(80);
+  });
+
+  it("reserves one flex slot per wrapped line, not per explicit newline", () => {
+    const layout = layoutWithMeasure(
+      composition({ width: 200, height: 400, fps: 30, duration: 1 }).children(
+        div({
+          id: "column",
+          style: { width: "100%", height: "100%", display: "flex", flexDirection: "column" },
+        }).children(
+          text("aaaa bbbb", {
+            id: "wrapped",
+            style: { width: 50, fontSize: 20 },
+          }),
+          div({ id: "after", style: { width: 50, height: 10 } }),
+        ),
+      ),
+    );
+    const column = layout.boxes.find((box) => box.id === "column");
+    const wrapped = column?.children.find((child) => child.id === "wrapped");
+    const after = column?.children.find((child) => child.id === "after");
+
+    expect(wrapped?.height).toBe(50);
+    expect(after?.y).toBe(50);
+  });
+
+  it("falls back to the character-count heuristic without a measurer", () => {
+    const layout = layoutOf(
+      composition({ width: 200, height: 400, fps: 30, duration: 1 }).children(
+        text("aaaa bbbb", {
+          id: "title",
+          style: { position: "absolute", left: 0, top: 30, width: 50, fontSize: 20 },
+        }),
+      ),
+    );
+    const title = layout.boxes.find((box) => box.id === "title");
+
+    // Heuristic: 9 chars × 20 × 0.58 = 104.4 > 50, each word 46.4 ≤ 50 →
+    // two lines, same shape as real measurement at this size.
+    expect(title?.height).toBe(50);
+  });
+});
+
 describe("parseTransform", () => {
   it("normalizes translate, scale, and rotate", () => {
     expect(

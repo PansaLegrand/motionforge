@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-12 (phase 2 week 1: intrinsic text auto-height + launch surface)
+
+### Changed
+
+- **Intrinsic text auto-height** (the sharpest documented edge for LLM-generated scenes, phase-2 week-1 slice): a text node without an explicit `height` is now exactly as tall as its wrapped line count × `lineHeight` instead of filling its parent. Top-anchored absolute text starts at `top`; bottom-anchored text sits its own height above `bottom`; absolute nodes with both `top` and `bottom` keep the inset-constrained height; flex parents' size assignments are respected (`sizedByParent`).
+- **Layout and render now share one text measurement**: `wrapTextLines` (+ grapheme breaking) moved from the renderer into `@motionforge/core` (renderer re-exports it); `layoutScene(scene, { measureTextLine })` accepts a measurer, and `renderStill` passes one backed by its canvas context (same font string + `letterSpacing` as `drawText`), so intrinsic boxes wrap exactly like painted text. Without a measurer (plain Node), the 0.58 × fontSize character heuristic stands in — now wrap-aware for flex height estimates too (one slot per rendered line, not per `\n`).
+- Golden harness: probes gained an `absent` option (pass only when *no* pixel matches) so fixtures can assert text does **not** paint somewhere; new `text-auto-height` probe fixture covers top-anchored wrap, bottom-anchored subtitle placement, and no-pixels-below-the-intrinsic-box.
+- Launch surface: GitHub Pages deploy workflow for the playground (`.github/workflows/deploy-playground.yml`) + `base: "./"` Vite config (with `passWithNoTests` to keep `pnpm -r test` green); getting-started guide fixed (`tiktokCaptions` returns one container node — `push(captionTrack)`, not spread); `docs/roadmap.md` gained the phase-2 plan; scene-format and llms.txt rewritten for the new auto-height contract (the "give absolute text an explicit height" hard rule is gone).
+
+### Tested
+
+- 5 new core layout tests (top-anchored wrap height, bottom anchoring, top+bottom constraint, explicit height, flex slot per rendered line, heuristic fallback) — 32 core tests green.
+- All 36 golden checks pass: the 35 pre-existing fixtures are **byte-identical** (existing scenes set explicit heights or use flex, exactly as the old docs instructed), plus the new `text-auto-height` fixture.
+- Full `pnpm test` (159 unit tests), `pnpm typecheck`, `pnpm e2e` (10 checks) green.
+- Pre-publish clean-install verification: all six 0.3.0 tarballs `npm pack`ed and installed into a fresh project outside the workspace; validate → patch → evaluate → layout → presets exercised via ESM imports.
+- Verification stress scenes re-rendered after the change: `font-styles-f5`, `vertical-60fps-captions-f50/f130` byte-identical to pre-change renders; `intro` and `karaoke-captions` showcase frames visually verified (flex text widths now use real measurement instead of the heuristic).
+
+### Notes
+
+- Percent `fontSize` on auto-height text has no stable basis before the box exists and resolves against zero; documented (use absolute font sizes). No scene in the repo uses percent fontSize.
+- `drawText` still resolves percent `fontSize` against the box height at paint time; for pixel/number font sizes (every preset and example) layout and paint agree exactly.
+
 ## 2026-06-11 (core engine verification: multilingual text — CJK wrap fix)
 
 ### Changed
