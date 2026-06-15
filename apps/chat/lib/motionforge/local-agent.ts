@@ -1,5 +1,11 @@
-import type { Scene, SceneOp, ScenePatch } from "@motionforge/schema";
+import type {
+  Scene,
+  SceneAnimation,
+  SceneOp,
+  ScenePatch,
+} from "@motionforge/schema";
 import { applyScenePatch, parseScene, validateScene } from "@motionforge/schema";
+import { fadeUp, popIn, slideIn, timeline } from "@motionforge/presets";
 
 export type MotionforgeAgentResult = {
   mode: "scene" | "patch";
@@ -18,6 +24,13 @@ type Theme = {
   accent: string;
   accent2: string;
 };
+
+type FirstDraftChoreographyId =
+  | "accent-panel"
+  | "eyebrow"
+  | "title"
+  | "subtitle"
+  | "caption";
 
 const themes = {
   bright: {
@@ -71,6 +84,7 @@ export function createSceneFromInstruction(instruction: string): Scene {
   const panelTop = isLandscape ? 132 : 492;
   const panelHeight = isLandscape ? 420 : 790;
   const titleSize = isLandscape ? 58 : title.length > 28 ? 72 : 86;
+  const choreography = createFirstDraftChoreography();
 
   return parseScene({
     schemaVersion: 0,
@@ -107,16 +121,7 @@ export function createSceneFromInstruction(instruction: string): Scene {
           borderRadius: isLandscape ? 34 : 48,
           boxShadow: "0 30px 76px rgba(15,23,42,0.24)",
         },
-        animations: [
-          keyframes("opacity", [
-            [0, 0],
-            [16, 1, "easeOut"],
-          ]),
-          keyframes("transform", [
-            [0, "translate(0px, 48px) scale(0.96)"],
-            [20, "translate(0px, 0px) scale(1)", "spring(0.2)"],
-          ]),
-        ],
+        animations: choreography["accent-panel"] ?? [],
       },
       {
         id: "eyebrow",
@@ -135,12 +140,7 @@ export function createSceneFromInstruction(instruction: string): Scene {
           color: theme.accent,
           textAlign: "center",
         },
-        animations: [
-          keyframes("opacity", [
-            [0, 0],
-            [14, 1, "easeOut"],
-          ]),
-        ],
+        animations: choreography.eyebrow ?? [],
       },
       {
         id: "title",
@@ -159,23 +159,14 @@ export function createSceneFromInstruction(instruction: string): Scene {
           color: theme.title,
           textAlign: "center",
         },
-        animations: [
-          keyframes("opacity", [
-            [0, 0],
-            [12, 1, "easeOut"],
-          ]),
-          keyframes("transform", [
-            [0, "scale(0.84)"],
-            [22, "scale(1)", "spring(0.34)"],
-          ]),
-        ],
+        animations: choreography.title ?? [],
       },
       {
         id: "subtitle",
         type: "text",
         text: subtitle,
-        from: 18,
-        duration: duration - 18,
+        from: 0,
+        duration,
         style: {
           position: "absolute",
           left: Math.round(width * 0.13),
@@ -186,16 +177,7 @@ export function createSceneFromInstruction(instruction: string): Scene {
           color: theme.body,
           textAlign: "center",
         },
-        animations: [
-          keyframes("opacity", [
-            [0, 0],
-            [16, 1, "easeOut"],
-          ]),
-          keyframes("transform", [
-            [0, "translate(0px, 30px)"],
-            [16, "translate(0px, 0px)", "easeOut"],
-          ]),
-        ],
+        animations: choreography.subtitle ?? [],
       },
       {
         id: "caption",
@@ -203,8 +185,8 @@ export function createSceneFromInstruction(instruction: string): Scene {
         text: normalized.includes("caption")
           ? "Words land right on the beat"
           : "Preview now. Export when ready.",
-        from: 38,
-        duration: duration - 38,
+        from: 0,
+        duration,
         style: {
           position: "absolute",
           left: Math.round(width * 0.18),
@@ -220,19 +202,66 @@ export function createSceneFromInstruction(instruction: string): Scene {
           textBackgroundPaddingY: isLandscape ? 13 : 20,
           textBackgroundRadius: 28,
         },
-        animations: [
-          keyframes("opacity", [
-            [0, 0],
-            [10, 1, "easeOut"],
-          ]),
-          keyframes("transform", [
-            [0, "scale(0.88)"],
-            [16, "scale(1)", "spring(0.24)"],
-          ]),
-        ],
+        animations: choreography.caption ?? [],
       },
     ],
   });
+}
+
+function createFirstDraftChoreography(): Record<
+  FirstDraftChoreographyId,
+  SceneAnimation[]
+> {
+  const compiled = timeline()
+    .add(
+      "accent-panel",
+      fadeUp({
+        distance: 48,
+        durationInFrames: 20,
+        easing: "spring(0.2)",
+      }),
+      { at: 0 },
+    )
+    .add("eyebrow", fadeUp({ distance: 18, durationInFrames: 14 }), {
+      after: "accent-panel",
+      overlap: 14,
+    })
+    .add(
+      "title",
+      popIn({
+        durationInFrames: 22,
+        fromScale: 0.84,
+        easing: "spring(0.34)",
+      }),
+      { after: "eyebrow", overlap: 8 },
+    )
+    .add(
+      "subtitle",
+      slideIn("down", {
+        distance: 30,
+        durationInFrames: 16,
+        easing: "easeOut",
+      }),
+      { after: "title", overlap: 4 },
+    )
+    .add(
+      "caption",
+      popIn({
+        durationInFrames: 16,
+        fromScale: 0.88,
+        easing: "spring(0.24)",
+      }),
+      { after: "subtitle", overlap: 6 },
+    )
+    .compile();
+
+  return {
+    "accent-panel": compiled["accent-panel"] ?? [],
+    eyebrow: compiled.eyebrow ?? [],
+    title: compiled.title ?? [],
+    subtitle: compiled.subtitle ?? [],
+    caption: compiled.caption ?? [],
+  };
 }
 
 export function createPatchFromInstruction(scene: Scene, instruction: string): ScenePatch {

@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 7: preset-backed first drafts)
+
+### Changed
+
+- Refactored the local first-scene generator to use `@motionforge/presets` `timeline()` choreography with `fadeUp`, `popIn`, and `slideIn`.
+- First drafts now share the same preset vocabulary as engine examples, giving the empty/local fallback path designed entrance motion instead of hand-built one-off keyframes.
+- Subtitle and caption nodes now start with the scene and let timeline keyframe holds control their entrance timing, which keeps layer timing simple while preserving staggered visual motion.
+- Updated the roadmap to mark the Week 5 first-touch quality foundation complete while leaving richer template/suggestion-chip expansion as follow-up polish.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat build`
+- `pnpm --filter @motionforge/chat typecheck`
+- Browser smoke test on `http://localhost:5179`: submitted **Create a kinetic typography scene saying SHIP THE DEMO.**, confirmed the local fallback created a `1080x1920` scene with `6 layers`, and verified no browser console errors were reported.
+
+### Notes
+
+- This is deliberately the smallest Week 5 slice: it improves the first draft quality path without changing the chat protocol, editor state model, or manual edit surfaces.
+- Natural next steps are richer preset-backed example starts, honest browser/export capability messaging, and then compact timeline drag behavior.
+
 ## 2026-06-16 (chat + edit slice 6: text style inspector controls)
 
 ### Changed
