@@ -134,10 +134,13 @@ Decisions recorded 2026-06-12:
 
 ### Week 4 — precision edit layer
 
-- Evolve the app from chat-only into chat + edit coexistence: collapsible chat, preview remains central, and manual panels appear without changing the canonical document model.
-- Scene projection: derive flat editor layers from the scene for layer list, inspector, and timeline rows.
-- Manual patching v0: select a layer, edit text/timing/position/size/color/opacity in an inspector, and apply every change through `applyScenePatch`.
-- Add undo/redo and a visible last-patch debug panel.
+- ✅ Evolve the app from chat-only into chat + edit coexistence: collapsible chat, preview remains central, and manual panels appear without changing the canonical document model.
+- ✅ Scene projection: derive flat editor layers from the scene for layer list, inspector, and timeline rows.
+- ✅ README showcase loader: examples can load real README scene JSON into the editor, which gives manual-edit development realistic documents.
+- ✅ Manual patching v0: select a layer, edit text/timing/position/size/opacity in an inspector, and apply every change through `applyScenePatch`.
+- ✅ Visible last-patch/error feedback for developer inspection.
+- ◻ Add undo/redo.
+- ◻ Extend inspector coverage for color/fill/stroke and other common text/style controls.
 - Borrow product patterns from the Dojo editor deliberately: layer rows, timeline block language, inspector ergonomics, caption workflows. Do not port its Remotion/Pixi render path or app-specific project/auth/data contexts.
 
 **Done when:** a user can generate a draft in chat, hide chat, select a layer, manually adjust it, undo the adjustment, and export the resulting scene.
