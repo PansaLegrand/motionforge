@@ -2,6 +2,39 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-15 (chat + edit slice 1: layer projection and inspector shell)
+
+### Changed
+
+- Added a pure editor projection module for the chat app: `deriveEditorLayers(scene)` flattens scene nodes into document-order layers with parent/depth metadata, absolute visible timing, labels, z-index, and numeric bounds where they can be derived safely.
+- Added a collapsible chat panel to the reference app so the preview/edit area can stand on its own while preserving the session.
+- Added the first read-only manual edit surface: a Layers panel and Inspector panel driven from the canonical MotionForge `Scene`. Selection is UI-only in this slice; no manual mutation yet.
+
+### Tested
+
+- Added unit tests for layer projection, nested timing clamping, label normalization, numeric bound extraction, and helper behavior.
+
+### Notes
+
+- This is intentionally a foundation slice. The next manual-edit step should apply inspector edits through RFC 0001 patch ops.
+
+## 2026-06-15 (phase 2 direction: chat + edit coexistence)
+
+### Changed
+
+- Product direction updated: the reference app is no longer chat-only. It should become a chat + edit coexistence app where chat creates the first draft, chat can be hidden, and manual tools refine the scene for precision.
+- Added `docs/chat-edit-app-plan.md`: product position, UX shape, what to borrow from Dojo, what not to port, scene projection model, patch mapping, and implementation slices.
+- Updated `docs/roadmap.md`: phase 2 now includes a precision edit layer, compact timeline, and selection-aware chat. Manual editor UI is no longer listed as fully deferred; only full traditional NLE scope remains deferred.
+
+### Tested
+
+- Documentation-only change. No runtime tests were needed.
+
+### Notes
+
+- Core architectural decision: MotionForge `Scene` remains the canonical document. Chat edits and manual UI edits both apply RFC 0001 scene patches.
+- Dojo remains a product-design and selective-code reference, not the rendering core or canonical data model for MotionForge.
+
 ## 2026-06-12 (phase 2 week 1: intrinsic text auto-height + launch surface)
 
 ### Changed

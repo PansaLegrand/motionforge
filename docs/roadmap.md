@@ -93,9 +93,11 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ◻ Maintainer: GitHub push + CI, `@motionforge` npm scope + `pnpm publish -r`, tag `v0.3.0`, deploy the playground, eared audio check.
 - Docs site: deferred by choice — the guides + README are launch-sufficient; pick a platform (VitePress et al) post-launch.
 
-## Phase 2 — the agent loop (current — chat-first)
+## Phase 2 — the agent loop (current — chat + edit coexistence)
 
-North-star demo: upload a clip → type "add TikTok-style subtitles and a title that pops in" → captions appear, preview plays with sound → Export MP4. No server anywhere.
+North-star demo: upload a clip → type "add TikTok-style subtitles and a title that pops in" → captions appear, preview plays with sound → the user hides chat and adjusts timing/position manually → Export MP4. No server anywhere.
+
+The reference app direction is recorded in [`docs/chat-edit-app-plan.md`](chat-edit-app-plan.md): chat creates and transforms, manual tools refine and finish, and both surfaces mutate the canonical scene through RFC 0001 patch ops.
 
 Decisions recorded 2026-06-12:
 
@@ -130,15 +132,27 @@ Decisions recorded 2026-06-12:
 
 **Done when:** the north-star demo runs end to end with a pasted transcript standing in for ASR.
 
-### Week 4 — polish + public launch of the chat app
+### Week 4 — precision edit layer
+
+- Evolve the app from chat-only into chat + edit coexistence: collapsible chat, preview remains central, and manual panels appear without changing the canonical document model.
+- Scene projection: derive flat editor layers from the scene for layer list, inspector, and timeline rows.
+- Manual patching v0: select a layer, edit text/timing/position/size/color/opacity in an inspector, and apply every change through `applyScenePatch`.
+- Add undo/redo and a visible last-patch debug panel.
+- Borrow product patterns from the Dojo editor deliberately: layer rows, timeline block language, inspector ergonomics, caption workflows. Do not port its Remotion/Pixi render path or app-specific project/auth/data contexts.
+
+**Done when:** a user can generate a draft in chat, hide chat, select a layer, manually adjust it, undo the adjustment, and export the resulting scene.
+
+### Week 5 — compact timeline + public launch surface
 
 - First-touch quality: template/suggestion chips backed by `timeline()` + presets so the first generation looks designed, not default.
 - Honest edges: Safari capability messaging, export-unsupported fallbacks, empty/error states, usable narrow-viewport layout.
+- Compact timeline: scrub playhead, show layer blocks, retime by dragging, resize duration handles, split at playhead, and snap to neighboring blocks.
+- Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
 - Deploy (Vercel or Pages), record the demo video + GIFs, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo.
 
-**Done when:** a public URL + demo video exist and the launch is posted.
+**Done when:** a public URL + demo video exist, and the demo shows chat generation followed by manual precision edits.
 
-### Week 5 — agent distribution + launch fallout
+### Week 6 — agent distribution + launch fallout
 
 - **motionforge Agent Skill**: SKILL.md + scripts — `validate-scene`, `render-frame` (PNG, so the agent *sees* its work), `export-mp4` — installable in Claude Code. The self-correction GIF (render → notice clipped title → patch → re-render) is the second marketing wave.
 - Thin MCP server wrapping the same scripts **only if demand shows** in launch feedback.
@@ -148,4 +162,4 @@ Decisions recorded 2026-06-12:
 
 ## Explicitly deferred (updated 2026-06-12)
 
-Client-side ASR (next cycle, spike first), manual editor UI (downstream consumers; the patch API is the editor backend), docs-site platform choice, React/JSX authoring adapter, editor-product integrations, CanvasKit renderer, Tauri desktop, streaming video sources (unless week 3 forces the spike), visualizer overlays, CRDT/concurrent editing.
+Client-side ASR (next cycle, spike first), full traditional NLE scope, docs-site platform choice, React/JSX authoring adapter, editor-product integrations, CanvasKit renderer, Tauri desktop, streaming video sources (unless real media testing forces the spike), visualizer overlays, CRDT/concurrent editing.
