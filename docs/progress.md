@@ -2,6 +2,25 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-15 (chat + edit slice 2: editor component boundaries)
+
+### Changed
+
+- Split the chat app shell from the editor workspace UI: the top-level app now owns scene state, player lifecycle, assistant requests, export, and JSON modal wiring, while the rail, panel switcher, chat panel, layer panel, inspector, preview workspace, and compact timeline live under `apps/chat/components/editor/`.
+- Added shared editor UI types for chat messages, active panel state, and player UI state.
+- Added pure timeline formatting helpers so preview/timeline labels can be tested outside React.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5175`: editor workspace, preview canvas, Assistant panel, and Tracks area rendered with no browser console errors.
+
+### Notes
+
+- This slice is intentionally behavior-preserving. The next slice should add the first manual edit action through the existing scene patch model rather than mutating editor-local state.
+
 ## 2026-06-15 (chat + edit slice 1: layer projection and inspector shell)
 
 ### Changed
