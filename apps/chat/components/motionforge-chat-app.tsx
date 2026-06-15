@@ -7,6 +7,8 @@ import {
   FileJson,
   Loader2,
   PanelLeftClose,
+  Redo2,
+  Undo2,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { detectExportCapability, exportVideo } from "@motionforge/export";
@@ -26,6 +28,13 @@ import {
   type InspectorEditableField,
 } from "@/lib/editor/inspector-patches";
 import { deriveEditorLayers, findEditorLayer } from "@/lib/editor/layers";
+import {
+  createSceneHistory,
+  recordSceneHistory,
+  redoSceneHistory,
+  undoSceneHistory,
+  type SceneHistory,
+} from "@/lib/editor/scene-history";
 import {
   PanelSwitcher,
   PreviewWorkspace,
@@ -59,8 +68,13 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
+type SceneChangeSource = "assistant" | "showcase" | "inspector";
+
 export function MotionforgeChatApp() {
   const [scene, setScene] = useState<Scene | null>(null);
+  const [sceneHistory, setSceneHistory] = useState<SceneHistory>(() =>
+    createSceneHistory(),
+  );
   const [messages, setMessages] = useState<ChatMessage[]>(initialMessages);
   const [input, setInput] = useState("");
   const [isSending, setIsSending] = useState(false);
@@ -105,6 +119,8 @@ export function MotionforgeChatApp() {
     () => findEditorLayer(editorLayers, selectedLayerId),
     [editorLayers, selectedLayerId],
   );
+  const canUndo = Boolean(scene && sceneHistory.past.length);
+  const canRedo = Boolean(scene && sceneHistory.future.length);
 
   useEffect(() => {
     if (!scene) {
@@ -275,6 +291,47 @@ export function MotionforgeChatApp() {
     return () => window.clearTimeout(timer);
   }, [isSending, messages.length]);
 
+  const commitSceneChange = useCallback(
+    (nextScene: Scene, source: SceneChangeSource) => {
+      setSceneHistory((history) => recordSceneHistory(history, scene));
+      setScene(nextScene);
+      setExportStatus("");
+
+      if (source !== "inspector") {
+        setEditorError(null);
+      }
+    },
+    [scene],
+  );
+
+  const undoSceneChange = useCallback(() => {
+    const result = undoSceneHistory(scene, sceneHistory);
+
+    if (!result.changed) {
+      return;
+    }
+
+    setScene(result.scene);
+    setSceneHistory(result.history);
+    setLastPatch(null);
+    setEditorError(null);
+    setExportStatus("");
+  }, [scene, sceneHistory]);
+
+  const redoSceneChange = useCallback(() => {
+    const result = redoSceneHistory(scene, sceneHistory);
+
+    if (!result.changed) {
+      return;
+    }
+
+    setScene(result.scene);
+    setSceneHistory(result.history);
+    setLastPatch(null);
+    setEditorError(null);
+    setExportStatus("");
+  }, [scene, sceneHistory]);
+
   const submitPrompt = useCallback(
     async (value?: string) => {
       const instruction = (value ?? input).trim();
@@ -313,7 +370,7 @@ export function MotionforgeChatApp() {
           throw new Error(payload.error);
         }
 
-        setScene(payload.result.scene);
+        commitSceneChange(payload.result.scene, "assistant");
         setLastPatch(payload.result.patch ?? null);
         setMessages((items) => [
           ...items,
@@ -339,7 +396,7 @@ export function MotionforgeChatApp() {
         setIsSending(false);
       }
     },
-    [input, isSending, messages, scene],
+    [commitSceneChange, input, isSending, messages, scene],
   );
 
   const togglePlayback = useCallback(() => {
@@ -372,6 +429,7 @@ export function MotionforgeChatApp() {
 
   const startNewSession = useCallback(() => {
     setScene(null);
+    setSceneHistory(createSceneHistory());
     setSelectedLayerId(null);
     setMessages([
       {
@@ -410,12 +468,12 @@ export function MotionforgeChatApp() {
         return;
       }
 
-      setScene(result.scene);
+      commitSceneChange(result.scene, "inspector");
       setLastPatch(patchResult.patch);
       setEditorError(null);
       setExportStatus("");
     },
-    [scene],
+    [commitSceneChange, scene],
   );
 
   const exportCurrentScene = useCallback(async () => {
@@ -466,7 +524,7 @@ export function MotionforgeChatApp() {
   }, []);
 
   const loadReadmeShowcase = useCallback((example: ReadmeShowcaseExample) => {
-    setScene(cloneReadmeShowcaseScene(example));
+    commitSceneChange(cloneReadmeShowcaseScene(example), "showcase");
     setSelectedLayerId(null);
     setExportStatus("");
     setCopyStatus("idle");
@@ -485,7 +543,7 @@ export function MotionforgeChatApp() {
         diagnostics: [`Source JSON: ${example.jsonPath}`],
       },
     ]);
-  }, []);
+  }, [commitSceneChange]);
 
   return (
     <main className="h-[100dvh] min-h-0 overflow-hidden bg-[hsl(220_14%_96%)] text-foreground">
@@ -538,6 +596,26 @@ export function MotionforgeChatApp() {
               </div>
             </div>
             <div className="flex items-center gap-1.5">
+              <button
+                type="button"
+                onClick={undoSceneChange}
+                disabled={!canUndo}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Undo"
+                title="Undo"
+              >
+                <Undo2 className="h-3.5 w-3.5" />
+              </button>
+              <button
+                type="button"
+                onClick={redoSceneChange}
+                disabled={!canRedo}
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                aria-label="Redo"
+                title="Redo"
+              >
+                <Redo2 className="h-3.5 w-3.5" />
+              </button>
               <button
                 type="button"
                 onClick={() => setShowJson((value) => !value)}

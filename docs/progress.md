@@ -2,6 +2,25 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 5: undo/redo for manual edits)
+
+### Changed
+
+- Added a pure scene history helper for undo/redo stacks, capped at 50 past scenes and covered by unit tests.
+- The chat editor now records scene history for assistant, README showcase, and inspector-driven scene changes.
+- Added accessible Undo/Redo icon buttons to the editor toolbar; undo/redo clear stale patch/error/export feedback and preserve the canonical scene model.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat build`
+- `pnpm --filter @motionforge/chat typecheck`
+- Browser smoke test on `http://localhost:5177`: loaded README scene **Animated Chart**, edited Inspector `Left` to `99`, confirmed Undo restored the prior value, Redo reapplied `99`, and verified no browser console errors were reported.
+
+### Notes
+
+- This is snapshot-based history for the reference editor. If large documents or rapid drag edits become expensive, compact patch/inverse-patch history can replace the storage layer without changing the toolbar behavior.
+
 ## 2026-06-15 (chat + edit slice 4: patch-backed inspector edits)
 
 ### Changed
