@@ -16,7 +16,15 @@ import {
   resolveAssets,
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
-import type { Scene } from "@motionforge/schema";
+import {
+  applyScenePatch,
+  type Scene,
+  type ScenePatch,
+} from "@motionforge/schema";
+import {
+  createInspectorPatch,
+  type InspectorEditableField,
+} from "@/lib/editor/inspector-patches";
 import { deriveEditorLayers, findEditorLayer } from "@/lib/editor/layers";
 import {
   PanelSwitcher,
@@ -64,6 +72,8 @@ export function MotionforgeChatApp() {
   const [showExamples, setShowExamples] = useState(false);
   const [activePanel, setActivePanel] = useState<EditorPanel>("chat");
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
+  const [lastPatch, setLastPatch] = useState<ScenePatch | null>(null);
+  const [editorError, setEditorError] = useState<string | null>(null);
   const [playerState, setPlayerState] = useState<PlayerUiState>({
     loading: true,
     frame: 0,
@@ -276,6 +286,7 @@ export function MotionforgeChatApp() {
       setInput("");
       setIsSending(true);
       setExportStatus("");
+      setEditorError(null);
       const userMessage: ChatMessage = {
         id: crypto.randomUUID(),
         role: "user",
@@ -303,6 +314,7 @@ export function MotionforgeChatApp() {
         }
 
         setScene(payload.result.scene);
+        setLastPatch(payload.result.patch ?? null);
         setMessages((items) => [
           ...items,
           {
@@ -372,8 +384,39 @@ export function MotionforgeChatApp() {
     ]);
     setInput("");
     setExportStatus("");
+    setLastPatch(null);
+    setEditorError(null);
     setShowJson(false);
   }, []);
+
+  const editSelectedLayer = useCallback(
+    (id: string, field: InspectorEditableField, value: string) => {
+      if (!scene) {
+        setEditorError("Create or load a scene before editing.");
+        return;
+      }
+
+      const patchResult = createInspectorPatch(id, field, value);
+
+      if (!patchResult.ok) {
+        setEditorError(patchResult.error);
+        return;
+      }
+
+      const result = applyScenePatch(scene, patchResult.patch);
+
+      if (!result.ok) {
+        setEditorError(result.errors.map((error) => error.message).join("\n"));
+        return;
+      }
+
+      setScene(result.scene);
+      setLastPatch(patchResult.patch);
+      setEditorError(null);
+      setExportStatus("");
+    },
+    [scene],
+  );
 
   const exportCurrentScene = useCallback(async () => {
     if (!scene || !playerState.exportSupported || isExporting) {
@@ -427,6 +470,8 @@ export function MotionforgeChatApp() {
     setSelectedLayerId(null);
     setExportStatus("");
     setCopyStatus("idle");
+    setLastPatch(null);
+    setEditorError(null);
     setShowJson(false);
     setShowExamples(false);
     setActivePanel("layers");
@@ -466,6 +511,7 @@ export function MotionforgeChatApp() {
             onShowExamples={() => setShowExamples(true)}
             onNewSession={startNewSession}
             onSelectLayer={setSelectedLayerId}
+            onEditLayer={editSelectedLayer}
           />
         </aside>
 
@@ -568,6 +614,24 @@ export function MotionforgeChatApp() {
               <pre className="scrollbar-thin h-[calc(100%-2.5rem)] overflow-auto p-4 font-mono text-xs leading-5 text-[hsl(180_50%_86%)]">
                 {sceneJson}
               </pre>
+            </div>
+          ) : null}
+          {editorError || lastPatch ? (
+            <div className="flex h-10 shrink-0 items-center gap-3 border-t border-border bg-card px-4 text-xs">
+              {editorError ? (
+                <span className="min-w-0 truncate text-destructive">
+                  {editorError}
+                </span>
+              ) : (
+                <>
+                  <span className="shrink-0 font-medium uppercase text-muted-foreground">
+                    Last patch
+                  </span>
+                  <code className="min-w-0 truncate rounded bg-muted px-2 py-1 font-mono text-[11px] text-muted-foreground">
+                    {JSON.stringify(lastPatch)}
+                  </code>
+                </>
+              )}
             </div>
           ) : null}
         </section>

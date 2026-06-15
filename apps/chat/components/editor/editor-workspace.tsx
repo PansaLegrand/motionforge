@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
 import type { Scene } from "@motionforge/schema";
+import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
 import { formatFrameTime, formatSeconds } from "@/lib/editor/time";
 import { cn } from "@/lib/ui/cn";
@@ -76,6 +77,7 @@ export function PanelSwitcher({
   onShowExamples,
   onNewSession,
   onSelectLayer,
+  onEditLayer,
 }: {
   activePanel: EditorPanel;
   messages: ChatMessage[];
@@ -94,6 +96,11 @@ export function PanelSwitcher({
   onShowExamples: () => void;
   onNewSession: () => void;
   onSelectLayer: (id: string) => void;
+  onEditLayer: (
+    id: string,
+    field: InspectorEditableField,
+    value: string,
+  ) => void;
 }) {
   if (activePanel === "layers") {
     return (
@@ -106,7 +113,13 @@ export function PanelSwitcher({
   }
 
   if (activePanel === "inspector") {
-    return <InspectorPanel fps={fps} selectedLayer={selectedLayer} />;
+    return (
+      <InspectorPanel
+        fps={fps}
+        selectedLayer={selectedLayer}
+        onEditLayer={onEditLayer}
+      />
+    );
   }
 
   return (
@@ -311,41 +324,102 @@ function LayersPanel({
 function InspectorPanel({
   fps,
   selectedLayer,
+  onEditLayer,
 }: {
   fps: number;
   selectedLayer: EditorLayer | null;
+  onEditLayer: (
+    id: string,
+    field: InspectorEditableField,
+    value: string,
+  ) => void;
 }) {
   return (
     <>
       <PanelHeader icon={Info} title="Inspector" detail="selection" />
       {selectedLayer ? (
-        <dl className="grid grid-cols-2 gap-x-3 gap-y-3 p-3 text-sm">
-          <InspectorField label="Id" value={selectedLayer.id} mono wide />
-          <InspectorField
-            label="Type"
-            value={displayLayerType(selectedLayer.type)}
-          />
-          <InspectorField
-            label="Start"
-            value={`${selectedLayer.from}f · ${formatSeconds(selectedLayer.from, fps)}`}
-          />
-          <InspectorField
-            label="Duration"
-            value={`${selectedLayer.duration}f · ${formatSeconds(selectedLayer.duration, fps)}`}
-          />
-          <InspectorField label="zIndex" value={String(selectedLayer.zIndex)} />
-          <InspectorField
-            label="Parent"
-            value={selectedLayer.parentId ?? "root"}
-            mono={Boolean(selectedLayer.parentId)}
-            wide
-          />
-          <InspectorField
-            label="Bounds"
-            value={formatBounds(selectedLayer.bounds)}
-            wide
-          />
-        </dl>
+        <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-3">
+          <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
+            <InspectorField label="Id" value={selectedLayer.id} mono wide />
+            <InspectorField
+              label="Type"
+              value={displayLayerType(selectedLayer.type)}
+            />
+            {selectedLayer.type === "text" ? (
+              <InspectorTextArea
+                label="Text"
+                value={selectedLayer.text ?? ""}
+                onCommit={(value) =>
+                  onEditLayer(selectedLayer.id, "text", value)
+                }
+              />
+            ) : null}
+            <InspectorNumberInput
+              label="Start"
+              value={String(selectedLayer.localFrom)}
+              suffix={`${formatSeconds(selectedLayer.localFrom, fps)} local`}
+              onCommit={(value) => onEditLayer(selectedLayer.id, "from", value)}
+            />
+            <InspectorNumberInput
+              label="Duration"
+              value={String(selectedLayer.localDuration)}
+              suffix={`${formatSeconds(selectedLayer.localDuration, fps)} local`}
+              onCommit={(value) =>
+                onEditLayer(selectedLayer.id, "duration", value)
+              }
+            />
+            <InspectorNumberInput
+              label="Left"
+              value={formatOptionalNumber(selectedLayer.bounds?.left)}
+              onCommit={(value) => onEditLayer(selectedLayer.id, "left", value)}
+            />
+            <InspectorNumberInput
+              label="Top"
+              value={formatOptionalNumber(selectedLayer.bounds?.top)}
+              onCommit={(value) => onEditLayer(selectedLayer.id, "top", value)}
+            />
+            <InspectorNumberInput
+              label="Width"
+              value={formatOptionalNumber(selectedLayer.bounds?.width)}
+              onCommit={(value) =>
+                onEditLayer(selectedLayer.id, "width", value)
+              }
+            />
+            <InspectorNumberInput
+              label="Height"
+              value={formatOptionalNumber(selectedLayer.bounds?.height)}
+              onCommit={(value) =>
+                onEditLayer(selectedLayer.id, "height", value)
+              }
+            />
+            <InspectorNumberInput
+              label="Opacity"
+              value={formatOptionalNumber(selectedLayer.opacity)}
+              placeholder="default"
+              step="0.05"
+              min="0"
+              max="1"
+              onCommit={(value) =>
+                onEditLayer(selectedLayer.id, "opacity", value)
+              }
+            />
+            <InspectorField
+              label="zIndex"
+              value={String(selectedLayer.zIndex)}
+            />
+            <InspectorField
+              label="Parent"
+              value={selectedLayer.parentId ?? "root"}
+              mono={Boolean(selectedLayer.parentId)}
+              wide
+            />
+            <InspectorField
+              label="Bounds"
+              value={formatBounds(selectedLayer.bounds)}
+              wide
+            />
+          </dl>
+        </div>
       ) : (
         <EmptyPanelText text="Select a layer to inspect timing and geometry." />
       )}
@@ -639,6 +713,105 @@ function InspectorField({
   );
 }
 
+function InspectorTextArea({
+  label,
+  value,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  onCommit: (value: string) => void;
+}) {
+  const fieldId = inspectorFieldId(label);
+
+  return (
+    <div className="col-span-2">
+      <label
+        htmlFor={fieldId}
+        className="mb-1 block text-[11px] font-medium uppercase text-muted-foreground"
+      >
+        {label}
+      </label>
+      <textarea
+        id={fieldId}
+        defaultValue={value}
+        key={value}
+        rows={3}
+        onBlur={(event) => {
+          if (event.currentTarget.value !== value) {
+            onCommit(event.currentTarget.value);
+          }
+        }}
+        onKeyDown={(event) => {
+          if ((event.metaKey || event.ctrlKey) && event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+        }}
+        className="min-h-20 w-full resize-none rounded-md border border-border bg-white px-2 py-1.5 text-sm leading-5 text-foreground outline-none focus:border-primary"
+      />
+    </div>
+  );
+}
+
+function InspectorNumberInput({
+  label,
+  value,
+  suffix,
+  placeholder,
+  step = "1",
+  min,
+  max,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  suffix?: string;
+  placeholder?: string;
+  step?: string;
+  min?: string;
+  max?: string;
+  onCommit: (value: string) => void;
+}) {
+  const fieldId = inspectorFieldId(label);
+
+  return (
+    <div className="min-w-0">
+      <label
+        htmlFor={fieldId}
+        className="mb-1 block text-[11px] font-medium uppercase text-muted-foreground"
+      >
+        {label}
+      </label>
+      <input
+        id={fieldId}
+        type="number"
+        defaultValue={value}
+        key={value}
+        placeholder={placeholder}
+        step={step}
+        min={min}
+        max={max}
+        onBlur={(event) => {
+          if (event.currentTarget.value !== value) {
+            onCommit(event.currentTarget.value);
+          }
+        }}
+        onKeyDown={(event) => {
+          if (event.key === "Enter") {
+            event.currentTarget.blur();
+          }
+        }}
+        className="h-8 w-full rounded-md border border-border bg-white px-2 font-mono text-xs text-foreground outline-none focus:border-primary"
+      />
+      {suffix ? (
+        <div className="mt-1 truncate text-[10px] text-muted-foreground">
+          {suffix}
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
 function EmptyPanelText({ text }: { text: string }) {
   return (
     <div className="flex h-full min-h-32 items-center justify-center p-6 text-center text-sm leading-6 text-muted-foreground">
@@ -660,4 +833,12 @@ function formatBounds(bounds: EditorLayer["bounds"]): string {
   ]
     .filter(Boolean)
     .join(" · ");
+}
+
+function formatOptionalNumber(value: number | undefined): string {
+  return value === undefined ? "" : String(value);
+}
+
+function inspectorFieldId(label: string): string {
+  return `inspector-${label.toLowerCase().replace(/\s+/g, "-")}`;
 }

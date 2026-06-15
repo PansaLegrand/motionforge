@@ -11,6 +11,7 @@ export type EditorLayer = {
   id: string;
   type: SceneNode["type"];
   label: string;
+  text?: string;
   parentId?: string;
   depth: number;
   localFrom: number;
@@ -19,6 +20,7 @@ export type EditorLayer = {
   duration: number;
   end: number;
   zIndex: number;
+  opacity?: number;
   paintIndex: number;
   childCount: number;
   bounds?: EditorLayerBounds;
@@ -88,6 +90,7 @@ function collectLayer(
     id: node.id,
     type: node.type,
     label: layerLabel(node),
+    text: node.type === "text" ? node.text : undefined,
     parentId: context.parentId,
     depth: context.depth,
     localFrom,
@@ -96,6 +99,8 @@ function collectLayer(
     duration: absoluteEnd - absoluteFrom,
     end: absoluteEnd,
     zIndex: typeof node.style?.zIndex === "number" ? node.style.zIndex : 0,
+    opacity:
+      typeof node.style?.opacity === "number" ? node.style.opacity : undefined,
     paintIndex: context.paintIndex.current,
     childCount: node.children?.length ?? 0,
     bounds: layerBounds(node),

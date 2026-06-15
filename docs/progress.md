@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-15 (chat + edit slice 4: patch-backed inspector edits)
+
+### Changed
+
+- Added a small inspector patch helper that maps text, local timing, geometry, and opacity edits to RFC 0001 scene patches (`setText`, `retime`, `setStyle`).
+- The Inspector panel now exposes editable controls for text nodes, start/duration, left/top/width/height, and opacity; commits flow through `applyScenePatch` against the canonical MotionForge scene.
+- Layer projection now carries text and opacity so the inspector can show real editable values, and the editor displays the latest applied patch or a validation error for developer feedback.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat build`
+- `pnpm --filter @motionforge/chat typecheck`
+- Browser smoke test on `http://localhost:5176`: opened Examples, loaded README scene **Animated Chart**, switched to Inspector, edited `Left` to `99`, confirmed the app emitted a `setStyle` patch with `left: 99`, and verified no browser console errors were reported.
+
+### Notes
+
+- Inputs intentionally commit on blur/Enter for this first precision-edit slice. Drag handles, undo/redo, and selection-aware chat context remain follow-up slices.
+- An existing stale dev server on `5174` was serving HTML but missing unversioned client chunks after a production build; smoke verification used a clean temporary dev server on `5176`.
+
 ## 2026-06-15 (chat + edit slice 3: README showcase scene loader)
 
 ### Changed

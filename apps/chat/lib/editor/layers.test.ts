@@ -38,6 +38,7 @@ describe("deriveEditorLayers", () => {
                 width: "80%",
                 height: "180",
                 zIndex: 5,
+                opacity: 0.72,
               },
             },
           ],
@@ -79,6 +80,8 @@ describe("deriveEditorLayers", () => {
       duration: 30,
       end: 45,
       zIndex: 5,
+      opacity: 0.72,
+      text: "  A launch title with  extra whitespace  ",
       bounds: {
         left: 64,
         top: 120,
