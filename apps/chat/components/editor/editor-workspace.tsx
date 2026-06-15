@@ -37,18 +37,18 @@ export function ToolRail({
   ];
 
   return (
-    <nav className="flex min-h-0 flex-col items-center border-r border-border bg-[hsl(220_18%_12%)] py-2 text-white">
-      <div className="mb-3 inline-flex h-9 w-9 items-center justify-center rounded-md bg-white/10 text-[hsl(186_80%_72%)]">
+    <nav className="col-span-full flex min-h-0 shrink-0 items-center border-b border-border bg-[hsl(220_18%_12%)] px-2 py-1 text-white lg:col-span-1 lg:row-span-full lg:flex-col lg:border-b-0 lg:border-r lg:px-0 lg:py-2">
+      <div className="mr-2 inline-flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-[hsl(186_80%_72%)] lg:mb-3 lg:mr-0 lg:h-9 lg:w-9">
         <Sparkles className="h-5 w-5" />
       </div>
-      <div className="flex flex-1 flex-col items-center gap-1">
+      <div className="flex flex-1 items-center gap-1 lg:flex-col">
         {items.map((item) => (
           <button
             key={item.id}
             type="button"
             onClick={() => onPanelChange(item.id)}
             className={cn(
-              "inline-flex h-10 w-10 items-center justify-center rounded-md text-white/62 transition",
+              "inline-flex h-9 w-9 items-center justify-center rounded-md text-white/62 transition lg:h-10 lg:w-10",
               activePanel === item.id
                 ? "bg-white text-[hsl(220_18%_12%)]"
                 : "hover:bg-white/10 hover:text-white",
@@ -601,12 +601,12 @@ export function TimelinePanel({
           className="mx-4 h-1.5 flex-1 accent-[hsl(var(--primary))]"
         />
 
-        <div className="w-56 truncate text-right text-xs text-muted-foreground">
+        <div className="hidden w-40 truncate text-right text-xs text-muted-foreground sm:block lg:w-56">
           {exportReadiness.status}
         </div>
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[164px_minmax(0,1fr)] overflow-hidden">
+      <div className="grid min-h-0 flex-1 grid-cols-[120px_minmax(0,1fr)] overflow-hidden sm:grid-cols-[164px_minmax(0,1fr)]">
         <div className="border-r border-border bg-[hsl(220_14%_98%)]">
           <div className="h-6 border-b border-border px-3 text-[10px] font-semibold uppercase leading-6 text-muted-foreground">
             Tracks
@@ -619,7 +619,7 @@ export function TimelinePanel({
                   type="button"
                   onClick={() => onSelectLayer(layer.id)}
                   className={cn(
-                    "flex h-8 w-full items-center gap-2 border-b border-border/70 px-3 text-left text-xs",
+                    "flex h-8 w-full items-center gap-2 border-b border-border/70 px-2 text-left text-xs sm:px-3",
                     selectedLayerId === layer.id
                       ? "bg-primary/10 text-foreground"
                       : "text-muted-foreground hover:bg-muted",
@@ -630,7 +630,7 @@ export function TimelinePanel({
                 </button>
               ))
             ) : (
-              <div className="px-3 py-4 text-xs leading-5 text-muted-foreground">
+              <div className="px-2 py-4 text-xs leading-5 text-muted-foreground sm:px-3">
                 No tracks yet.
               </div>
             )}
@@ -668,7 +668,7 @@ export function TimelinePanel({
                 </button>
               ))
             ) : (
-              <div className="px-4 py-8 text-xs text-muted-foreground">
+              <div className="px-3 py-6 text-xs text-muted-foreground sm:px-4 sm:py-8">
                 Generated layers will appear on the timeline.
               </div>
             )}

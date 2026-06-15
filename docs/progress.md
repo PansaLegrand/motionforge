@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 10: narrow-viewport layout)
+
+### Changed
+
+- Made the chat editor shell responsive below `lg`: the tool rail becomes a top bar, the active side panel sits above the editor, and preview/timeline share the remaining height.
+- Kept the existing desktop layout intact at `lg` and up: vertical rail, side panel, central editor.
+- Compacted mobile toolbar controls and timeline tracks so JSON/export actions and track rows fit without horizontal overflow.
+- Added a small responsive-layout helper and tests to document the stacked-vs-desktop breakpoint.
+- Updated the roadmap to mark usable narrow-viewport layout complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5182` desktop `1280x720`: confirmed rail/sidebar/editor stayed in desktop columns, empty copy rendered, and no horizontal overflow or browser console errors appeared.
+- Browser smoke test on `http://localhost:5182` mobile `390x844`: confirmed stacked rail/panel/editor layout, no horizontal overflow, loaded **Product Launch**, saw a `1080x1920` scene with `6 layers`, populated timeline tracks, and no browser console errors.
+
+### Notes
+
+- This is a usability pass, not a dedicated mobile editor redesign. The next roadmap item is compact timeline interaction: scrub, drag, resize handles, split, and snap.
+
 ## 2026-06-16 (chat + edit slice 9: capability and empty-state messaging)
 
 ### Changed

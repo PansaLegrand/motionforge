@@ -588,10 +588,10 @@ export function MotionforgeChatApp() {
 
   return (
     <main className="h-[100dvh] min-h-0 overflow-hidden bg-[hsl(220_14%_96%)] text-foreground">
-      <div className="grid h-full min-h-0 grid-cols-[56px_320px_minmax(0,1fr)] overflow-hidden">
+      <div className="grid h-full min-h-0 grid-rows-[48px_minmax(180px,34dvh)_minmax(0,1fr)] overflow-hidden lg:grid-cols-[56px_320px_minmax(0,1fr)] lg:grid-rows-1">
         <ToolRail activePanel={activePanel} onPanelChange={setActivePanel} />
 
-        <aside className="flex min-h-0 min-w-0 flex-col border-r border-border bg-card">
+        <aside className="flex min-h-0 min-w-0 flex-col border-b border-border bg-card lg:border-b-0 lg:border-r">
           <PanelSwitcher
             activePanel={activePanel}
             messages={messages}
@@ -615,12 +615,12 @@ export function MotionforgeChatApp() {
         </aside>
 
         <section className="flex min-h-0 min-w-0 flex-col overflow-hidden">
-          <header className="flex h-12 shrink-0 items-center justify-between border-b border-border bg-card px-3">
+          <header className="flex min-h-12 shrink-0 flex-wrap items-center justify-between gap-2 border-b border-border bg-card px-3 py-2 lg:h-12 lg:flex-nowrap lg:py-0">
             <div className="flex min-w-0 items-center gap-2">
               <button
                 type="button"
                 onClick={() => setActivePanel("chat")}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-foreground"
+                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-foreground lg:hidden"
                 title="Open assistant"
               >
                 <PanelLeftClose className="h-4 w-4" />
@@ -636,7 +636,7 @@ export function MotionforgeChatApp() {
                 </p>
               </div>
             </div>
-            <div className="flex items-center gap-1.5">
+            <div className="flex shrink-0 items-center gap-1.5">
               <button
                 type="button"
                 onClick={undoSceneChange}
@@ -661,16 +661,19 @@ export function MotionforgeChatApp() {
                 type="button"
                 onClick={() => setShowJson((value) => !value)}
                 disabled={!scene}
-                className="inline-flex h-8 items-center gap-2 rounded-md border border-border bg-white px-2.5 text-xs text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md border border-border bg-white px-2 text-xs text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-2.5"
+                title={showJson ? "Hide JSON" : "View JSON"}
               >
                 <FileJson className="h-3.5 w-3.5" />
-                {showJson ? "Hide JSON" : "JSON"}
+                <span className="hidden sm:inline">
+                  {showJson ? "Hide JSON" : "JSON"}
+                </span>
               </button>
               <button
                 type="button"
                 onClick={exportCurrentScene}
                 disabled={exportReadiness.disabled}
-                className="inline-flex h-8 items-center gap-2 rounded-md bg-accent px-3 text-xs font-medium text-accent-foreground shadow-sm hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+                className="inline-flex h-8 items-center gap-1.5 rounded-md bg-accent px-2.5 text-xs font-medium text-accent-foreground shadow-sm hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50 sm:gap-2 sm:px-3"
                 title={exportReadiness.title}
               >
                 {isExporting ? (
@@ -678,12 +681,12 @@ export function MotionforgeChatApp() {
                 ) : (
                   <Download className="h-3.5 w-3.5" />
                 )}
-                Export
+                <span className="hidden sm:inline">Export</span>
               </button>
             </div>
           </header>
 
-          <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_156px] overflow-hidden">
+          <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)_128px] overflow-hidden sm:grid-rows-[minmax(0,1fr)_156px]">
             <PreviewWorkspace
               canvasRef={canvasRef}
               scene={scene}
@@ -703,7 +706,7 @@ export function MotionforgeChatApp() {
           </div>
 
           {showJson ? (
-            <div className="h-56 border-t border-border bg-[hsl(220_18%_12%)]">
+            <div className="h-44 border-t border-border bg-[hsl(220_18%_12%)] sm:h-56">
               <div className="flex h-10 items-center justify-between border-b border-white/10 px-4">
                 <span className="text-xs font-medium uppercase text-[hsl(180_40%_78%)]">
                   Scene JSON
@@ -731,7 +734,7 @@ export function MotionforgeChatApp() {
             </div>
           ) : null}
           {editorError || lastPatch ? (
-            <div className="flex h-10 shrink-0 items-center gap-3 border-t border-border bg-card px-4 text-xs">
+            <div className="flex min-h-10 shrink-0 items-center gap-2 border-t border-border bg-card px-3 py-2 text-xs sm:gap-3 sm:px-4">
               {editorError ? (
                 <span className="min-w-0 truncate text-destructive">
                   {editorError}
