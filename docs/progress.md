@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 11: compact timeline scrub)
+
+### Changed
+
+- Added timeline-surface scrubbing: click or drag the compact timeline body to seek the playhead frame.
+- Added pointer capture during scrubbing so drag remains stable while the pointer stays inside the timeline interaction.
+- Layer block clicks still select layers without also scrubbing.
+- Added tested frame-math helper `frameFromTimelinePoint()` to map pointer position to clamped scene frames.
+- Updated the roadmap to mark compact timeline scrub complete while leaving drag retiming, resize handles, split, and snap as follow-up timeline slices.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5183`: loaded **Product Launch**, clicked the timeline scrub gutter near the end, confirmed the range value moved from frame `36` to `143` and the displayed time changed to `00:04`, with no browser console errors reported.
+
+### Notes
+
+- This is the first compact timeline interaction slice. It changes only playhead seeking, not layer timing.
+- The timeline now has a dedicated top scrub gutter so full-width layer blocks can still be selected without blocking playhead scrubbing.
+
 ## 2026-06-16 (chat + edit slice 10: narrow-viewport layout)
 
 ### Changed

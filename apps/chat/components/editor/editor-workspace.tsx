@@ -11,7 +11,7 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import type { ReactNode, RefObject } from "react";
+import type { MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
 import type { Scene } from "@motionforge/schema";
 import {
   describeExportReadiness,
@@ -19,7 +19,11 @@ import {
 } from "@/lib/editor/capability-messages";
 import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
-import { formatFrameTime, formatSeconds } from "@/lib/editor/time";
+import {
+  formatFrameTime,
+  formatSeconds,
+  frameFromTimelinePoint,
+} from "@/lib/editor/time";
 import { cn } from "@/lib/ui/cn";
 import type { ChatMessage, EditorPanel, PlayerUiState } from "./types";
 
@@ -557,6 +561,7 @@ export function TimelinePanel({
   onSeek: (frame: number) => void;
 }) {
   const duration = scene?.duration ?? 1;
+  const canScrub = Boolean(scene && !playerState.loading && !playerState.error);
   const exportReadiness = describeExportReadiness({
     hasScene: Boolean(scene),
     previewLoading: playerState.loading,
@@ -566,6 +571,30 @@ export function TimelinePanel({
     exportStatus,
     layerCount: layers.length,
   });
+  const scrubTimelineAtClientX = (
+    clientX: number,
+    timelineElement: HTMLDivElement,
+  ) => {
+    if (!canScrub) {
+      return;
+    }
+
+    const bounds = timelineElement.getBoundingClientRect();
+    onSeek(
+      frameFromTimelinePoint({
+        clientX,
+        timelineLeft: bounds.left,
+        timelineWidth: bounds.width,
+        duration,
+      }),
+    );
+  };
+  const scrubPointerTimeline = (event: PointerEvent<HTMLDivElement>) => {
+    scrubTimelineAtClientX(event.clientX, event.currentTarget);
+  };
+  const scrubMouseTimeline = (event: MouseEvent<HTMLDivElement>) => {
+    scrubTimelineAtClientX(event.clientX, event.currentTarget);
+  };
 
   return (
     <div className="flex min-h-0 flex-col border-t border-border bg-card">
@@ -637,7 +666,48 @@ export function TimelinePanel({
           </div>
         </div>
 
-        <div className="relative overflow-hidden bg-white">
+        <div
+          className={cn(
+            "relative overflow-hidden bg-white",
+            canScrub ? "cursor-col-resize touch-none" : "",
+          )}
+          onPointerDown={(event) => {
+            if (!canScrub) {
+              return;
+            }
+
+            event.currentTarget.setPointerCapture(event.pointerId);
+            scrubPointerTimeline(event);
+          }}
+          onPointerMove={(event) => {
+            if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+              return;
+            }
+
+            scrubPointerTimeline(event);
+          }}
+          onPointerUp={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+          }}
+          onPointerCancel={(event) => {
+            if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+              event.currentTarget.releasePointerCapture(event.pointerId);
+            }
+          }}
+          onMouseDown={(event) => {
+            scrubMouseTimeline(event);
+          }}
+          onMouseMove={(event) => {
+            if (event.buttons !== 1) {
+              return;
+            }
+
+            scrubMouseTimeline(event);
+          }}
+          aria-label="Timeline scrub area"
+        >
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(214_18%_86%/.8)_1px,transparent_1px)] bg-[size:64px_100%]" />
           <div
             className="absolute bottom-0 top-0 w-px bg-accent"
@@ -645,12 +715,15 @@ export function TimelinePanel({
               left: `${scene ? (playerState.frame / Math.max(1, duration - 1)) * 100 : 0}%`,
             }}
           />
-          <div className="relative pt-6">
+          <div className="pointer-events-none absolute inset-x-0 top-0 h-7 border-b border-border/70 bg-white/70" />
+          <div className="relative h-full">
             {layers.length ? (
               layers.slice(0, 4).map((layer, index) => (
                 <button
                   key={layer.id}
                   type="button"
+                  onPointerDown={(event) => event.stopPropagation()}
+                  onMouseDown={(event) => event.stopPropagation()}
                   onClick={() => onSelectLayer(layer.id)}
                   className={cn(
                     "absolute h-6 rounded-md border px-2 text-left text-[11px] font-medium shadow-sm transition",
@@ -659,7 +732,7 @@ export function TimelinePanel({
                       : "border-primary/30 bg-primary/15 text-primary hover:bg-primary/20",
                   )}
                   style={{
-                    top: `${index * 32 + 4}px`,
+                    top: `${index * 32 + 34}px`,
                     left: `${(layer.from / duration) * 100}%`,
                     width: `${Math.max(4, (layer.duration / duration) * 100)}%`,
                   }}
