@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 8: starter template examples)
+
+### Changed
+
+- Replaced the unused static starter scene with a typed starter-template catalog generated through the local `createSceneFromInstruction()` path.
+- Added three preset-backed first drafts to the Examples dialog: Product Launch, Kinetic Typography, and Founder Update.
+- Loading a starter template now commits a real scene into the editor, records history, switches to Layers, clears stale patch/error state, and leaves an assistant message with the source prompt.
+- Prompt examples remain available as chat-input chips, and README scenes remain available as full showcase JSON loads.
+- Updated the roadmap to mark starter-template examples complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5180`: opened Examples, loaded **Product Launch** from Starter templates, confirmed the dialog closed into a `1080x1920` scene with `6 layers` and populated timeline tracks, and verified no browser console errors were reported.
+
+### Notes
+
+- The template catalog intentionally uses the same local generator as the no-credential chat fallback, so example starts exercise the path users see when they click before configuring a model.
+- The next Week 5 slice should address honest browser/export capability messaging and empty/error states before timeline drag behavior.
+
 ## 2026-06-16 (chat + edit slice 7: preset-backed first drafts)
 
 ### Changed

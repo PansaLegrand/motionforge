@@ -47,7 +47,12 @@ import type {
   EditorPanel,
   PlayerUiState,
 } from "@/components/editor/types";
-import { promptChips } from "@/lib/motionforge/examples";
+import {
+  cloneStarterTemplateScene,
+  promptChips,
+  starterTemplateExamples,
+  type StarterTemplateExample,
+} from "@/lib/motionforge/examples";
 import type { MotionforgeAgentResult } from "@/lib/motionforge/local-agent";
 import {
   cloneReadmeShowcaseScene,
@@ -68,7 +73,7 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-type SceneChangeSource = "assistant" | "showcase" | "inspector";
+type SceneChangeSource = "assistant" | "template" | "showcase" | "inspector";
 
 export function MotionforgeChatApp() {
   const [scene, setScene] = useState<Scene | null>(null);
@@ -523,6 +528,28 @@ export function MotionforgeChatApp() {
     setShowExamples(false);
   }, []);
 
+  const loadStarterTemplate = useCallback((example: StarterTemplateExample) => {
+    commitSceneChange(cloneStarterTemplateScene(example), "template");
+    setSelectedLayerId(null);
+    setExportStatus("");
+    setCopyStatus("idle");
+    setLastPatch(null);
+    setEditorError(null);
+    setShowJson(false);
+    setShowExamples(false);
+    setActivePanel("layers");
+    setMessages((items) => [
+      ...items,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `Loaded starter template: ${example.title}.`,
+        source: "local",
+        diagnostics: [`Prompt: ${example.prompt}`],
+      },
+    ]);
+  }, [commitSceneChange]);
+
   const loadReadmeShowcase = useCallback((example: ReadmeShowcaseExample) => {
     commitSceneChange(cloneReadmeShowcaseScene(example), "showcase");
     setSelectedLayerId(null);
@@ -717,8 +744,10 @@ export function MotionforgeChatApp() {
 
       {showExamples ? (
         <ExamplesDialog
+          templates={starterTemplateExamples}
           prompts={promptChips}
           showcases={readmeShowcaseExamples}
+          onLoadTemplate={loadStarterTemplate}
           onSelectPrompt={selectExample}
           onLoadShowcase={loadReadmeShowcase}
           onClose={() => setShowExamples(false)}

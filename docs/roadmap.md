@@ -148,7 +148,7 @@ Decisions recorded 2026-06-12:
 ### Week 5 — compact timeline + public launch surface
 
 - ✅ First-touch quality foundation: local first-draft generation is backed by `timeline()` + presets so fallback scenes use designed entrance motion instead of hand-built default keyframes.
-- Expand template/suggestion chips backed by presets for richer one-click starts.
+- ✅ Starter template examples: the Examples dialog can load preset-backed first drafts directly, while prompt chips remain available for chat-input examples.
 - Honest edges: Safari capability messaging, export-unsupported fallbacks, empty/error states, usable narrow-viewport layout.
 - Compact timeline: scrub playhead, show layer blocks, retime by dragging, resize duration handles, split at playhead, and snap to neighboring blocks.
 - Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
