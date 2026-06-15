@@ -8,7 +8,9 @@
   "packageManager": "pnpm@10.22.0",
   "scripts": {
     "build": "pnpm -r build",
-    "dev": "pnpm --filter @motionforge/playground dev",
+    "dev": "pnpm --filter @motionforge/chat dev",
+    "dev:chat": "pnpm --filter @motionforge/chat dev",
+    "dev:playground": "pnpm --filter @motionforge/playground dev",
     "golden:test": "pnpm --filter @motionforge/golden run golden:test",
     "golden:update": "pnpm --filter @motionforge/golden run update",
     "showcase:generate": "node examples/generate-showcase.mjs",

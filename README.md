@@ -66,6 +66,7 @@ flowchart TB
 | [`@motionforge/export`](packages/export)                       | In-browser MP4 export (WebCodecs + mediabunny)      | ✅ working |
 | [`@motionforge/presets`](packages/presets)                     | Animation presets + caption generators → scene data | ✅ working |
 | [`@motionforge/player`](packages/player)                       | Real-time playback: frame clock, play/pause/seek    | ✅ working |
+| [`apps/chat`](apps/chat)                                       | Next.js chat app with prompt, preview, JSON, export  | ✅ working |
 | [`apps/playground`](apps/playground)                           | Vite preview with frame scrubbing                   | ✅ working |
 
 ## Why not Remotion?
@@ -95,7 +96,37 @@ This project treats LLM agents as first-class users:
 pnpm install
 pnpm build
 pnpm test
-pnpm dev   # playground at http://localhost:5173
+pnpm dev   # Next.js chat app at http://localhost:5174
+```
+
+`pnpm dev` starts the chat app by default. To run the older Vite playground explicitly:
+
+```sh
+pnpm dev:playground   # playground at http://localhost:5173
+```
+
+The chat app runs with a local fallback when no model credentials are set. For LLM-backed generation, copy the example env file and choose a provider:
+
+```sh
+cp apps/chat/.env.example apps/chat/.env.local
+```
+
+Vercel AI Gateway is the default:
+
+```sh
+MOTIONFORGE_LLM_PROVIDER=gateway
+AI_GATEWAY_API_KEY=...
+MOTIONFORGE_CHAT_MODEL=openai/gpt-4.1-mini
+```
+
+For your own OpenAI-compatible provider, switch the provider and set its base URL:
+
+```sh
+MOTIONFORGE_LLM_PROVIDER=openai-compatible
+MOTIONFORGE_OPENAI_COMPATIBLE_BASE_URL=https://api.openai.com/v1
+MOTIONFORGE_OPENAI_COMPATIBLE_API_KEY=...
+MOTIONFORGE_OPENAI_COMPATIBLE_NAME=custom
+MOTIONFORGE_CHAT_MODEL=gpt-4.1-mini
 ```
 
 `pnpm test` runs unit tests only. Golden rendering tests are explicit because they need the Playwright-pinned Chromium once per machine:

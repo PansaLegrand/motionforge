@@ -1,5 +1,6 @@
 node_modules
 dist
+.next
 .turbo
 .DS_Store
 coverage
@@ -10,3 +11,4 @@ examples/*.mp4
 tools/spike-editor-adapter/out/
 fixtures/goldens/__diffs__/
 examples/generated/*.mp4
+apps/chat/.env.local
