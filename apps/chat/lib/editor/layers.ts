@@ -12,6 +12,11 @@ export type EditorLayer = {
   type: SceneNode["type"];
   label: string;
   text?: string;
+  color?: string;
+  fontSize?: number | string;
+  fontWeight?: number | string;
+  textAlign?: "left" | "center" | "right";
+  textStroke?: string;
   parentId?: string;
   depth: number;
   localFrom: number;
@@ -91,6 +96,14 @@ function collectLayer(
     type: node.type,
     label: layerLabel(node),
     text: node.type === "text" ? node.text : undefined,
+    color: typeof node.style?.color === "string" ? node.style.color : undefined,
+    fontSize: node.style?.fontSize,
+    fontWeight: node.style?.fontWeight,
+    textAlign: node.style?.textAlign,
+    textStroke:
+      typeof node.style?.textStroke === "string"
+        ? node.style.textStroke
+        : undefined,
     parentId: context.parentId,
     depth: context.depth,
     localFrom,

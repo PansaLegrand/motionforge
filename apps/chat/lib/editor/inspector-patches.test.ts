@@ -22,6 +22,11 @@ const scene: Scene = {
         top: 200,
         width: 600,
         opacity: 1,
+        color: "#ffffff",
+        fontSize: 72,
+        fontWeight: 800,
+        textAlign: "center",
+        textStroke: "4px #000000",
       },
     },
   ],
@@ -55,6 +60,7 @@ describe("createInspectorPatch", () => {
   it("creates style patches and uses blank numeric fields to delete style values", () => {
     const left = createInspectorPatch("title", "left", "240");
     const height = createInspectorPatch("title", "height", "");
+    const fontSize = createInspectorPatch("title", "fontSize", "96");
 
     expect(left).toEqual({
       ok: true,
@@ -63,6 +69,38 @@ describe("createInspectorPatch", () => {
     expect(height).toEqual({
       ok: true,
       patch: [{ op: "setStyle", id: "title", style: { height: null } }],
+    });
+    expect(fontSize).toEqual({
+      ok: true,
+      patch: [{ op: "setStyle", id: "title", style: { fontSize: 96 } }],
+    });
+    expect(createInspectorPatch("title", "fontSize", "72px")).toEqual({
+      ok: true,
+      patch: [{ op: "setStyle", id: "title", style: { fontSize: "72px" } }],
+    });
+  });
+
+  it("creates text style patches and deletes blank string values", () => {
+    const color = createInspectorPatch("title", "color", "#14b8a6");
+    const align = createInspectorPatch("title", "textAlign", "right");
+    const stroke = createInspectorPatch("title", "textStroke", "");
+    const weight = createInspectorPatch("title", "fontWeight", "bold");
+
+    expect(color).toEqual({
+      ok: true,
+      patch: [{ op: "setStyle", id: "title", style: { color: "#14b8a6" } }],
+    });
+    expect(align).toEqual({
+      ok: true,
+      patch: [{ op: "setStyle", id: "title", style: { textAlign: "right" } }],
+    });
+    expect(stroke).toEqual({
+      ok: true,
+      patch: [{ op: "setStyle", id: "title", style: { textStroke: null } }],
+    });
+    expect(weight).toEqual({
+      ok: true,
+      patch: [{ op: "setStyle", id: "title", style: { fontWeight: "bold" } }],
     });
   });
 
@@ -78,6 +116,14 @@ describe("createInspectorPatch", () => {
     expect(createInspectorPatch("title", "opacity", "1.4")).toEqual({
       ok: false,
       error: "opacity must be between 0 and 1.",
+    });
+    expect(createInspectorPatch("title", "textAlign", "justify")).toEqual({
+      ok: false,
+      error: "textAlign must be left, center, or right.",
+    });
+    expect(createInspectorPatch("title", "fontWeight", "heavy")).toEqual({
+      ok: false,
+      error: "fontWeight must be a positive whole number, normal, or bold.",
     });
   });
 });

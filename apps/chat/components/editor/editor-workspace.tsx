@@ -346,13 +346,61 @@ function InspectorPanel({
               value={displayLayerType(selectedLayer.type)}
             />
             {selectedLayer.type === "text" ? (
-              <InspectorTextArea
-                label="Text"
-                value={selectedLayer.text ?? ""}
-                onCommit={(value) =>
-                  onEditLayer(selectedLayer.id, "text", value)
-                }
-              />
+              <>
+                <InspectorTextArea
+                  label="Text"
+                  value={selectedLayer.text ?? ""}
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "text", value)
+                  }
+                />
+                <InspectorTextInput
+                  label="Color"
+                  value={selectedLayer.color ?? ""}
+                  placeholder="#ffffff"
+                  swatch
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "color", value)
+                  }
+                />
+                <InspectorTextInput
+                  label="Font size"
+                  value={formatOptionalStyleValue(selectedLayer.fontSize)}
+                  placeholder="default"
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "fontSize", value)
+                  }
+                />
+                <InspectorTextInput
+                  label="Font weight"
+                  value={formatOptionalStyleValue(selectedLayer.fontWeight)}
+                  placeholder="default"
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "fontWeight", value)
+                  }
+                />
+                <InspectorSelectInput
+                  label="Align"
+                  value={selectedLayer.textAlign ?? ""}
+                  options={[
+                    { label: "Default", value: "" },
+                    { label: "Left", value: "left" },
+                    { label: "Center", value: "center" },
+                    { label: "Right", value: "right" },
+                  ]}
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "textAlign", value)
+                  }
+                />
+                <InspectorTextInput
+                  label="Stroke"
+                  value={selectedLayer.textStroke ?? ""}
+                  placeholder="4px #000000"
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "textStroke", value)
+                  }
+                />
+              </>
             ) : null}
             <InspectorNumberInput
               label="Start"
@@ -753,6 +801,59 @@ function InspectorTextArea({
   );
 }
 
+function InspectorTextInput({
+  label,
+  value,
+  placeholder,
+  swatch = false,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  placeholder?: string;
+  swatch?: boolean;
+  onCommit: (value: string) => void;
+}) {
+  const fieldId = inspectorFieldId(label);
+
+  return (
+    <div className="min-w-0">
+      <label
+        htmlFor={fieldId}
+        className="mb-1 block text-[11px] font-medium uppercase text-muted-foreground"
+      >
+        {label}
+      </label>
+      <div className="flex h-8 items-center gap-1.5 rounded-md border border-border bg-white px-2 focus-within:border-primary">
+        {swatch ? (
+          <span
+            className="h-4 w-4 shrink-0 rounded-sm border border-border"
+            style={{ background: value || "transparent" }}
+          />
+        ) : null}
+        <input
+          id={fieldId}
+          type="text"
+          defaultValue={value}
+          key={value}
+          placeholder={placeholder}
+          onBlur={(event) => {
+            if (event.currentTarget.value !== value) {
+              onCommit(event.currentTarget.value);
+            }
+          }}
+          onKeyDown={(event) => {
+            if (event.key === "Enter") {
+              event.currentTarget.blur();
+            }
+          }}
+          className="min-w-0 flex-1 border-0 bg-transparent font-mono text-xs text-foreground outline-none placeholder:text-muted-foreground"
+        />
+      </div>
+    </div>
+  );
+}
+
 function InspectorNumberInput({
   label,
   value,
@@ -812,6 +913,43 @@ function InspectorNumberInput({
   );
 }
 
+function InspectorSelectInput({
+  label,
+  value,
+  options,
+  onCommit,
+}: {
+  label: string;
+  value: string;
+  options: Array<{ label: string; value: string }>;
+  onCommit: (value: string) => void;
+}) {
+  const fieldId = inspectorFieldId(label);
+
+  return (
+    <div className="min-w-0">
+      <label
+        htmlFor={fieldId}
+        className="mb-1 block text-[11px] font-medium uppercase text-muted-foreground"
+      >
+        {label}
+      </label>
+      <select
+        id={fieldId}
+        value={value}
+        onChange={(event) => onCommit(event.currentTarget.value)}
+        className="h-8 w-full rounded-md border border-border bg-white px-2 text-xs text-foreground outline-none focus:border-primary"
+      >
+        {options.map((option) => (
+          <option key={option.value} value={option.value}>
+            {option.label}
+          </option>
+        ))}
+      </select>
+    </div>
+  );
+}
+
 function EmptyPanelText({ text }: { text: string }) {
   return (
     <div className="flex h-full min-h-32 items-center justify-center p-6 text-center text-sm leading-6 text-muted-foreground">
@@ -836,6 +974,10 @@ function formatBounds(bounds: EditorLayer["bounds"]): string {
 }
 
 function formatOptionalNumber(value: number | undefined): string {
+  return value === undefined ? "" : String(value);
+}
+
+function formatOptionalStyleValue(value: number | string | undefined): string {
   return value === undefined ? "" : String(value);
 }
 

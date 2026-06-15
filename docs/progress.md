@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 6: text style inspector controls)
+
+### Changed
+
+- Extended editor layer projection with common text style values: color, font size, font weight, text alignment, and text stroke.
+- Inspector edits now map those fields to `setStyle` patches through the same patch-backed path as timing and geometry.
+- Added text style controls to the Inspector for text nodes, including a color swatch, font size/weight inputs, alignment select, and stroke input.
+- Updated the roadmap to mark undo/redo and common text style Inspector coverage complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5178`: loaded README scene **Animated Chart**, selected the title text layer, edited Color to `#14b8a6`, changed Align to `right`, confirmed both emitted `setStyle` patches, and verified no browser console errors were reported.
+
+### Notes
+
+- This slice focuses on text-node style controls. Shape/image/container fills, borders, shadows, and timeline drag handles remain natural follow-up slices.
+
 ## 2026-06-16 (chat + edit slice 5: undo/redo for manual edits)
 
 ### Changed

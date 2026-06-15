@@ -8,7 +8,12 @@ export type InspectorEditableField =
   | "top"
   | "width"
   | "height"
-  | "opacity";
+  | "opacity"
+  | "color"
+  | "fontSize"
+  | "fontWeight"
+  | "textAlign"
+  | "textStroke";
 
 export type InspectorEditResult =
   | { ok: true; patch: ScenePatch }
@@ -20,7 +25,14 @@ const styleFields = new Set<InspectorEditableField>([
   "width",
   "height",
   "opacity",
+  "color",
+  "fontSize",
+  "fontWeight",
+  "textAlign",
+  "textStroke",
 ]);
+
+const textAlignValues = new Set(["left", "center", "right"]);
 
 export function createInspectorPatch(
   nodeId: string,
@@ -55,10 +67,7 @@ export function createInspectorPatch(
   }
 
   if (styleFields.has(field)) {
-    const value =
-      field === "opacity"
-        ? parseOpacity(rawValue)
-        : parseOptionalNumber(rawValue, field);
+    const value = parseStyleValue(field, rawValue);
 
     if (!value.ok) {
       return value;
@@ -77,6 +86,34 @@ export function createInspectorPatch(
   }
 
   return { ok: false, error: `Unsupported inspector field: ${field}.` };
+}
+
+function parseStyleValue(
+  field: InspectorEditableField,
+  rawValue: string,
+):
+  | { ok: true; value: number | string | null }
+  | { ok: false; error: string } {
+  switch (field) {
+    case "left":
+    case "top":
+    case "width":
+    case "height":
+      return parseOptionalNumber(rawValue, field);
+    case "opacity":
+      return parseOpacity(rawValue);
+    case "fontSize":
+      return parseOptionalLength(rawValue);
+    case "fontWeight":
+      return parseOptionalFontWeight(rawValue);
+    case "color":
+    case "textStroke":
+      return parseOptionalString(rawValue);
+    case "textAlign":
+      return parseTextAlign(rawValue);
+    default:
+      return { ok: false, error: `Unsupported inspector field: ${field}.` };
+  }
 }
 
 function parseInteger(
@@ -125,6 +162,24 @@ function parseOptionalNumber(
   return { ok: true, value };
 }
 
+function parseOptionalLength(
+  rawValue: string,
+): { ok: true; value: number | string | null } | { ok: false; error: string } {
+  const trimmed = rawValue.trim();
+
+  if (!trimmed) {
+    return { ok: true, value: null };
+  }
+
+  const value = Number(trimmed);
+
+  if (Number.isFinite(value)) {
+    return { ok: true, value };
+  }
+
+  return { ok: true, value: trimmed };
+}
+
 function parseOpacity(
   rawValue: string,
 ): { ok: true; value: number | null } | { ok: false; error: string } {
@@ -139,4 +194,52 @@ function parseOpacity(
   }
 
   return parsed;
+}
+
+function parseOptionalString(
+  rawValue: string,
+): { ok: true; value: string | null } {
+  const trimmed = rawValue.trim();
+  return { ok: true, value: trimmed || null };
+}
+
+function parseOptionalFontWeight(
+  rawValue: string,
+): { ok: true; value: number | string | null } | { ok: false; error: string } {
+  const trimmed = rawValue.trim();
+
+  if (!trimmed) {
+    return { ok: true, value: null };
+  }
+
+  if (trimmed === "normal" || trimmed === "bold") {
+    return { ok: true, value: trimmed };
+  }
+
+  const value = Number(trimmed);
+
+  if (!Number.isInteger(value) || value <= 0) {
+    return {
+      ok: false,
+      error: "fontWeight must be a positive whole number, normal, or bold.",
+    };
+  }
+
+  return { ok: true, value };
+}
+
+function parseTextAlign(
+  rawValue: string,
+): { ok: true; value: string | null } | { ok: false; error: string } {
+  const trimmed = rawValue.trim();
+
+  if (!trimmed) {
+    return { ok: true, value: null };
+  }
+
+  if (!textAlignValues.has(trimmed)) {
+    return { ok: false, error: "textAlign must be left, center, or right." };
+  }
+
+  return { ok: true, value: trimmed };
 }
