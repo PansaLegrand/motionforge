@@ -7,8 +7,6 @@ import {
   FileJson,
   Loader2,
   PanelLeftClose,
-  Sparkles,
-  X,
 } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { detectExportCapability, exportVideo } from "@motionforge/export";
@@ -26,6 +24,7 @@ import {
   TimelinePanel,
   ToolRail,
 } from "@/components/editor/editor-workspace";
+import { ExamplesDialog } from "@/components/editor/examples-dialog";
 import type {
   ChatMessage,
   EditorPanel,
@@ -33,6 +32,11 @@ import type {
 } from "@/components/editor/types";
 import { promptChips } from "@/lib/motionforge/examples";
 import type { MotionforgeAgentResult } from "@/lib/motionforge/local-agent";
+import {
+  cloneReadmeShowcaseScene,
+  readmeShowcaseExamples,
+  type ReadmeShowcaseExample,
+} from "@/lib/motionforge/readme-showcases";
 
 type ChatApiResponse =
   | { ok: true; result: MotionforgeAgentResult }
@@ -418,6 +422,26 @@ export function MotionforgeChatApp() {
     setShowExamples(false);
   }, []);
 
+  const loadReadmeShowcase = useCallback((example: ReadmeShowcaseExample) => {
+    setScene(cloneReadmeShowcaseScene(example));
+    setSelectedLayerId(null);
+    setExportStatus("");
+    setCopyStatus("idle");
+    setShowJson(false);
+    setShowExamples(false);
+    setActivePanel("layers");
+    setMessages((items) => [
+      ...items,
+      {
+        id: crypto.randomUUID(),
+        role: "assistant",
+        content: `Loaded README showcase scene: ${example.title}.`,
+        source: "local",
+        diagnostics: [`Source JSON: ${example.jsonPath}`],
+      },
+    ]);
+  }, []);
+
   return (
     <main className="h-[100dvh] min-h-0 overflow-hidden bg-[hsl(220_14%_96%)] text-foreground">
       <div className="grid h-full min-h-0 grid-cols-[56px_320px_minmax(0,1fr)] overflow-hidden">
@@ -550,49 +574,13 @@ export function MotionforgeChatApp() {
       </div>
 
       {showExamples ? (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-[hsl(220_24%_8%/0.36)] px-4"
-          onClick={() => setShowExamples(false)}
-        >
-          <div
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="examples-title"
-            className="w-full max-w-xl overflow-hidden rounded-lg border border-border bg-card shadow-soft"
-            onClick={(event) => event.stopPropagation()}
-          >
-            <div className="flex h-14 items-center justify-between border-b border-border px-4">
-              <div className="flex items-center gap-2">
-                <span className="inline-flex h-8 w-8 items-center justify-center rounded-md bg-primary/10 text-primary">
-                  <Sparkles className="h-4 w-4" />
-                </span>
-                <h3 id="examples-title" className="text-sm font-semibold">
-                  Examples
-                </h3>
-              </div>
-              <button
-                type="button"
-                onClick={() => setShowExamples(false)}
-                className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-foreground"
-                title="Close examples"
-              >
-                <X className="h-4 w-4" />
-              </button>
-            </div>
-            <div className="scrollbar-thin grid max-h-[min(62vh,520px)] gap-2 overflow-y-auto p-3">
-              {promptChips.map((chip) => (
-                <button
-                  key={chip}
-                  type="button"
-                  onClick={() => selectExample(chip)}
-                  className="w-full rounded-md border border-border bg-white px-3 py-3 text-left text-sm leading-6 text-muted-foreground hover:border-primary/40 hover:bg-primary/5 hover:text-foreground"
-                >
-                  {chip}
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
+        <ExamplesDialog
+          prompts={promptChips}
+          showcases={readmeShowcaseExamples}
+          onSelectPrompt={selectExample}
+          onLoadShowcase={loadReadmeShowcase}
+          onClose={() => setShowExamples(false)}
+        />
       ) : null}
     </main>
   );

@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-15 (chat + edit slice 3: README showcase scene loader)
+
+### Changed
+
+- The chat editor Examples dialog now has two sections: prompt examples and README scene examples.
+- Added a typed catalog for the root README verification gallery (`verification/edgy-*.json`), so clicking a README scene loads the actual scene JSON into the editor, selects the Layers panel, and preserves the current conversation as context.
+- The root README showcase table now links each demo's scene JSON directly beside the MP4/poster link.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5175`: opened Examples, selected README scene **Animated Chart**, confirmed the modal closed, the canvas resized to `1280x720`, layers/tracks populated, and no browser console errors were reported.
+
+### Notes
+
+- Bundling the six README verification JSON files increased the chat app route size from roughly 174 kB to 205 kB. Acceptable for this developer/editor slice; revisit with lazy loading if the public app needs a smaller first load.
+- This should make the next inspector-editing slice much easier to test against realistic scene documents.
+
 ## 2026-06-15 (chat + edit slice 2: editor component boundaries)
 
 ### Changed
