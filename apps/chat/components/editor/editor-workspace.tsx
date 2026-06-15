@@ -13,6 +13,10 @@ import {
 } from "lucide-react";
 import type { ReactNode, RefObject } from "react";
 import type { Scene } from "@motionforge/schema";
+import {
+  describeExportReadiness,
+  describePreviewOverlay,
+} from "@/lib/editor/capability-messages";
 import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
 import { formatFrameTime, formatSeconds } from "@/lib/editor/time";
@@ -484,6 +488,12 @@ export function PreviewWorkspace({
   scene: Scene | null;
   playerState: Pick<PlayerUiState, "loading" | "error">;
 }) {
+  const overlay = describePreviewOverlay({
+    hasScene: Boolean(scene),
+    previewLoading: playerState.loading,
+    previewError: playerState.error,
+  });
+
   return (
     <div
       className="relative min-h-0 min-w-0 overflow-hidden bg-[hsl(218_18%_92%)] bg-[linear-gradient(to_right,hsl(218_16%_82%/.55)_1px,transparent_1px),linear-gradient(to_bottom,hsl(218_16%_82%/.55)_1px,transparent_1px)] bg-[size:16px_16px]"
@@ -499,13 +509,13 @@ export function PreviewWorkspace({
               background: "hsl(220 18% 12%)",
             }}
           />
-          {!scene && !playerState.loading ? (
+          {overlay?.kind === "empty" ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
               <div className="rounded-md bg-[hsl(220_18%_12%/.86)] px-5 py-4 text-white shadow-xl">
                 <Sparkles className="mx-auto mb-2 h-5 w-5" />
-                <p className="text-sm font-medium">New scene</p>
+                <p className="text-sm font-medium">{overlay.title}</p>
                 <p className="mt-1 text-xs text-white/70">
-                  Start from Assistant.
+                  {overlay.detail}
                 </p>
               </div>
             </div>
@@ -515,9 +525,10 @@ export function PreviewWorkspace({
               <Loader2 className="h-7 w-7 animate-spin" />
             </div>
           ) : null}
-          {playerState.error ? (
+          {overlay?.kind === "error" ? (
             <div className="absolute inset-x-6 top-6 rounded-md border border-destructive/30 bg-white p-3 text-sm text-destructive shadow-lg">
-              {playerState.error}
+              <p className="font-semibold">{overlay.title}</p>
+              <p className="mt-1 leading-5">{overlay.detail}</p>
             </div>
           ) : null}
         </div>
@@ -546,6 +557,15 @@ export function TimelinePanel({
   onSeek: (frame: number) => void;
 }) {
   const duration = scene?.duration ?? 1;
+  const exportReadiness = describeExportReadiness({
+    hasScene: Boolean(scene),
+    previewLoading: playerState.loading,
+    previewError: playerState.error,
+    exportSupported: playerState.exportSupported,
+    isExporting: false,
+    exportStatus,
+    layerCount: layers.length,
+  });
 
   return (
     <div className="flex min-h-0 flex-col border-t border-border bg-card">
@@ -582,11 +602,7 @@ export function TimelinePanel({
         />
 
         <div className="w-56 truncate text-right text-xs text-muted-foreground">
-          {playerState.exportSupported
-            ? scene
-              ? exportStatus || `${layers.length} layers`
-              : "Start with Assistant"
-            : "WebCodecs VideoEncoder required"}
+          {exportReadiness.status}
         </div>
       </div>
 

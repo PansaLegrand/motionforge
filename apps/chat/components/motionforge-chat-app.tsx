@@ -47,6 +47,7 @@ import type {
   EditorPanel,
   PlayerUiState,
 } from "@/components/editor/types";
+import { describeExportReadiness } from "@/lib/editor/capability-messages";
 import {
   cloneStarterTemplateScene,
   promptChips,
@@ -126,6 +127,19 @@ export function MotionforgeChatApp() {
   );
   const canUndo = Boolean(scene && sceneHistory.past.length);
   const canRedo = Boolean(scene && sceneHistory.future.length);
+  const exportReadiness = useMemo(
+    () =>
+      describeExportReadiness({
+        hasScene: Boolean(scene),
+        previewLoading: playerState.loading,
+        previewError: playerState.error,
+        exportSupported: playerState.exportSupported,
+        isExporting,
+        exportStatus,
+        layerCount: editorLayers.length,
+      }),
+    [editorLayers.length, exportStatus, isExporting, playerState, scene],
+  );
 
   useEffect(() => {
     if (!scene) {
@@ -482,7 +496,7 @@ export function MotionforgeChatApp() {
   );
 
   const exportCurrentScene = useCallback(async () => {
-    if (!scene || !playerState.exportSupported || isExporting) {
+    if (!scene || exportReadiness.disabled) {
       return;
     }
 
@@ -506,7 +520,7 @@ export function MotionforgeChatApp() {
     } finally {
       setIsExporting(false);
     }
-  }, [isExporting, playerState.exportSupported, scene]);
+  }, [exportReadiness.disabled, scene]);
 
   const copySceneJson = useCallback(async () => {
     if (!sceneJson) {
@@ -655,14 +669,9 @@ export function MotionforgeChatApp() {
               <button
                 type="button"
                 onClick={exportCurrentScene}
-                disabled={
-                  isExporting ||
-                  !scene ||
-                  playerState.loading ||
-                  Boolean(playerState.error) ||
-                  !playerState.exportSupported
-                }
+                disabled={exportReadiness.disabled}
                 className="inline-flex h-8 items-center gap-2 rounded-md bg-accent px-3 text-xs font-medium text-accent-foreground shadow-sm hover:bg-accent/90 disabled:cursor-not-allowed disabled:opacity-50"
+                title={exportReadiness.title}
               >
                 {isExporting ? (
                   <Loader2 className="h-3.5 w-3.5 animate-spin" />

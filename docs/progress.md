@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 9: capability and empty-state messaging)
+
+### Changed
+
+- Added a pure capability-message helper for export readiness and preview overlays.
+- Export disabled states now explain the specific blocker: no scene, preview preparing, preview error, missing WebCodecs `VideoEncoder`, or an active export.
+- The timeline status now uses the same readiness copy as the toolbar, including the explicit `MP4 unavailable · JSON available` fallback when browser export support is missing.
+- Preview empty and error overlays now use clearer first-touch copy: no scene loaded, Assistant/Examples ready, and render failures labeled as preview errors.
+- Updated the roadmap to mark capability/empty-state messaging complete while leaving narrow-viewport layout as the remaining honest-edge item.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5181`: confirmed the empty preview shows **No scene loaded** with Assistant/Examples guidance, the disabled Export button explains the no-scene blocker, loading **Product Launch** shows a `1080x1920` scene with `6 layers`, the timeline reports export readiness/fallback copy, and no browser console errors were reported.
+
+### Notes
+
+- This slice changes messaging and readiness decisions only; it does not add alternate export implementations for browsers without WebCodecs.
+- Natural next step is the narrow-viewport layout pass, then compact timeline interactions.
+
 ## 2026-06-16 (chat + edit slice 8: starter template examples)
 
 ### Changed

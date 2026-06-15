@@ -149,7 +149,8 @@ Decisions recorded 2026-06-12:
 
 - ✅ First-touch quality foundation: local first-draft generation is backed by `timeline()` + presets so fallback scenes use designed entrance motion instead of hand-built default keyframes.
 - ✅ Starter template examples: the Examples dialog can load preset-backed first drafts directly, while prompt chips remain available for chat-input examples.
-- Honest edges: Safari capability messaging, export-unsupported fallbacks, empty/error states, usable narrow-viewport layout.
+- ✅ Honest capability/empty states: export readiness copy now explains no scene, preview loading/error, missing WebCodecs, and JSON fallback.
+- Usable narrow-viewport layout.
 - Compact timeline: scrub playhead, show layer blocks, retime by dragging, resize duration handles, split at playhead, and snap to neighboring blocks.
 - Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
 - Deploy (Vercel or Pages), record the demo video + GIFs, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo.
