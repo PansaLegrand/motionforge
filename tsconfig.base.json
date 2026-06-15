@@ -13,7 +13,8 @@
       "@motionforge/renderer-canvas2d": [
         "packages/renderer-canvas2d/src/index.ts"
       ],
-      "@motionforge/export": ["packages/export/src/index.ts"]
+      "@motionforge/export": ["packages/export/src/index.ts"],
+      "@motionforge/player": ["packages/player/src/index.ts"]
     },
     "strict": true,
     "declaration": true,

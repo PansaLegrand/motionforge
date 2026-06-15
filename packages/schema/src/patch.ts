@@ -56,13 +56,18 @@ const setAnimationsOp = z.object({
   animations: z.array(z.lazy(() => animationSchema)),
 });
 
+const optionalIdSchema = z.preprocess(
+  (value) => (value === null ? undefined : value),
+  z.string().min(1).optional(),
+);
+
 const insertNodeOp = z.object({
   op: z.literal("insertNode"),
   node: z.lazy(() => sceneNodeSchema),
-  /** Omitted = insert at the scene root. */
-  parentId: z.string().min(1).optional(),
-  /** Omitted = append after existing siblings. */
-  beforeId: z.string().min(1).optional(),
+  /** Omitted/null = insert at the scene root. */
+  parentId: optionalIdSchema,
+  /** Omitted/null = append after existing siblings. */
+  beforeId: optionalIdSchema,
 });
 
 const removeNodeOp = z.object({
@@ -73,8 +78,8 @@ const removeNodeOp = z.object({
 const moveNodeOp = z.object({
   op: z.literal("moveNode"),
   id: z.string().min(1),
-  parentId: z.string().min(1).optional(),
-  beforeId: z.string().min(1).optional(),
+  parentId: optionalIdSchema,
+  beforeId: optionalIdSchema,
 });
 
 const setAssetOp = z.object({

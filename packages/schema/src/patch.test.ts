@@ -171,6 +171,30 @@ describe("applyScenePatch", () => {
     expect(scene.nodes[0]?.children?.[0]?.id).toBe("child");
   });
 
+  it("treats null parent and sibling ids from model JSON as omitted", () => {
+    const scene = applied([
+      {
+        op: "insertNode",
+        node: { id: "root-note", type: "text", text: "Root note", style: {} },
+        parentId: null,
+        beforeId: null,
+      },
+      {
+        op: "moveNode",
+        id: "root-note",
+        parentId: null,
+        beforeId: null,
+      },
+    ]);
+
+    expect(scene.nodes.map((node) => node.id)).toEqual([
+      "bg",
+      "title",
+      "badge",
+      "root-note",
+    ]);
+  });
+
   it("rejects inserting duplicate ids", () => {
     const errors = rejected([
       { op: "insertNode", node: { id: "title", type: "div", style: {} } },
