@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (media assets + chat slice M8: asset timeline polish)
+
+### Changed
+
+- Projected scene asset type/source into `EditorLayer` so timeline UI can identify media even when the local asset catalog is unavailable.
+- Added timeline media descriptors for labels, thumbnails, source-start labels, playback-rate detail, and volume detail.
+- Passed local uploaded assets into `TimelinePanel` so video/image blocks can show thumbnails when available and all media blocks can prefer user-facing labels like `Video 1`.
+- Updated the track list and timeline blocks with stable icon/thumbnail badges, compact labels, and source detail such as `src 00:05`, `1.25x`, and `vol 50%`.
+- Preserved existing drag, resize, split, and scrub handlers; timeline polish is display-only.
+- Updated the media roadmap to mark M8 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Chrome smoke against a clean dev server on `http://127.0.0.1:5197`, confirming the editor and timeline scrub area render with no page errors.
+
+### Notes
+
+- Audio waveform rendering and snapping are still deferred. The first production-friendly pass keeps the timeline readable without adding decode cost or changing edit semantics.
+- Browser smoke used system Chrome because Playwright's bundled Chromium binary is not installed. The only browser console error was the existing missing `/favicon.ico`.
+
 ## 2026-06-16 (media assets + chat slice M6: model path for media edits)
 
 ### Changed

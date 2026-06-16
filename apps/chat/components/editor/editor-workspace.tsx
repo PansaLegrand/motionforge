@@ -36,6 +36,10 @@ import {
 import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
 import {
+  describeTimelineMediaLayer,
+  type TimelineMediaInfo,
+} from "@/lib/editor/timeline-media";
+import {
   formatFileSize,
   formatMediaDuration,
   isLocalMediaAssetUsed,
@@ -1333,6 +1337,7 @@ type PreviewDraggingLayer = {
 export function TimelinePanel({
   scene,
   layers,
+  mediaAssets,
   selectedLayerId,
   playerState,
   exportStatus,
@@ -1345,6 +1350,7 @@ export function TimelinePanel({
 }: {
   scene: Scene | null;
   layers: EditorLayer[];
+  mediaAssets: LocalMediaAsset[];
   selectedLayerId: string | null;
   playerState: PlayerUiState;
   exportStatus: string;
@@ -1690,20 +1696,13 @@ export function TimelinePanel({
           <div className="scrollbar-thin max-h-[calc(100%-1.5rem)] overflow-y-auto">
             {layers.length ? (
               layers.slice(0, 4).map((layer) => (
-                <button
+                <TimelineTrackButton
                   key={layer.id}
-                  type="button"
-                  onClick={() => onSelectLayer(layer.id)}
-                  className={cn(
-                    "flex h-8 w-full items-center gap-2 border-b border-border/70 px-2 text-left text-xs sm:px-3",
-                    selectedLayerId === layer.id
-                      ? "bg-primary/10 text-foreground"
-                      : "text-muted-foreground hover:bg-muted",
-                  )}
-                >
-                  <span className="h-2 w-2 rounded-full bg-primary/70" />
-                  <span className="truncate">{layer.label}</span>
-                </button>
+                  layer={layer}
+                  mediaInfo={describeTimelineMediaLayer({ layer, mediaAssets })}
+                  selected={selectedLayerId === layer.id}
+                  onSelect={() => onSelectLayer(layer.id)}
+                />
               ))
             ) : (
               <div className="px-2 py-4 text-xs leading-5 text-muted-foreground sm:px-3">
@@ -1777,6 +1776,10 @@ export function TimelinePanel({
           <div className="relative h-full">
             {layers.length ? (
               layers.slice(0, 4).map((layer, index) => {
+                const mediaInfo = describeTimelineMediaLayer({
+                  layer,
+                  mediaAssets,
+                });
                 const dragPreview =
                   draggingLayer?.id === layer.id
                     ? draggingLayer.initialAbsoluteFrom +
@@ -1802,7 +1805,7 @@ export function TimelinePanel({
                     key={layer.id}
                     data-timeline-block-id={layer.id}
                     className={cn(
-                      "absolute flex h-6 min-w-10 overflow-hidden rounded-md border text-left text-[11px] font-medium shadow-sm transition",
+                      "absolute flex h-7 min-w-12 overflow-hidden rounded-md border text-left text-[11px] font-medium shadow-sm transition",
                       selectedLayerId === layer.id
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-primary/30 bg-primary/15 text-primary hover:bg-primary/20",
@@ -1811,7 +1814,7 @@ export function TimelinePanel({
                   >
                     <button
                       type="button"
-                      className="min-w-0 flex-1 cursor-grab px-2 text-left active:cursor-grabbing"
+                      className="grid min-w-0 flex-1 cursor-grab grid-cols-[18px_minmax(0,1fr)] items-center gap-1 px-1.5 text-left active:cursor-grabbing"
                       data-timeline-block-body-id={layer.id}
                       onPointerDown={(event) =>
                         handleLayerPointerDown("move", layer, event)
@@ -1826,7 +1829,27 @@ export function TimelinePanel({
                       onMouseUp={handleLayerMouseUp}
                       onClick={() => onSelectLayer(layer.id)}
                     >
-                      <span className="block truncate">{layer.label}</span>
+                      <TimelineMediaBadge
+                        mediaInfo={mediaInfo}
+                        selected={selectedLayerId === layer.id}
+                      />
+                      <span className="min-w-0">
+                        <span className="block truncate leading-3">
+                          {mediaInfo.label}
+                        </span>
+                        {mediaInfo.detailLabel ? (
+                          <span
+                            className={cn(
+                              "block truncate text-[9px] leading-3",
+                              selectedLayerId === layer.id
+                                ? "text-primary-foreground/72"
+                                : "text-primary/70",
+                            )}
+                          >
+                            {mediaInfo.detailLabel}
+                          </span>
+                        ) : null}
+                      </span>
                     </button>
                     <button
                       type="button"
@@ -1865,6 +1888,87 @@ export function TimelinePanel({
       </div>
     </div>
   );
+}
+
+function TimelineTrackButton({
+  layer,
+  mediaInfo,
+  selected,
+  onSelect,
+}: {
+  layer: EditorLayer;
+  mediaInfo: TimelineMediaInfo;
+  selected: boolean;
+  onSelect: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onSelect}
+      className={cn(
+        "grid h-8 w-full grid-cols-[18px_minmax(0,1fr)] items-center gap-2 border-b border-border/70 px-2 text-left text-xs sm:px-3",
+        selected
+          ? "bg-primary/10 text-foreground"
+          : "text-muted-foreground hover:bg-muted",
+      )}
+    >
+      <TimelineMediaBadge mediaInfo={mediaInfo} selected={selected} />
+      <span className="min-w-0">
+        <span className="block truncate leading-4">{mediaInfo.label}</span>
+        {mediaInfo.detailLabel ? (
+          <span className="block truncate text-[10px] leading-3 text-muted-foreground">
+            {mediaInfo.detailLabel}
+          </span>
+        ) : (
+          <span className="block truncate text-[10px] leading-3 text-muted-foreground">
+            {displayLayerType(layer.type)}
+          </span>
+        )}
+      </span>
+    </button>
+  );
+}
+
+function TimelineMediaBadge({
+  mediaInfo,
+  selected,
+}: {
+  mediaInfo: TimelineMediaInfo;
+  selected: boolean;
+}) {
+  return (
+    <span
+      className={cn(
+        "inline-flex h-[18px] w-[18px] shrink-0 items-center justify-center overflow-hidden rounded-sm border",
+        selected
+          ? "border-primary-foreground/35 bg-primary-foreground/15"
+          : "border-primary/25 bg-white/65",
+      )}
+    >
+      {mediaInfo.thumbnailUrl ? (
+        <img
+          src={mediaInfo.thumbnailUrl}
+          alt=""
+          className="h-full w-full object-cover"
+        />
+      ) : (
+        <TimelineMediaIcon mediaInfo={mediaInfo} />
+      )}
+    </span>
+  );
+}
+
+function TimelineMediaIcon({ mediaInfo }: { mediaInfo: TimelineMediaInfo }) {
+  switch (mediaInfo.kind) {
+    case "video":
+      return <FileVideo className="h-3 w-3" />;
+    case "image":
+      return <ImageIcon className="h-3 w-3" />;
+    case "audio":
+      return <FileAudio className="h-3 w-3" />;
+    default:
+      return <Layers className="h-3 w-3" />;
+  }
 }
 
 function timelineElementForBlock(element: HTMLElement): HTMLDivElement | null {

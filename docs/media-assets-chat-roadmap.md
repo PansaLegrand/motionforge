@@ -443,7 +443,7 @@ Done when:
 - Clicking `Video 1: 00:05-00:10` selects the corresponding timeline block.
 - Undo/revert is obvious and reliable.
 
-### Slice M8 - Asset Timeline Polish
+### Slice M8 - Asset Timeline Polish ✅
 
 **Goal:** Media assets are easy to inspect and trim visually.
 
@@ -457,7 +457,7 @@ Code targets:
 
 Tasks:
 
-- Show thumbnails inside video/image timeline blocks.
+- Show thumbnails/icons inside media timeline blocks.
 - Show waveform preview for audio blocks if inexpensive enough.
 - Add source-trim affordance in timeline or inspector.
 - Add snapping around clip boundaries.

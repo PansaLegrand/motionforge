@@ -13,6 +13,8 @@ export type EditorLayer = {
   label: string;
   text?: string;
   assetId?: string;
+  assetType?: Scene["assets"][string]["type"];
+  assetSrc?: string;
   videoStartTime?: number;
   audioStartTime?: number;
   playbackRate?: number;
@@ -53,7 +55,7 @@ export function deriveEditorLayers(scene: Scene): EditorLayer[] {
   const paintIndex = { current: 0 };
 
   for (const node of scene.nodes) {
-    collectLayer(node, layers, {
+    collectLayer(scene, node, layers, {
       depth: 0,
       parentAbsoluteFrom: 0,
       parentAbsoluteEnd: scene.duration,
@@ -86,6 +88,7 @@ export function displayLayerType(type: SceneNode["type"]): string {
 }
 
 function collectLayer(
+  scene: Scene,
   node: SceneNode,
   layers: EditorLayer[],
   context: WalkContext,
@@ -105,6 +108,8 @@ function collectLayer(
     label: layerLabel(node),
     text: node.type === "text" ? node.text : undefined,
     assetId: node.assetId,
+    assetType: node.assetId ? scene.assets[node.assetId]?.type : undefined,
+    assetSrc: node.assetId ? scene.assets[node.assetId]?.src : undefined,
     videoStartTime: node.videoStartTime,
     audioStartTime: node.audioStartTime,
     playbackRate: node.playbackRate,
@@ -143,7 +148,7 @@ function collectLayer(
   context.paintIndex.current += 1;
 
   for (const child of node.children ?? []) {
-    collectLayer(child, layers, {
+    collectLayer(scene, child, layers, {
       parentId: node.id,
       depth: context.depth + 1,
       parentAbsoluteFrom: absoluteFrom,

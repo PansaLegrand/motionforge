@@ -963,6 +963,7 @@ export function MotionforgeChatApp() {
             <TimelinePanel
               scene={scene}
               layers={editorLayers}
+              mediaAssets={mediaAssets}
               selectedLayerId={selectedLayerId}
               playerState={playerState}
               exportStatus={exportStatus}

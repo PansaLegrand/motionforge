@@ -112,6 +112,8 @@ describe("deriveEditorLayers", () => {
       type: "video",
       label: "video · clip",
       assetId: "clip",
+      assetType: "video",
+      assetSrc: "clip.mp4",
       videoStartTime: 1.5,
       playbackRate: 1.25,
       volume: 0.6,
