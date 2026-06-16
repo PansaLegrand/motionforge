@@ -36,10 +36,10 @@ This is simultaneously the agent-facing animation vocabulary and the compiler th
 ### Slice 11: Publish + launch surface (1 day, needs accounts)
 
 - Push to GitHub, green CI, reserve `@motionforge`, publish 0.2.0 (the animation slices justify the bump over the unpublished 0.1.0), tag.
-- Deploy the playground to GitHub Pages and link it from the README; load the TikTok example as a second selectable scene so the demo is interactive.
+- Keep the playground locally runnable and document generated examples; hosted web-app deployment was later paused by maintainer choice.
 - README: embed the example frames/video.
 
-**Done when:** `npm install @motionforge/core` works from a clean machine and the README demo is clickable.
+**Done when:** `npm install @motionforge/core` works from a clean machine and the README demo artifacts are easy to inspect locally.
 
 ## Done — week 4 prep (caption-grade text)
 
@@ -47,9 +47,9 @@ Slice 12 landed: `textStroke` and text-fitted per-line backgrounds, with exact g
 
 ## The 5-week plan (complete — open-source first)
 
-Ultimate goal: a user chats, uploads media, and gets a video — previewed and exported in the browser. motionforge is the open-source engine that makes that product *assemblable*: deterministic rendering, an agent-native scene contract, and in-browser export. Downstream products (commercial or otherwise) are consumers we learn requirements from, not work items here.
+Ultimate goal: a user chats, uploads media, and gets a video — previewed and exported in the browser. motionforge is the open-source engine that makes that product _assemblable_: deterministic rendering, an agent-native scene contract, and in-browser export. Downstream products (commercial or otherwise) are consumers we learn requirements from, not work items here.
 
-Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX. Publishing (npm scope, GitHub push, Pages deploy) is owned by the maintainer and slots in when ready — everything else is sequenced not to block on it.
+Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX. Package publishing is owned by the maintainer and slots in when ready. Hosted web-app deployment is currently paused; local demos, docs, and generated artifacts remain the launch surface.
 
 ### Week 1 — measure the real gap, ship the skeleton ✅ complete
 
@@ -90,7 +90,7 @@ Workstreams: **A** engine, **B** player/perf, **D** agent layer, **E** launch/DX
 - ✅ Determinism lint in `pnpm lint` (wall-clock/randomness banned in render packages, justified allowlist).
 - ✅ Lottie Sticker showcase (seventh scene) demos the headline feature in playground + README.
 - ✅ 0.3.0 release prep: changelog, six packages bumped (player joins the versioned set), badge, `npm pack` dry-runs clean.
-- ◻ Maintainer: GitHub push + CI, `@motionforge` npm scope + `pnpm publish -r`, tag `v0.3.0`, deploy the playground, eared audio check.
+- ◻ Maintainer: GitHub push + CI, `@motionforge` npm scope + `pnpm publish -r`, tag `v0.3.0`, eared audio check.
 - Docs site: deferred by choice — the guides + README are launch-sufficient; pick a platform (VitePress et al) post-launch.
 
 ## Phase 2 — the agent loop (current — chat + edit coexistence)
@@ -101,13 +101,13 @@ The reference app direction is recorded in [`docs/chat-edit-app-plan.md`](chat-e
 
 Decisions recorded 2026-06-12:
 
-- **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and *is* the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.
+- **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.
 - **Agent distribution ships as an Agent Skill (SKILL.md) first, not an MCP server.** Skills don't replace MCP — they're instructions + scripts for filesystem/bash agents (Claude Code), while MCP is a tool protocol for any client — but for an npm library the skill is the cheaper, more current packaging: the agent installs the packages and runs scripts directly. A thin MCP server can wrap the same scripts later if demand shows; both share one script layer.
 - **Client-side ASR (whisper via transformers.js) is deferred to the next cycle.** The caption presets already accept word timings, so the chat app ships with a paste-transcript path; ASR becomes the second marketing wave, spiked before commitment like Lottie was.
 
 ### Week 1 — publish + baseline (gates everything public)
 
-- Maintainer publish steps: GitHub push + green CI, claim the `@motionforge` npm scope (note: unscoped `motionforge` is taken by an unrelated package — scoped names only, check it before announcing), `pnpm publish -r` 0.3.0, tag, deploy the playground, eared audio check.
+- Maintainer publish steps: GitHub push + green CI, claim the `@motionforge` npm scope (note: unscoped `motionforge` is taken by an unrelated package — scoped names only, check it before announcing), `pnpm publish -r` 0.3.0, tag, eared audio check. Web-app publishing remains intentionally disabled until the maintainer opts back in.
 - Clean-machine verification: `npm install` all six packages outside the monorepo, render a frame, export an MP4; fix install/docs gaps found.
 - **Eval baseline**: run `tools/agent-eval` generate + edit suites against 1–2 real models; commit the numbers. Add the designed repair suite (invalid scene + validator errors → fixing patch).
 - **Engine: intrinsic text auto-height** — metrics-provider abstraction so flex intrinsic sizing measures text with the same font metrics render uses (replaces the character-count heuristic, the sharpest documented edge for LLM-generated scenes).
@@ -158,13 +158,13 @@ Decisions recorded 2026-06-12:
 - ✅ Preview selection feedback: selecting a layer draws its canvas-space outline/label in the clip area, with hidden-at-playhead feedback when timing excludes the current frame.
 - Compact timeline editing: snap to neighboring blocks.
 - Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
-- Deploy (Vercel or Pages), record the demo video + GIFs, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo.
+- Record the demo video + GIFs from a local build, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo; public hosting can be added later without changing the engine path.
 
-**Done when:** a public URL + demo video exist, and the demo shows chat generation followed by manual precision edits.
+**Done when:** a demo video exists, and the demo shows chat generation followed by manual precision edits.
 
 ### Week 6 — agent distribution + launch fallout
 
-- **motionforge Agent Skill**: SKILL.md + scripts — `validate-scene`, `render-frame` (PNG, so the agent *sees* its work), `export-mp4` — installable in Claude Code. The self-correction GIF (render → notice clipped title → patch → re-render) is the second marketing wave.
+- **motionforge Agent Skill**: SKILL.md + scripts — `validate-scene`, `render-frame` (PNG, so the agent _sees_ its work), `export-mp4` — installable in Claude Code. The self-correction GIF (render → notice clipped title → patch → re-render) is the second marketing wave.
 - Thin MCP server wrapping the same scripts **only if demand shows** in launch feedback.
 - Launch fallout: issue triage, good-first-issues, docs gaps reported by real users.
 

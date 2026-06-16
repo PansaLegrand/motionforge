@@ -20,7 +20,11 @@ A **scene** is the whole video: size, frame rate, duration in frames, assets, an
     {
       "id": "bg",
       "type": "div",
-      "style": { "width": "100%", "height": "100%", "backgroundColor": "#101820" }
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "backgroundColor": "#101820"
+      }
     },
     {
       "id": "title",
@@ -29,8 +33,13 @@ A **scene** is the whole video: size, frame rate, duration in frames, assets, an
       "from": 0,
       "duration": 90,
       "style": {
-        "position": "absolute", "left": 64, "right": 64, "top": 800,
-        "fontSize": 72, "color": "#ffffff", "textAlign": "center",
+        "position": "absolute",
+        "left": 64,
+        "right": 64,
+        "top": 800,
+        "fontSize": 72,
+        "color": "#ffffff",
+        "textAlign": "center",
         "textStroke": "6 #000000"
       },
       "animations": [
@@ -67,13 +76,13 @@ canvas.height = scene.height;
 
 const player = await createPlayer({
   context: canvas.getContext("2d")!,
-  scene,           // your JSON — validated on create
+  scene, // your JSON — validated on create
   loop: true,
 });
 
-player.play();                                  // wall-clock-accurate playback
-player.on("frame", (f) => updateScrubber(f));   // drive your UI
-await player.seek(45);                          // jump anywhere, instantly
+player.play(); // wall-clock-accurate playback
+player.on("frame", (f) => updateScrubber(f)); // drive your UI
+await player.seek(45); // jump anywhere, instantly
 ```
 
 The player resolves assets (images, fonts, video clips) for you, or accepts pre-resolved ones if you want to share them with export.
@@ -86,13 +95,14 @@ import { detectExportCapability, exportVideo } from "@motionforge/export";
 if (detectExportCapability().videoEncoder) {
   const { blob } = await exportVideo({
     scene,
-    onProgress: ({ frameIndex, totalFrames }) => setProgress(frameIndex / totalFrames),
+    onProgress: ({ frameIndex, totalFrames }) =>
+      setProgress(frameIndex / totalFrames),
   });
   // a real MP4 (H.264 + AAC where the browser supports it), encoded client-side
 }
 ```
 
-Export renders the exact same frames the player shows — rendering is a pure function of `(scene, frame)`, so preview is never a lie. Audio nodes are mixed into the file's audio track.
+Export renders the exact same frames the player shows — rendering is a pure function of `(scene, frame)`, so preview is never a lie. Audio nodes and video-node soundtracks are mixed into the file's audio track.
 
 ## 4. Don't hand-write animations — use presets
 
@@ -104,7 +114,10 @@ node.animations = popIn({ durationInFrames: 12 });
 
 // a whole caption track from ASR word timestamps — one container node, words as children:
 const captionTrack = tiktokCaptions(
-  [{ word: "never", startMs: 0, endMs: 280 }, { word: "gonna", startMs: 280, endMs: 520 }],
+  [
+    { word: "never", startMs: 0, endMs: 280 },
+    { word: "gonna", startMs: 280, endMs: 520 },
+  ],
   { fps: 30 },
 );
 scene.nodes.push(captionTrack);
@@ -119,13 +132,15 @@ scene.nodes.push(captionTrack);
   "clip":  { "id": "clip",  "type": "video", "src": "https://…/footage.mp4" },
   "logo":  { "id": "logo",  "type": "image", "src": "data:image/png;base64,…" },
   "voice": { "id": "voice", "type": "audio", "src": "https://…/voiceover.mp3" },
+  "badge": { "id": "badge", "type": "lottie", "src": "data:application/json;base64,…" },
   "Inter-Bold": { "id": "Inter-Bold", "type": "font", "src": "https://…/inter-700.woff2" }
 }
 ```
 
-- `video` nodes reference a clip and can trim (`videoStartTime`, seconds) and retime (`playbackRate`). Decoding is frame-accurate — no `<video>`-element seeking.
+- `video` nodes reference a clip and can trim (`videoStartTime`, seconds), retime (`playbackRate`), and contribute their own soundtrack at `volume`. Decoding is frame-accurate — no `<video>`-element seeking.
 - `font` assets register under their **asset id**; use `fontFamily: "Inter-Bold"`. One asset per family + weight.
 - `audio` nodes place sound on the timeline (`volume`, `audioStartTime`); they're mixed at export.
+- `lottie` nodes render self-contained vector documents frame-exactly. Expressions and external image layers are rejected so rendering stays deterministic.
 
 ## If you're an LLM (or building with one)
 
@@ -134,7 +149,9 @@ scene.nodes.push(captionTrack);
 ## Run the playground
 
 ```bash
-pnpm install && pnpm dev   # → http://localhost:5173
+pnpm install
+pnpm dev              # chat/editor app → http://localhost:5174
+pnpm dev:playground   # showcase playground → http://localhost:5173
 ```
 
-Three showcase scenes with scrubbing, playback, and one-click MP4 export — the same engine path your app will use.
+The playground has seven showcase scenes with scrubbing, sound, an agent console, and one-click MP4 export — the same engine path your app will use.

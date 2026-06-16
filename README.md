@@ -11,7 +11,7 @@
 
 ## Showcases
 
-The current engine can turn plain scene JSON into demo-grade MP4s in the browser. These six verification scenes are intentionally showy: motion-design pacing, audio sync, clipped mockups, animated layout, media compositing, and cinematic text treatment from serializable documents.
+The current engine can turn plain scene JSON into demo-grade MP4s in the browser. The six verification scenes below are intentionally showy: motion-design pacing, audio sync, clipped mockups, animated layout, media compositing, and cinematic text treatment from serializable documents.
 
 | Demo                                                           | Preview                                                                                                                                          | Scene JSON                                        | What to watch                                                                                                                                                     |
 | -------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -23,6 +23,8 @@ The current engine can turn plain scene JSON into demo-grade MP4s in the browser
 | [Multicam Layout](verification/edgy-multicam.mp4)              | [<img src="verification/edgy-multicam-f100.png" alt="Multicam poster" width="180">](verification/edgy-multicam.mp4)                              | [JSON](verification/edgy-multicam.json)           | Four simultaneous video decoders in a 2x2 grid; at 2s, CAM 4 animates `left`/`top`/`width`/`height` to fullscreen with audio.                                     |
 
 Together they exercise animated layout (`width`, `left`, `top`, `borderRadius`, `letterSpacing`), per-section `filter` keyframes, Lottie synced to beats, nested overflow clipping, deterministic synthesized audio, and multi-video compositing. They are authored as scene JSON today; a natural-language compiler or editor can sit above the same contract.
+
+The playground also ships a curated seven-scene showcase catalog from `@motionforge/showcase` for product-shaped demos and docs. See [docs/showcase.md](docs/showcase.md) for the full set, including [Lottie Sticker](examples/generated/lottie-sticker.mp4) ([JSON](examples/generated/lottie-sticker.json)), a self-contained vector Lottie document rendered twice at different playback rates.
 
 ## The bet
 
@@ -54,20 +56,24 @@ flowchart TB
 
     SCENE --> CORE["<b>@motionforge/core</b><br/>builder API · keyframe evaluator · layout pass"]
     CORE --> R2D["<b>@motionforge/renderer-canvas2d</b><br/>deterministic still-frame renderer"]
-    R2D --> PREVIEW["playground preview<br/><i>scrub any frame</i>"]
+    R2D --> PLAYER["<b>@motionforge/player</b><br/>play · pause · seek · audio preview"]
+    PLAYER --> PREVIEW["apps/chat + playground previews<br/><i>scrub any frame</i>"]
     R2D --> EXPORT["<b>@motionforge/export</b><br/>frame sequence loop → WebCodecs"]
 ```
 
-| Package                                                        | What it does                                        | Status     |
-| -------------------------------------------------------------- | --------------------------------------------------- | ---------- |
-| [`@motionforge/schema`](packages/schema)                       | Scene format, validation, JSON Schema export        | ✅ working |
-| [`@motionforge/core`](packages/core)                           | Builder API, keyframe evaluator, layout pass        | ✅ working |
-| [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                         | ✅ working |
-| [`@motionforge/export`](packages/export)                       | In-browser MP4 export (WebCodecs + mediabunny)      | ✅ working |
-| [`@motionforge/presets`](packages/presets)                     | Animation presets + caption generators → scene data | ✅ working |
-| [`@motionforge/player`](packages/player)                       | Real-time playback: frame clock, play/pause/seek    | ✅ working |
-| [`apps/chat`](apps/chat)                                       | Next.js chat app with prompt, preview, JSON, export | ✅ working |
-| [`apps/playground`](apps/playground)                           | Vite preview with frame scrubbing                   | ✅ working |
+| Package                                                        | What it does                                         | Status     |
+| -------------------------------------------------------------- | ---------------------------------------------------- | ---------- |
+| [`@motionforge/schema`](packages/schema)                       | Scene format, validation, JSON Schema export         | ✅ working |
+| [`@motionforge/core`](packages/core)                           | Builder API, keyframe evaluator, layout pass         | ✅ working |
+| [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                          | ✅ working |
+| [`@motionforge/export`](packages/export)                       | In-browser MP4 export (WebCodecs + mediabunny)       | ✅ working |
+| [`@motionforge/presets`](packages/presets)                     | Motion presets, caption templates, timeline compiler | ✅ working |
+| [`@motionforge/player`](packages/player)                       | Real-time playback, seeking, audio-synced preview    | ✅ working |
+| [`@motionforge/showcase`](packages/showcase)                   | Private shared scenes for playground/docs/examples   | ✅ working |
+| [`apps/chat`](apps/chat)                                       | Next.js chat + manual editor reference app           | ✅ working |
+| [`apps/playground`](apps/playground)                           | Vite showcase playground + agent console             | ✅ working |
+| [`tools/golden`](tools/golden)                                 | Pixel goldens, E2E, benchmarks, render helpers       | ✅ working |
+| [`tools/agent-eval`](tools/agent-eval)                         | Private mechanical eval harness for LLM scene edits  | ✅ working |
 
 ## Why not Remotion?
 
@@ -89,6 +95,7 @@ This project treats LLM agents as first-class users:
 - Validation errors are written to be actionable: they name the path, the problem, and what to do instead. Node ids are unique by contract, so agents can patch scenes by id.
 - **Scene patches** ([RFC 0001](docs/rfcs/0001-scene-patch-ops.md)): `applyScenePatch(scene, ops)` applies id-addressed, transactional edits — the API a chat loop drives. Misspelled ids get closest-match suggestions in the error.
 - **Try the loop by hand**: the playground's _Agent console_ lets you paste a scene or a patch, applies it through these exact APIs, and shows you the same errors an agent would read.
+- [`tools/agent-eval`](tools/agent-eval) runs generate/edit suites against any OpenAI-compatible chat endpoint and scores the result mechanically with the same validation and patch APIs.
 
 ## Quickstart
 
@@ -169,7 +176,9 @@ renderStill(canvasContext, scene, 30); // any frame, any time, same pixels
 
 ## Status and M0 scope
 
-M0 is complete and the engine now renders **all four media types**: schema validation, deterministic builder, keyframe evaluation (numbers and colors), the full layout and paint property set, multi-line text with embedded fonts, images with `objectFit`, frame-accurate video clips with trim and playback rate, and audio nodes mixed into the export — all through one in-browser pipeline (the playground's "Export MP4" button downloads a real video). Not yet there: audio preview playback in the playground (the exported file is the audio source of truth) and video nodes contributing their own audio tracks.
+M0 is complete and the engine now renders **all four media types**: schema validation, deterministic builder, keyframe evaluation (numbers and colors), the full layout and paint property set, multi-line text with embedded fonts, images with `objectFit`, frame-accurate video clips with trim and playback rate, Lottie vector assets, audio nodes, and video-node soundtracks. Preview and export share one in-browser pipeline: the player previews sound with the same mix functions the exporter muxes into MP4, and the playground's "Export MP4" button downloads a real video.
+
+Current known limits: preview audio is best-effort and mixed into one cached buffer per scene, large source videos are fetched as whole blobs for deterministic decode, and hosted web-app deployment is intentionally not wired from this repo right now.
 
 See [docs/roadmap.md](docs/roadmap.md) for the post-M0 plan, [docs/m0-roadmap.md](docs/m0-roadmap.md) for the completed M0 checklist, and [docs/progress.md](docs/progress.md) for the change log.
 

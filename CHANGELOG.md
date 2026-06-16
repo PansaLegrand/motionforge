@@ -35,7 +35,7 @@ The agent-loop and playback release: scenes are now editable by patch, playable 
 
 ### Tooling and docs
 
-- Playground: agent console (paste a scene or patch, applied via the public APIs, agent-grade errors), six showcase scenes including audio and Lottie demos.
+- Playground: agent console (paste a scene or patch, applied via the public APIs, agent-grade errors), seven showcase scenes including audio and Lottie demos.
 - Golden harness: committed baseline PNGs with received/diff artifacts on mismatch; 1080p benchmark; Playwright E2E (`pnpm e2e`); determinism lint (`scripts/check-determinism.mjs`).
 - `tools/agent-eval`: mechanical LLM eval harness for scene generation/editing.
 

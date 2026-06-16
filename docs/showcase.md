@@ -26,7 +26,7 @@ The trailing frame numbers write poster PNGs next to the MP4.
 
 ## Prompt-Style Readiness
 
-motionforge can already render and export prompt-shaped results once the prompt has been compiled into scene JSON. The missing product layer is the natural-language compiler/editor that turns text such as "first 5 seconds, write motionforge.dev..." into that JSON automatically. The agent console and patch API are the current bridge: paste a generated scene or patch, validate it, preview it, and export the MP4 through the same renderer.
+motionforge can already render and export prompt-shaped results once the prompt has been compiled into scene JSON. `apps/chat` is the current reference product surface for that loop: chat generation creates or patches the canonical scene, the manual editor refines layers/timing/style through `applyScenePatch`, and export uses the same renderer. The playground remains the minimal engine surface: paste a generated scene or patch into the agent console, validate it, preview it, and export the MP4.
 
 ## Source
 
