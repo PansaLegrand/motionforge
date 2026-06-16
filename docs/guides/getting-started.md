@@ -1,157 +1,141 @@
-# Getting started
+# Getting Started
 
-Build a video in the browser in about five minutes: describe it as JSON, preview it on a canvas, export an MP4 — no server, no ffmpeg.
+Build a MotionForge video in about five minutes: write TypeScript scene data, preview it in Studio, export MP4 in the browser.
 
-> Until the packages are on npm, consume them from this repo via a pnpm workspace or `pnpm link`. The API below is what will publish as `0.3.0`.
-
-## 1. A scene is JSON
-
-A **scene** is the whole video: size, frame rate, duration in frames, assets, and a tree of nodes. Nodes are styled boxes (`div`), text, images, video clips, or audio — think "tiny CSS subset on a canvas, with time".
-
-```json
-{
-  "schemaVersion": 0,
-  "width": 1080,
-  "height": 1920,
-  "fps": 30,
-  "duration": 90,
-  "assets": {},
-  "nodes": [
-    {
-      "id": "bg",
-      "type": "div",
-      "style": {
-        "width": "100%",
-        "height": "100%",
-        "backgroundColor": "#101820"
-      }
-    },
-    {
-      "id": "title",
-      "type": "text",
-      "text": "Hello motionforge",
-      "from": 0,
-      "duration": 90,
-      "style": {
-        "position": "absolute",
-        "left": 64,
-        "right": 64,
-        "top": 800,
-        "fontSize": 72,
-        "color": "#ffffff",
-        "textAlign": "center",
-        "textStroke": "6 #000000"
-      },
-      "animations": [
-        {
-          "kind": "keyframes",
-          "property": "transform",
-          "frames": [
-            { "frame": 0, "value": "scale(0.8)" },
-            { "frame": 12, "value": "scale(1)", "easing": "spring(0.3)" }
-          ]
-        }
-      ]
-    }
-  ]
-}
-```
-
-Three rules carry most of the model:
-
-- **Time is integer frames.** A node exists for `[from, from + duration)` on its parent's timeline. No wall-clock seconds anywhere.
-- **Animations are keyframes on style properties.** Numbers, colors, and matching transform lists tween; everything else steps. Easings: `linear`, `easeIn/Out/InOut`, `cubic-bezier(…)`, `spring(bounce)`.
-- **Everything validates.** Unknown style properties are rejected with a message that says what to fix. `validateScene(json)` before rendering, always.
-
-The full contract — every node type, every style property and its exact behavior — is [scene-format.md](../scene-format.md).
-
-## 2. Preview it
-
-```ts
-import { createPlayer } from "@motionforge/player";
-
-const canvas = document.querySelector("canvas")!;
-canvas.width = scene.width;
-canvas.height = scene.height;
-
-const player = await createPlayer({
-  context: canvas.getContext("2d")!,
-  scene, // your JSON — validated on create
-  loop: true,
-});
-
-player.play(); // wall-clock-accurate playback
-player.on("frame", (f) => updateScrubber(f)); // drive your UI
-await player.seek(45); // jump anywhere, instantly
-```
-
-The player resolves assets (images, fonts, video clips) for you, or accepts pre-resolved ones if you want to share them with export.
-
-## 3. Export an MP4
-
-```ts
-import { detectExportCapability, exportVideo } from "@motionforge/export";
-
-if (detectExportCapability().videoEncoder) {
-  const { blob } = await exportVideo({
-    scene,
-    onProgress: ({ frameIndex, totalFrames }) =>
-      setProgress(frameIndex / totalFrames),
-  });
-  // a real MP4 (H.264 + AAC where the browser supports it), encoded client-side
-}
-```
-
-Export renders the exact same frames the player shows — rendering is a pure function of `(scene, frame)`, so preview is never a lie. Audio nodes and video-node soundtracks are mixed into the file's audio track.
-
-## 4. Don't hand-write animations — use presets
-
-```ts
-import { popIn, tiktokCaptions } from "@motionforge/presets";
-
-// keyframes for any node:
-node.animations = popIn({ durationInFrames: 12 });
-
-// a whole caption track from ASR word timestamps — one container node, words as children:
-const captionTrack = tiktokCaptions(
-  [
-    { word: "never", startMs: 0, endMs: 280 },
-    { word: "gonna", startMs: 280, endMs: 520 },
-  ],
-  { fps: 30 },
-);
-scene.nodes.push(captionTrack);
-```
-
-`tiktokCaptions` / `karaokeCaptions` produce the word-timed, stroked, pill-backgrounded caption styles you know from short-form video — as plain scene data you can inspect and tweak.
-
-## 5. Media assets
-
-```jsonc
-"assets": {
-  "clip":  { "id": "clip",  "type": "video", "src": "https://…/footage.mp4" },
-  "logo":  { "id": "logo",  "type": "image", "src": "data:image/png;base64,…" },
-  "voice": { "id": "voice", "type": "audio", "src": "https://…/voiceover.mp3" },
-  "badge": { "id": "badge", "type": "lottie", "src": "data:application/json;base64,…" },
-  "Inter-Bold": { "id": "Inter-Bold", "type": "font", "src": "https://…/inter-700.woff2" }
-}
-```
-
-- `video` nodes reference a clip and can trim (`videoStartTime`, seconds), retime (`playbackRate`), and contribute their own soundtrack at `volume`. Decoding is frame-accurate — no `<video>`-element seeking.
-- `font` assets register under their **asset id**; use `fontFamily: "Inter-Bold"`. One asset per family + weight.
-- `audio` nodes place sound on the timeline (`volume`, `audioStartTime`); they're mixed at export.
-- `lottie` nodes render self-contained vector documents frame-exactly. Expressions and external image layers are rejected so rendering stays deterministic.
-
-## If you're an LLM (or building with one)
-
-[llms.txt](../../llms.txt) is the compact contract written for you: mental model, hard rules, a complete valid scene, the exact implemented style list, and example validation errors. Generate scene JSON, run `validateScene`, read the errors, fix, repeat — the errors are written to converge that loop in one round trip.
-
-## Run the playground
-
-```bash
+```sh
+pnpm create motionforge hello-video
+cd hello-video
 pnpm install
-pnpm dev              # chat/editor app → http://localhost:5174
-pnpm dev:playground   # showcase playground → http://localhost:5173
+pnpm dev
 ```
 
-The playground has seven showcase scenes with scrubbing, sound, an agent console, and one-click MP4 export — the same engine path your app will use.
+`pnpm dev` runs:
+
+```sh
+motionforge dev src/video.ts
+```
+
+Studio validates the scene module, renders it on Canvas2D, lets you scrub frames, inspect the generated JSON, reload source changes, and export MP4 when the browser supports WebCodecs.
+
+Until the packages are published, clean installs outside this monorepo need local packing/linking because workspace packages use `workspace:*` internally. The source API below is the intended published `0.3.0` shape.
+
+## Write A Scene
+
+The starter creates `src/video.ts`:
+
+```ts
+import {
+  bg,
+  fadeUp,
+  image,
+  imageAsset,
+  makeScene,
+  publicAsset,
+  seconds,
+  textBlock,
+  title,
+} from "@motionforge/authoring";
+
+const logo = imageAsset("logo", publicAsset("assets/logo.svg"));
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    bg("#0f172a"),
+    image(logo, {
+      at: seconds(0.2),
+      duration: seconds(4.6),
+      style: { left: 432, top: 360, width: 216, height: 216 },
+      enter: fadeUp({ durationInFrames: 10 }),
+    }),
+    title("Hello MotionForge", {
+      at: seconds(0.8),
+      duration: seconds(3.5),
+      enter: fadeUp(),
+    }),
+    textBlock("Write deterministic video as TypeScript data.", {
+      at: seconds(1.4),
+      duration: seconds(3),
+      enter: fadeUp({ delay: 6 }),
+    }),
+  ],
+});
+```
+
+`makeScene()` returns plain scene JSON. You can validate it, print it, diff it, patch it, store it, preview it, or export it.
+
+## Useful Commands
+
+```sh
+pnpm dev       # Studio preview
+pnpm validate  # schema validation
+pnpm print     # formatted generated scene JSON
+pnpm build     # TypeScript check + validation
+```
+
+The raw CLI commands are:
+
+```sh
+motionforge dev src/video.ts
+motionforge validate src/video.ts
+motionforge print src/video.ts
+```
+
+Scene modules may be `.json`, `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, or `.cts`. They can export a scene object, a function returning a scene, or a promise.
+
+## Add Media
+
+Put files under `public/assets`:
+
+```txt
+public/assets/logo.svg
+public/assets/clip.mp4
+public/assets/music.mp3
+```
+
+Reference them with `publicAsset("assets/file.ext")`. The emitted scene JSON stores fetchable URLs such as `/assets/clip.mp4`.
+
+```ts
+import {
+  audioAsset,
+  audioTrack,
+  makeScene,
+  publicAsset,
+  seconds,
+  videoAsset,
+  videoClip,
+} from "@motionforge/authoring";
+
+const clip = videoAsset("clip", publicAsset("assets/clip.mp4"));
+const music = audioAsset("music", publicAsset("assets/music.mp3"));
+
+export default makeScene({
+  size: "landscape",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    videoClip(clip, {
+      trimStart: seconds(5),
+      duration: seconds(3),
+      volume: 0.8,
+    }),
+    audioTrack(music, {
+      at: seconds(0),
+      duration: seconds(5),
+      volume: 0.35,
+    }),
+  ],
+});
+```
+
+## What To Read Next
+
+- [Authoring API](authoring-api.md)
+- [Animation Guide](animation.md)
+- [Media Guide](media.md)
+- [Preview And Export](preview-export.md)
+- [MotionForge vs Remotion](motionforge-vs-remotion.md)
+- [Agent-Generated Scenes](agent-generated-scenes.md)
+- [Full Scene Format](../scene-format.md)

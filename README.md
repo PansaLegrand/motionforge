@@ -214,6 +214,16 @@ motionforge dev src/video.ts
 
 The CLI accepts `.json`, `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` scene modules. A module can default-export a `Scene`, a function returning a `Scene`, or a promise. `motionforge dev` hosts the Studio directly from the CLI, so a new project does not need preview boilerplate.
 
+## Programmer guides
+
+- [Getting Started](docs/guides/getting-started.md)
+- [Authoring API](docs/guides/authoring-api.md)
+- [Animation Guide](docs/guides/animation.md)
+- [Media Guide](docs/guides/media.md)
+- [Preview And Export](docs/guides/preview-export.md)
+- [MotionForge vs Remotion](docs/guides/motionforge-vs-remotion.md)
+- [Agent-Generated Scenes](docs/guides/agent-generated-scenes.md)
+
 ```ts
 import { composition, div, text } from "@motionforge/core";
 import { renderStill } from "@motionforge/renderer-canvas2d";

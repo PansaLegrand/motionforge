@@ -90,10 +90,12 @@ export default makeScene({
 });
 ```
 
-Then renders:
+Then exports from Studio, or from a browser app using `@motionforge/export`:
 
-```sh
-pnpm motionforge render src/video.ts out.mp4
+```ts
+import { exportVideo } from "@motionforge/export";
+
+const { blob } = await exportVideo({ scene });
 ```
 
 ## Implementation Slices
@@ -233,19 +235,19 @@ Done when:
 - Docs show the same pattern for images, video, and audio.
 - Preview/export use the same browser-fetchable asset URLs.
 
-### Slice DX6 - Documentation Path
+### Slice DX6 - Documentation Path ✅
 
 **Goal:** Docs teach programmers before they encounter the chat app.
 
 Docs:
 
-- 5-minute quickstart.
-- Authoring API guide.
-- Animation guide.
-- Media guide.
-- Preview/export guide.
-- MotionForge vs Remotion.
-- Agent-generated scenes.
+- 5-minute quickstart: [`docs/guides/getting-started.md`](guides/getting-started.md).
+- Authoring API guide: [`docs/guides/authoring-api.md`](guides/authoring-api.md).
+- Animation guide: [`docs/guides/animation.md`](guides/animation.md).
+- Media guide: [`docs/guides/media.md`](guides/media.md).
+- Preview/export guide: [`docs/guides/preview-export.md`](guides/preview-export.md).
+- MotionForge vs Remotion: [`docs/guides/motionforge-vs-remotion.md`](guides/motionforge-vs-remotion.md).
+- Agent-generated scenes: [`docs/guides/agent-generated-scenes.md`](guides/agent-generated-scenes.md).
 
 Done when:
 
@@ -257,9 +259,11 @@ Done when:
 - The default project source is under 50 lines and reads clearly.
 - `motionforge validate` catches errors with actionable messages.
 - `motionforge dev` previews the scene.
-- `motionforge render` or browser export produces MP4, with capability caveats documented.
+- Browser export produces MP4, with capability caveats documented.
 - The root README leads with the authoring path before the chat/editor product.
 - The chat app remains a reference consumer, not the primary OSS entry point.
+
+Note: a dedicated `motionforge render` command remains deferred until the Node/headless rendering dependency story is intentionally solved.
 
 ## Explicitly Deferred
 

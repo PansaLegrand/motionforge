@@ -2,6 +2,32 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (DX slice DX6: programmer docs path)
+
+### Changed
+
+- Reworked `docs/guides/getting-started.md` around the new `pnpm create motionforge` -> `motionforge dev src/video.ts` flow.
+- Added focused programmer guides for:
+  - authoring API
+  - animation and presets
+  - media assets
+  - preview/export APIs
+  - MotionForge vs Remotion positioning
+  - agent-generated scenes and patch loops
+- Added `docs/guides/README.md` as the guide index.
+- Linked the guide path from the root README.
+- Updated the DX roadmap to mark DX6 complete and clarify that browser export is shipped while a dedicated Node CLI render command remains deferred.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/cli test`
+- Markdown link/path sanity review with `rg` across README, DX roadmap, and `docs/guides`.
+
+### Notes
+
+- The docs deliberately lead with the OSS programmer path. The chat app remains a reference consumer and product surface, not the first concept a library user must learn.
+
 ## 2026-06-17 (DX slice DX5: asset path story)
 
 ### Changed
