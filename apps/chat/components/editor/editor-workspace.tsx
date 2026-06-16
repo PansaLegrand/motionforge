@@ -709,6 +709,13 @@ function InspectorPanel({
     value: string,
   ) => void;
 }) {
+  const hasVisualAssetLayer =
+    selectedLayer?.type === "img" || selectedLayer?.type === "video";
+  const hasAudioControls =
+    selectedLayer?.type === "audio" || selectedLayer?.type === "video";
+  const hasPlaybackRate =
+    selectedLayer?.type === "video" || selectedLayer?.type === "lottie";
+
   return (
     <>
       <PanelHeader icon={Info} title="Inspector" detail="selection" />
@@ -720,6 +727,14 @@ function InspectorPanel({
               label="Type"
               value={displayLayerType(selectedLayer.type)}
             />
+            {selectedLayer.assetId ? (
+              <InspectorField
+                label="Asset"
+                value={selectedLayer.assetId}
+                mono
+                wide
+              />
+            ) : null}
             {selectedLayer.type === "text" ? (
               <>
                 <InspectorTextArea
@@ -773,6 +788,85 @@ function InspectorPanel({
                   placeholder="4px #000000"
                   onCommit={(value) =>
                     onEditLayer(selectedLayer.id, "textStroke", value)
+                  }
+                />
+              </>
+            ) : null}
+            {selectedLayer.type === "video" ? (
+              <InspectorNumberInput
+                label="Source start"
+                value={formatOptionalNumber(selectedLayer.videoStartTime)}
+                placeholder="0"
+                step="0.1"
+                min="0"
+                suffix="seconds"
+                onCommit={(value) =>
+                  onEditLayer(selectedLayer.id, "videoStartTime", value)
+                }
+              />
+            ) : null}
+            {selectedLayer.type === "audio" ? (
+              <InspectorNumberInput
+                label="Source start"
+                value={formatOptionalNumber(selectedLayer.audioStartTime)}
+                placeholder="0"
+                step="0.1"
+                min="0"
+                suffix="seconds"
+                onCommit={(value) =>
+                  onEditLayer(selectedLayer.id, "audioStartTime", value)
+                }
+              />
+            ) : null}
+            {hasPlaybackRate ? (
+              <InspectorNumberInput
+                label="Playback"
+                value={formatOptionalNumber(selectedLayer.playbackRate)}
+                placeholder="1"
+                step="0.05"
+                min="0.05"
+                suffix="rate"
+                onCommit={(value) =>
+                  onEditLayer(selectedLayer.id, "playbackRate", value)
+                }
+              />
+            ) : null}
+            {hasAudioControls ? (
+              <InspectorNumberInput
+                label="Volume"
+                value={formatOptionalNumber(selectedLayer.volume)}
+                placeholder="1"
+                step="0.05"
+                min="0"
+                max="1"
+                onCommit={(value) =>
+                  onEditLayer(selectedLayer.id, "volume", value)
+                }
+              />
+            ) : null}
+            {hasVisualAssetLayer ? (
+              <>
+                <InspectorSelectInput
+                  label="Fit"
+                  value={selectedLayer.objectFit ?? ""}
+                  options={[
+                    { label: "Default", value: "" },
+                    { label: "Cover", value: "cover" },
+                    { label: "Contain", value: "contain" },
+                    { label: "Fill", value: "fill" },
+                    { label: "None", value: "none" },
+                    { label: "Scale down", value: "scale-down" },
+                  ]}
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "objectFit", value)
+                  }
+                />
+                <InspectorTextInput
+                  label="Position"
+                  value={selectedLayer.objectPosition ?? ""}
+                  placeholder="center center"
+                  onCommit={(value) =>
+                    onEditLayer(selectedLayer.id, "objectPosition", value)
                   }
                 />
               </>

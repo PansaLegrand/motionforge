@@ -12,6 +12,13 @@ export type EditorLayer = {
   type: SceneNode["type"];
   label: string;
   text?: string;
+  assetId?: string;
+  videoStartTime?: number;
+  audioStartTime?: number;
+  playbackRate?: number;
+  volume?: number;
+  objectFit?: string;
+  objectPosition?: string;
   color?: string;
   fontSize?: number | string;
   fontWeight?: number | string;
@@ -97,6 +104,19 @@ function collectLayer(
     type: node.type,
     label: layerLabel(node),
     text: node.type === "text" ? node.text : undefined,
+    assetId: node.assetId,
+    videoStartTime: node.videoStartTime,
+    audioStartTime: node.audioStartTime,
+    playbackRate: node.playbackRate,
+    volume: node.volume,
+    objectFit:
+      typeof node.style?.objectFit === "string"
+        ? node.style.objectFit
+        : undefined,
+    objectPosition:
+      typeof node.style?.objectPosition === "string"
+        ? node.style.objectPosition
+        : undefined,
     color: typeof node.style?.color === "string" ? node.style.color : undefined,
     fontSize: node.style?.fontSize,
     fontWeight: node.style?.fontWeight,

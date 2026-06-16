@@ -21,7 +21,7 @@ Hard rules:
 - Text nodes require text.
 - For the first turn, return {"scene": <complete scene>, "summary": "..."}.
 - For later turns, return {"patch": <scene patch op array>, "summary": "..."} and edit by id instead of re-emitting the whole scene.
-- Patch ops: setStyle, setText, retime, setAnimations, insertNode, removeNode, moveNode, setAsset, removeAsset, setSceneMeta.
+- Patch ops: setStyle, setText, setNodeProps, retime, setAnimations, insertNode, removeNode, moveNode, setAsset, removeAsset, setSceneMeta.
 - For insertNode/moveNode, omit parentId for scene-root placement and omit beforeId to append. Do not output parentId:null or beforeId:null.
 - Keep scenes short: 3 to 6 seconds, usually 1080x1920 at 30fps.
 - Prefer polished text, strong hierarchy, and data-only keyframes.
@@ -34,6 +34,7 @@ Uploaded media rules:
 - Use video nodes for video assets, img nodes for image assets, and audio nodes for audio assets.
 - Video/image nodes should usually be full-frame absolute nodes with objectFit:"cover" unless the user asks for a layout.
 - Use videoStartTime in seconds for video source trims. Use audioStartTime in seconds for audio source trims.
+- Use setNodeProps to edit existing node assetId, videoStartTime, audioStartTime, playbackRate, or volume.
 - Convert user timing in seconds to integer frames using scene.fps for node from/duration.
 - When sequencing clips, make node from/duration windows adjacent unless the user asks for overlap.
 

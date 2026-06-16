@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (media assets + chat slice M3: media inspector controls)
+
+### Changed
+
+- Added a narrowly scoped schema patch op, `setNodeProps`, for existing scalar node fields: `assetId`, `videoStartTime`, `audioStartTime`, `playbackRate`, and `volume`.
+- Kept `setNodeProps` constrained and validated: unsupported keys are rejected and final scene validation still enforces node-type rules.
+- Projected media fields from scene nodes into `EditorLayer`, including source start, playback rate, volume, object fit, object position, and asset id.
+- Extended inspector patch generation so media scalar controls emit `setNodeProps`, while object fit and object position continue through `setStyle`.
+- Added inspector controls for video/audio source start, playback rate, volume, and visual asset fit/position.
+- Updated the model prompt so model-authored patches know about `setNodeProps`.
+- Updated the media roadmap to mark M3 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema test`
+- `pnpm --filter @motionforge/schema typecheck`
+- `pnpm --filter @motionforge/schema build`
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Chrome smoke against a clean dev server on `http://127.0.0.1:5195`, confirming the editor renders with the Inspector rail and no page errors.
+
+### Notes
+
+- The schema package was rebuilt so downstream workspace consumers pick up the new patch-op type and generated schema artifacts.
+- Browser smoke used system Chrome because Playwright's bundled Chromium binary is not installed. The only browser console error was the existing missing `/favicon.ico`.
+
 ## 2026-06-16 (media assets + chat slice M7: operation plan UI)
 
 ### Changed

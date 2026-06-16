@@ -300,7 +300,7 @@ Done when:
 - An audio upload can be inserted and contributes to preview/export audio.
 - Undo removes the inserted node and returns the previous scene.
 
-### Slice M3 - Media Inspector Controls
+### Slice M3 - Media Inspector Controls ✅
 
 **Goal:** Manual editing exposes media timing and source trim controls.
 
@@ -317,11 +317,11 @@ Tasks:
 - Add inspector fields for video/audio source start time.
 - Add inspector fields for playback rate and volume where valid.
 - Add inspector controls for object fit and object position on image/video nodes.
-- Map every edit to existing patch ops: `setStyle`, `retime`, or node-specific fields if patch support already exists.
+- Map every edit to patch ops: `setStyle`, `retime`, or `setNodeProps`.
 
 Important implementation note:
 
-The current patch vocabulary does not have a generic `setNodeFields` op. If `videoStartTime`, `audioStartTime`, `playbackRate`, or `volume` cannot be patched today, add a narrowly scoped patch op or extend the existing patch vocabulary deliberately before wiring the inspector. Do not mutate the scene outside `applyScenePatch`.
+The patch vocabulary now includes a narrowly scoped `setNodeProps` op for existing scalar node fields: `assetId`, `videoStartTime`, `audioStartTime`, `playbackRate`, and `volume`. It is not a generic mutation escape hatch; final scene validation still enforces node-type rules.
 
 Done when:
 

@@ -33,6 +33,23 @@ const setTextOp = z.object({
   text: z.string(),
 });
 
+const setNodePropsOp = z.object({
+  op: z.literal("setNodeProps"),
+  id: z.string().min(1),
+  props: z
+    .object({
+      assetId: z.string().min(1).nullable().optional(),
+      videoStartTime: z.number().nonnegative().nullable().optional(),
+      playbackRate: z.number().positive().nullable().optional(),
+      audioStartTime: z.number().nonnegative().nullable().optional(),
+      volume: z.number().min(0).max(1).nullable().optional(),
+    })
+    .strict()
+    .refine((props) => Object.keys(props).length > 0, {
+      message: "props must include at least one supported node field.",
+    }),
+});
+
 const retimeOp = z.object({
   op: z.literal("retime"),
   id: z.string().min(1),
@@ -103,6 +120,7 @@ const setSceneMetaOp = z.object({
 export const sceneOpSchema = z.discriminatedUnion("op", [
   setStyleOp,
   setTextOp,
+  setNodePropsOp,
   retimeOp,
   setAnimationsOp,
   insertNodeOp,
@@ -306,6 +324,21 @@ function applyOp(draft: Scene, op: SceneOp): string | null {
         return `(setText "${op.id}"): node is a ${entry.node.type}, not a text node. Only text nodes carry text.`;
       }
       entry.node.text = op.text;
+      return null;
+    }
+
+    case "setNodeProps": {
+      const entry = index.get(op.id);
+      if (!entry) return missingNodeMessage("setNodeProps", op.id, index);
+
+      for (const [key, value] of Object.entries(op.props)) {
+        if (value === null) {
+          delete entry.node[key as keyof MutableNode];
+        } else {
+          (entry.node as Record<string, unknown>)[key] = value;
+        }
+      }
+
       return null;
     }
 

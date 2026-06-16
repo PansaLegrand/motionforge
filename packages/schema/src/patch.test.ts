@@ -33,7 +33,37 @@ const baseScene = () => ({
   ],
 });
 
+const mediaScene = () => ({
+  ...baseScene(),
+  assets: {
+    ...baseScene().assets,
+    clip: { id: "clip", type: "video" as const, src: "clip.mp4" },
+  },
+  nodes: [
+    ...baseScene().nodes,
+    {
+      id: "shot",
+      type: "video" as const,
+      assetId: "clip",
+      from: 0,
+      duration: 60,
+      videoStartTime: 1,
+      playbackRate: 1,
+      volume: 1,
+      style: { width: 1080, height: 1920 },
+    },
+  ],
+});
+
 function applied(patch: ScenePatch, scene: unknown = baseScene()) {
+  const result = applyScenePatch(scene, patch);
+  if (!result.ok) {
+    throw new Error(result.errors.map((e) => e.message).join("\n"));
+  }
+  return result.scene;
+}
+
+function appliedUnknown(patch: unknown, scene: unknown = baseScene()) {
   const result = applyScenePatch(scene, patch);
   if (!result.ok) {
     throw new Error(result.errors.map((e) => e.message).join("\n"));
@@ -96,6 +126,44 @@ describe("applyScenePatch", () => {
   it("setText only works on text nodes", () => {
     const errors = rejected([{ op: "setText", id: "bg", text: "nope" }]);
     expect(errors[0]?.message).toContain("not a text node");
+  });
+
+  it("sets and deletes validated scalar node props", () => {
+    const scene = applied([
+      {
+        op: "setNodeProps",
+        id: "shot",
+        props: { videoStartTime: 2.5, playbackRate: 1.25, volume: 0.4 },
+      },
+      { op: "setNodeProps", id: "shot", props: { playbackRate: null } },
+    ], mediaScene());
+    const shot = scene.nodes.find((n) => n.id === "shot");
+
+    expect(shot?.videoStartTime).toBe(2.5);
+    expect(shot?.volume).toBe(0.4);
+    expect(shot?.playbackRate).toBeUndefined();
+  });
+
+  it("rejects setNodeProps when final node-type invariants fail", () => {
+    const errors = rejected([
+      { op: "setNodeProps", id: "badge", props: { volume: 0.5 } },
+    ]);
+
+    expect(errors.map((error) => error.message).join("\n")).toContain(
+      "volume only applies to audio and video nodes",
+    );
+  });
+
+  it("rejects unsupported or empty setNodeProps payloads", () => {
+    expect(
+      rejected([{ op: "setNodeProps", id: "shot", props: {} }], mediaScene())[0]
+        ?.message,
+    ).toContain("props must include");
+    expect(
+      rejected([
+        { op: "setNodeProps", id: "shot", props: { src: "other.mp4" } },
+      ], mediaScene())[0]?.message,
+    ).toContain("Unrecognized key");
   });
 
   it("setStyle validates the merged style against the schema", () => {
@@ -172,7 +240,7 @@ describe("applyScenePatch", () => {
   });
 
   it("treats null parent and sibling ids from model JSON as omitted", () => {
-    const scene = applied([
+    const scene = appliedUnknown([
       {
         op: "insertNode",
         node: { id: "root-note", type: "text", text: "Root note", style: {} },
