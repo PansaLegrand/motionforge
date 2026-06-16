@@ -79,6 +79,7 @@ describe("deriveEditorLayers", () => {
       id: "title",
       parentId: "stage",
       depth: 1,
+      parentFrom: 10,
       label: "A launch title with extra whitespace",
       localFrom: 5,
       from: 15,

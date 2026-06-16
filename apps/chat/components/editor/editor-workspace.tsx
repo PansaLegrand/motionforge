@@ -7,6 +7,7 @@ import {
   Pause,
   Play,
   Plus,
+  Scissors,
   Send,
   Sparkles,
   type LucideIcon,
@@ -572,6 +573,7 @@ export function TimelinePanel({
   onSeek,
   onRetimeLayer,
   onResizeLayerDuration,
+  onSplitSelectedLayer,
 }: {
   scene: Scene | null;
   layers: EditorLayer[];
@@ -583,9 +585,19 @@ export function TimelinePanel({
   onSeek: (frame: number) => void;
   onRetimeLayer: (id: string, from: number) => void;
   onResizeLayerDuration: (id: string, duration: number) => void;
+  onSplitSelectedLayer: () => void;
 }) {
   const duration = scene?.duration ?? 1;
   const canScrub = Boolean(scene && !playerState.loading && !playerState.error);
+  const selectedTimelineLayer =
+    layers.find((layer) => layer.id === selectedLayerId) ?? null;
+  const canSplitSelectedLayer = Boolean(
+    scene &&
+      selectedTimelineLayer &&
+      selectedTimelineLayer.childCount === 0 &&
+      playerState.frame > selectedTimelineLayer.from &&
+      playerState.frame < selectedTimelineLayer.from + selectedTimelineLayer.duration,
+  );
   const draggingLayerRef = useRef<TimelineDraggingLayer | null>(null);
   const [draggingLayer, setDraggingLayerState] =
     useState<TimelineDraggingLayer | null>(null);
@@ -876,6 +888,15 @@ export function TimelinePanel({
           <output className="w-24 text-center font-mono text-xs tabular-nums text-foreground">
             {scene ? formatFrameTime(playerState.frame, scene.fps) : "00:00"}
           </output>
+          <button
+            type="button"
+            disabled={!canSplitSelectedLayer}
+            onClick={onSplitSelectedLayer}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-45"
+            title="Split selected layer at playhead"
+          >
+            <Scissors className="h-3.5 w-3.5" />
+          </button>
         </div>
 
         <input

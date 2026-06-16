@@ -19,6 +19,7 @@ export type EditorLayer = {
   textStroke?: string;
   parentId?: string;
   depth: number;
+  parentFrom: number;
   localFrom: number;
   localDuration: number;
   from: number;
@@ -106,6 +107,7 @@ function collectLayer(
         : undefined,
     parentId: context.parentId,
     depth: context.depth,
+    parentFrom: context.parentAbsoluteFrom,
     localFrom,
     localDuration,
     from: absoluteFrom,

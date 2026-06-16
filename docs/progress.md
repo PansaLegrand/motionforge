@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 14: split at playhead)
+
+### Changed
+
+- Added a split-at-playhead helper that converts a selected leaf layer into two adjacent replacement nodes through RFC 0001 patch ops (`insertNode`, `insertNode`, `removeNode`).
+- Preserved media continuity when splitting video/audio nodes by offsetting the right half's source trim (`videoStartTime`/`audioStartTime`).
+- Added a compact timeline Split button that is enabled only when a leaf layer is selected and the playhead is inside its local timing range.
+- Split commits through `applyScenePatch`, records undo history, selects the left split half, and displays the generated patch for developer inspection.
+- Updated the roadmap to mark split-at-playhead complete while leaving timeline snapping as the remaining compact timeline editing slice.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5186`: loaded **Animated Chart**, selected the title layer at playhead frame `36`, split it into `title-a` and `title-b`, confirmed the last patch used `insertNode`/`insertNode`/`removeNode`, and verified no browser console errors.
+
+### Notes
+
+- This first split slice is intentionally leaf-layer only. Splitting containers with children needs a dedicated subtree id-rewrite policy before it should be enabled.
+
 ## 2026-06-16 (chat + edit slice 13: timeline duration handles)
 
 ### Changed

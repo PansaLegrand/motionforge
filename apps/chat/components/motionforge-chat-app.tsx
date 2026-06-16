@@ -35,6 +35,7 @@ import {
   undoSceneHistory,
   type SceneHistory,
 } from "@/lib/editor/scene-history";
+import { createSplitLayerPatch } from "@/lib/editor/split-layer";
 import {
   PanelSwitcher,
   PreviewWorkspace,
@@ -509,6 +510,43 @@ export function MotionforgeChatApp() {
     [editSelectedLayer],
   );
 
+  const splitSelectedLayerAtPlayhead = useCallback(() => {
+    if (!scene || !selectedLayerId || !selectedLayer) {
+      setEditorError("Select a layer before splitting.");
+      return;
+    }
+
+    const splitResult = createSplitLayerPatch({
+      scene,
+      nodeId: selectedLayerId,
+      splitFrame: playerState.frame - selectedLayer.parentFrom,
+    });
+
+    if (!splitResult.ok) {
+      setEditorError(splitResult.error);
+      return;
+    }
+
+    const result = applyScenePatch(scene, splitResult.patch);
+
+    if (!result.ok) {
+      setEditorError(result.errors.map((error) => error.message).join("\n"));
+      return;
+    }
+
+    commitSceneChange(result.scene, "inspector");
+    setSelectedLayerId(splitResult.leftId);
+    setLastPatch(splitResult.patch);
+    setEditorError(null);
+    setExportStatus("");
+  }, [
+    commitSceneChange,
+    playerState.frame,
+    scene,
+    selectedLayer,
+    selectedLayerId,
+  ]);
+
   const exportCurrentScene = useCallback(async () => {
     if (!scene || exportReadiness.disabled) {
       return;
@@ -718,6 +756,7 @@ export function MotionforgeChatApp() {
               onSeek={seek}
               onRetimeLayer={retimeLayerFromTimeline}
               onResizeLayerDuration={resizeLayerDurationFromTimeline}
+              onSplitSelectedLayer={splitSelectedLayerAtPlayhead}
             />
           </div>
 
