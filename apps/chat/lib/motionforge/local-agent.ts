@@ -1,11 +1,25 @@
 import type {
   Scene,
   SceneAnimation,
+  SceneNode,
   SceneOp,
   ScenePatch,
 } from "@motionforge/schema";
-import { applyScenePatch, parseScene, validateScene } from "@motionforge/schema";
-import { fadeUp, popIn, slideIn, timeline } from "@motionforge/presets";
+import {
+  applyScenePatch,
+  parseScene,
+  validateScene,
+} from "@motionforge/schema";
+import {
+  fadeUp,
+  popIn,
+  slideIn,
+  styledSubtitles,
+  styledCaptions,
+  timeline,
+  type CaptionTemplateKey,
+  type CaptionWord,
+} from "@motionforge/presets";
 
 export type MotionforgeAgentResult = {
   mode: "scene" | "patch";
@@ -73,13 +87,23 @@ const themes = {
 
 export function createSceneFromInstruction(instruction: string): Scene {
   const normalized = instruction.toLowerCase();
+
+  if (isSubtitleGalleryPrompt(normalized)) {
+    return createSubtitleTemplateGalleryScene();
+  }
+
   const theme = selectTheme(normalized);
   const title = titleFromInstruction(instruction);
   const subtitle = subtitleFromInstruction(instruction);
-  const isLandscape = normalized.includes("landscape") || normalized.includes("youtube");
+  const isLandscape =
+    normalized.includes("landscape") || normalized.includes("youtube");
   const width = isLandscape ? 1280 : 1080;
   const height = isLandscape ? 720 : 1920;
-  const duration = normalized.includes("3 second") ? 90 : normalized.includes("6 second") ? 180 : 150;
+  const duration = normalized.includes("3 second")
+    ? 90
+    : normalized.includes("6 second")
+      ? 180
+      : 150;
   const titleTop = isLandscape ? 220 : 704;
   const panelTop = isLandscape ? 132 : 492;
   const panelHeight = isLandscape ? 420 : 790;
@@ -179,31 +203,15 @@ export function createSceneFromInstruction(instruction: string): Scene {
         },
         animations: choreography.subtitle ?? [],
       },
-      {
-        id: "caption",
-        type: "text",
-        text: normalized.includes("caption")
-          ? "Words land right on the beat"
-          : "Preview now. Export when ready.",
-        from: 0,
+      firstDraftCaptionNode({
+        instruction: normalized,
+        width,
+        top: isLandscape ? 535 : 1190,
+        isLandscape,
         duration,
-        style: {
-          position: "absolute",
-          left: Math.round(width * 0.18),
-          right: Math.round(width * 0.18),
-          top: isLandscape ? 535 : 1190,
-          fontSize: isLandscape ? 30 : 40,
-          fontWeight: 850,
-          color: "#ffffff",
-          textAlign: "center",
-          textStroke: "5px rgba(15,23,42,0.62)",
-          textBackgroundColor: theme.accent2,
-          textBackgroundPaddingX: isLandscape ? 24 : 38,
-          textBackgroundPaddingY: isLandscape ? 13 : 20,
-          textBackgroundRadius: 28,
-        },
+        accent: theme.accent2,
         animations: choreography.caption ?? [],
-      },
+      }),
     ],
   });
 }
@@ -264,16 +272,24 @@ function createFirstDraftChoreography(): Record<
   };
 }
 
-export function createPatchFromInstruction(scene: Scene, instruction: string): ScenePatch {
+export function createPatchFromInstruction(
+  scene: Scene,
+  instruction: string,
+): ScenePatch {
   const normalized = instruction.toLowerCase();
   const ops: SceneOp[] = [];
   const ids = collectNodeIds(scene);
   const titleId = ids.find((id) => /title/i.test(id)) ?? firstTextId(scene);
-  const subtitleId = ids.find((id) => /subtitle|caption/i.test(id)) ?? firstTextId(scene);
+  const subtitleId =
+    ids.find((id) => /subtitle|caption/i.test(id)) ?? firstTextId(scene);
   const bgId = ids.find((id) => /bg|background/i.test(id));
   const panelId = ids.find((id) => /panel|card|accent/i.test(id));
 
-  if (normalized.includes("bigger") || normalized.includes("larger") || normalized.includes("huge")) {
+  if (
+    normalized.includes("bigger") ||
+    normalized.includes("larger") ||
+    normalized.includes("huge")
+  ) {
     const current = getNodeStyleNumber(scene, titleId, "fontSize", 72);
     if (titleId) {
       ops.push({
@@ -285,12 +301,27 @@ export function createPatchFromInstruction(scene: Scene, instruction: string): S
   }
 
   const quoted = instruction.match(/["“](.+?)["”]/)?.[1];
-  if (quoted && titleId && /(title|say|text|headline|write)/i.test(instruction)) {
+  if (
+    quoted &&
+    titleId &&
+    /(title|say|text|headline|write)/i.test(instruction)
+  ) {
     ops.push({ op: "setText", id: titleId, text: quoted });
   }
 
   if (normalized.includes("caption") || normalized.includes("subtitle")) {
-    if (subtitleId) {
+    const template = selectCaptionTemplate(normalized);
+
+    if (template) {
+      ops.push({
+        op: "insertNode",
+        node: chatCaptionTemplateNode({
+          fps: scene.fps,
+          idPrefix: uniqueCaptionPrefix(scene, `${template}-captions`),
+          template,
+        }),
+      });
+    } else if (subtitleId) {
       ops.push({
         op: "setText",
         id: subtitleId,
@@ -324,16 +355,28 @@ export function createPatchFromInstruction(scene: Scene, instruction: string): S
   ) {
     const theme = selectTheme(normalized);
     if (bgId) {
-      ops.push({ op: "setStyle", id: bgId, style: { background: theme.background } });
+      ops.push({
+        op: "setStyle",
+        id: bgId,
+        style: { background: theme.background },
+      });
     }
     if (panelId) {
-      ops.push({ op: "setStyle", id: panelId, style: { backgroundColor: theme.panel } });
+      ops.push({
+        op: "setStyle",
+        id: panelId,
+        style: { backgroundColor: theme.panel },
+      });
     }
     if (titleId) {
       ops.push({ op: "setStyle", id: titleId, style: { color: theme.title } });
     }
     if (subtitleId) {
-      ops.push({ op: "setStyle", id: subtitleId, style: { color: theme.body } });
+      ops.push({
+        op: "setStyle",
+        id: subtitleId,
+        style: { color: theme.body },
+      });
     }
   }
 
@@ -383,6 +426,385 @@ export function createPatchFromInstruction(scene: Scene, instruction: string): S
   }
 
   return ops;
+}
+
+const chatCaptionWords: CaptionWord[] = [
+  { word: "WORDS", startMs: 450, endMs: 900 },
+  { word: "LAND", startMs: 900, endMs: 1350 },
+  { word: "RIGHT", startMs: 1350, endMs: 1900 },
+  { word: "ON", startMs: 1900, endMs: 2250 },
+  { word: "THE", startMs: 2250, endMs: 2600 },
+  { word: "BEAT", startMs: 2600, endMs: 3350 },
+];
+
+const subtitleGalleryTemplates: CaptionTemplateKey[] = [
+  "classic",
+  "minimalBar",
+  "handwritten",
+  "retro",
+  "cinematic",
+  "storyteller",
+  "hustle",
+  "spotlight",
+  "karaoke",
+  "neon",
+  "future",
+  "terminal",
+  "colorShift",
+];
+
+const subtitleGalleryWords: CaptionWord[] = [
+  { word: "FORGE", startMs: 0, endMs: 420 },
+  { word: "THE", startMs: 420, endMs: 700 },
+  { word: "CAPTION", startMs: 700, endMs: 1180 },
+  { word: "STYLE", startMs: 1180, endMs: 1680 },
+];
+
+function createSubtitleTemplateGalleryScene(): Scene {
+  const width = 1080;
+  const height = 1920;
+  const fps = 30;
+  const duration = 150;
+
+  return parseScene({
+    schemaVersion: 0,
+    width,
+    height,
+    fps,
+    duration,
+    assets: {},
+    nodes: [
+      {
+        id: "bg",
+        type: "div",
+        from: 0,
+        duration,
+        style: {
+          width: "100%",
+          height: "100%",
+          background: "linear-gradient(180deg, #101820 0%, #18212f 100%)",
+        },
+      },
+      {
+        id: "title",
+        type: "text",
+        text: "Subtitle Templates",
+        from: 0,
+        duration,
+        style: {
+          position: "absolute",
+          left: 64,
+          right: 64,
+          top: 56,
+          height: 76,
+          fontFamily: "Inter, system-ui, sans-serif",
+          fontSize: 58,
+          fontWeight: 900,
+          color: "#ffffff",
+          textAlign: "center",
+        },
+        animations: popIn({
+          fromScale: 0.9,
+          durationInFrames: 14,
+          easing: "spring(0.24)",
+        }),
+      },
+      {
+        id: "subtitle",
+        type: "text",
+        text: "Native MotionForge presets for captions and text overlays",
+        from: 0,
+        duration,
+        style: {
+          position: "absolute",
+          left: 96,
+          right: 96,
+          top: 134,
+          height: 44,
+          fontFamily: "Inter, system-ui, sans-serif",
+          fontSize: 26,
+          color: "#b8d8d8",
+          textAlign: "center",
+        },
+        animations: fadeUp({ distance: 18, durationInFrames: 14, delay: 5 }),
+      },
+      ...subtitleGalleryTemplates.map((template, index) =>
+        subtitleTemplateGalleryCard(template, index, duration, fps),
+      ),
+    ],
+  });
+}
+
+function subtitleTemplateGalleryCard(
+  template: CaptionTemplateKey,
+  index: number,
+  duration: number,
+  fps: number,
+): SceneNode {
+  const column = index % 2;
+  const row = Math.floor(index / 2);
+  const left = column === 0 ? 56 : 552;
+  const top = 220 + row * 226;
+  const cardHeight = 192;
+  const id = `template-${template}`;
+  const delay = 8 + index * 2;
+
+  return {
+    id,
+    type: "div",
+    from: 0,
+    duration,
+    style: {
+      position: "absolute",
+      left,
+      top,
+      width: 472,
+      height: cardHeight,
+      background:
+        column === 0
+          ? "linear-gradient(135deg, rgba(255,255,255,0.11) 0%, rgba(94,234,212,0.08) 100%)"
+          : "linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(251,113,133,0.08) 100%)",
+      border: "1px solid rgba(255,255,255,0.18)",
+      borderRadius: 18,
+      boxShadow: "0 18px 44px rgba(0,0,0,0.22)",
+      opacity: 0,
+      transform: "translate(0px, 26px)",
+    },
+    animations: [
+      {
+        kind: "keyframes",
+        property: "opacity",
+        frames: [
+          { frame: 0, value: 0 },
+          { frame: delay, value: 0 },
+          { frame: delay + 10, value: 1, easing: "easeOut" },
+        ],
+      },
+      {
+        kind: "keyframes",
+        property: "transform",
+        frames: [
+          { frame: 0, value: "translate(0px, 26px)" },
+          { frame: delay, value: "translate(0px, 26px)" },
+          {
+            frame: delay + 14,
+            value: "translate(0px, 0px)",
+            easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+          },
+        ],
+      },
+    ],
+    children: [
+      {
+        id: `${id}-label`,
+        type: "text",
+        text: templateLabel(template),
+        from: 0,
+        duration,
+        style: {
+          position: "absolute",
+          left: 22,
+          top: 18,
+          width: 428,
+          height: 28,
+          fontFamily: "Inter, system-ui, sans-serif",
+          fontSize: 22,
+          fontWeight: 850,
+          letterSpacing: 1.4,
+          color: "#b8d8d8",
+          textAlign: "left",
+        },
+      },
+      styledSubtitles(subtitleGalleryWords, {
+        fps,
+        template,
+        idPrefix: `${id}-sample`,
+        area: { top: 58, height: 108 },
+        renderMode:
+          template === "hustle" || template === "spotlight"
+            ? "word"
+            : undefined,
+        maxWordsPerSegment: 4,
+        maxSegmentDurationMs: 2400,
+        style: { fontSize: galleryFontSize(template) },
+      }),
+    ],
+  };
+}
+
+function galleryFontSize(template: CaptionTemplateKey): number {
+  if (template === "hustle" || template === "spotlight") {
+    return 44;
+  }
+
+  if (template === "handwritten") {
+    return 48;
+  }
+
+  return 38;
+}
+
+function templateLabel(template: CaptionTemplateKey): string {
+  return template
+    .replace(/([A-Z])/g, " $1")
+    .replace(/^./, (char) => char.toUpperCase());
+}
+
+function isSubtitleGalleryPrompt(instruction: string): boolean {
+  return (
+    (instruction.includes("subtitle") || instruction.includes("caption")) &&
+    (instruction.includes("gallery") ||
+      instruction.includes("all") ||
+      instruction.includes("preview"))
+  );
+}
+
+function firstDraftCaptionNode(options: {
+  instruction: string;
+  width: number;
+  top: number;
+  isLandscape: boolean;
+  duration: number;
+  accent: string;
+  animations: SceneAnimation[];
+}): SceneNode {
+  const template = selectCaptionTemplate(options.instruction);
+
+  if (template) {
+    const node = chatCaptionTemplateNode({
+      fps: 30,
+      idPrefix: "caption",
+      template,
+      area: {
+        top: options.isLandscape ? 500 : 1180,
+        height: options.isLandscape ? 150 : 280,
+      },
+    });
+    return {
+      ...node,
+      animations: options.animations,
+    };
+  }
+
+  return {
+    id: "caption",
+    type: "text",
+    text: options.instruction.includes("caption")
+      ? "Words land right on the beat"
+      : "Preview now. Export when ready.",
+    from: 0,
+    duration: options.duration,
+    style: {
+      position: "absolute",
+      left: Math.round(options.width * 0.18),
+      right: Math.round(options.width * 0.18),
+      top: options.top,
+      fontSize: options.isLandscape ? 30 : 40,
+      fontWeight: 850,
+      color: "#ffffff",
+      textAlign: "center",
+      textStroke: "5px rgba(15,23,42,0.62)",
+      textBackgroundColor: options.accent,
+      textBackgroundPaddingX: options.isLandscape ? 24 : 38,
+      textBackgroundPaddingY: options.isLandscape ? 13 : 20,
+      textBackgroundRadius: 28,
+    },
+    animations: options.animations,
+  };
+}
+
+function chatCaptionTemplateNode(options: {
+  fps: number;
+  idPrefix: string;
+  template: CaptionTemplateKey;
+  area?: { top?: number | string; height?: number | string };
+}): SceneNode {
+  return styledCaptions(chatCaptionWords, {
+    fps: options.fps,
+    template: options.template,
+    idPrefix: options.idPrefix,
+    area: options.area ?? { top: "70%", height: "18%" },
+  });
+}
+
+function selectCaptionTemplate(instruction: string): CaptionTemplateKey | null {
+  if (instruction.includes("minimal") || instruction.includes("bar")) {
+    return "minimalBar";
+  }
+
+  if (instruction.includes("handwritten") || instruction.includes("casual")) {
+    return "handwritten";
+  }
+
+  if (instruction.includes("retro") || instruction.includes("vintage")) {
+    return "retro";
+  }
+
+  if (instruction.includes("cinematic") || instruction.includes("premium")) {
+    return "cinematic";
+  }
+
+  if (
+    instruction.includes("storyteller") ||
+    instruction.includes("narrative")
+  ) {
+    return "storyteller";
+  }
+
+  if (instruction.includes("hustle")) {
+    return "hustle";
+  }
+
+  if (instruction.includes("spotlight") || instruction.includes("tiktok")) {
+    return "spotlight";
+  }
+
+  if (instruction.includes("neon")) {
+    return "neon";
+  }
+
+  if (instruction.includes("future") || instruction.includes("tech")) {
+    return "future";
+  }
+
+  if (instruction.includes("terminal") || instruction.includes("code")) {
+    return "terminal";
+  }
+
+  if (
+    instruction.includes("color shift") ||
+    instruction.includes("colorshift")
+  ) {
+    return "colorShift";
+  }
+
+  if (instruction.includes("karaoke")) {
+    return "karaoke";
+  }
+
+  if (
+    instruction.includes("classic subtitle") ||
+    instruction.includes("classic caption")
+  ) {
+    return "classic";
+  }
+
+  return instruction.includes("subtitle") || instruction.includes("caption")
+    ? "spotlight"
+    : null;
+}
+
+function uniqueCaptionPrefix(scene: Scene, base: string): string {
+  const ids = new Set(collectNodeIds(scene));
+  let candidate = base;
+  let suffix = 2;
+
+  while (ids.has(candidate)) {
+    candidate = `${base}-${suffix}`;
+    suffix += 1;
+  }
+
+  return candidate;
 }
 
 export function applyInstructionLocally(
@@ -575,15 +997,27 @@ function subtitleFromInstruction(instruction: string): string {
 }
 
 function selectTheme(instruction: string): Theme {
-  if (instruction.includes("dark") || instruction.includes("punch") || instruction.includes("kinetic")) {
+  if (
+    instruction.includes("dark") ||
+    instruction.includes("punch") ||
+    instruction.includes("kinetic")
+  ) {
     return themes.punch;
   }
 
-  if (instruction.includes("calm") || instruction.includes("founder") || instruction.includes("clean")) {
+  if (
+    instruction.includes("calm") ||
+    instruction.includes("founder") ||
+    instruction.includes("clean")
+  ) {
     return themes.calm;
   }
 
-  if (instruction.includes("launch") || instruction.includes("bold") || instruction.includes("coral")) {
+  if (
+    instruction.includes("launch") ||
+    instruction.includes("bold") ||
+    instruction.includes("coral")
+  ) {
     return themes.launch;
   }
 

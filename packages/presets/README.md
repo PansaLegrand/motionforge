@@ -24,12 +24,17 @@ const node = {
 
 `popIn`, `fadeUp`, `slideIn(direction)`, and `pulse` accept `durationInFrames`, `delay` (held from frame 0), and an `easing` expression (`spring(bounce)` and `cubic-bezier(...)` included). They use real transform tweens — `scale(0.8) → scale(1)` interpolates.
 
-## Caption generators
+## Caption Generators
 
 Feed ASR-style word timestamps, get a timed caption track:
 
 ```ts
-import { tiktokCaptions, karaokeCaptions } from "@motionforge/presets";
+import {
+  captionTemplates,
+  karaokeCaptions,
+  styledCaptions,
+  tiktokCaptions,
+} from "@motionforge/presets";
 
 const track = tiktokCaptions(
   [
@@ -44,6 +49,21 @@ scene.nodes.push(track); // one-word-at-a-time style with pop + measured highlig
 
 `tiktokCaptions` renders one word at a time (each word holds until the next starts); highlighted words use `textBackgroundColor`/padding/radius on the text node itself, so pill widths come from the renderer's font measurement instead of character-count guesses. Caption presets also apply `textStroke` by default. `karaokeCaptions` keeps the whole line visible and ramps each word's color while it is spoken.
 
+For community-ready subtitle looks, use the native template catalog:
+
+```ts
+const captions = styledCaptions(words, {
+  fps: 30,
+  template: "spotlight",
+  area: { top: "66%", height: "20%" },
+});
+
+scene.nodes.push(captions);
+console.log(Object.keys(captionTemplates));
+```
+
+Available templates: `classic`, `minimalBar`, `handwritten`, `retro`, `cinematic`, `storyteller`, `hustle`, `spotlight`, `karaoke`, `neon`, `future`, `terminal`, and `colorShift`. They compile to plain motionforge scene nodes; there is no Remotion, DOM, or adapter dependency.
+
 ## Timeline choreography
 
 Sequencing several nodes means deriving frame offsets from other durations — the arithmetic both humans and LLMs get wrong. `timeline()` owns it:
@@ -52,11 +72,11 @@ Sequencing several nodes means deriving frame offsets from other durations — t
 import { timeline, popIn, fadeUp, slideIn } from "@motionforge/presets";
 
 const tl = timeline()
-  .add("title", popIn({ durationInFrames: 12 }))                       // starts at 0
-  .add("subtitle", fadeUp(), { after: "title", overlap: 4 })           // starts at 12 - 4 = 8
+  .add("title", popIn({ durationInFrames: 12 })) // starts at 0
+  .add("subtitle", fadeUp(), { after: "title", overlap: 4 }) // starts at 12 - 4 = 8
   .stagger(["card-1", "card-2", "card-3"], slideIn("left"), { every: 5 });
 
-const animations = tl.compile();      // Record<nodeId, SceneAnimation[]>
+const animations = tl.compile(); // Record<nodeId, SceneAnimation[]>
 node.animations = animations["title"];
 
 // or emit RFC 0001 patch ops directly:

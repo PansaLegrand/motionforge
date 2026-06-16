@@ -30,8 +30,9 @@ describe("starter template examples", () => {
       "kinetic-typography",
       "founder-update",
     ]);
-    expect(new Set(starterTemplateExamples.map((example) => example.id)).size)
-      .toBe(starterTemplateExamples.length);
+    expect(
+      new Set(starterTemplateExamples.map((example) => example.id)).size,
+    ).toBe(starterTemplateExamples.length);
   });
 
   it("keeps every starter template schema-valid", () => {
@@ -64,5 +65,8 @@ describe("starter template examples", () => {
   it("keeps prompt chips available for chat-input examples", () => {
     expect(promptChips.length).toBeGreaterThan(starterTemplateExamples.length);
     expect(promptChips).toContain(starterTemplateExamples[0]!.prompt);
+    expect(promptChips).toContain(
+      "Show a subtitle template gallery previewing all caption styles.",
+    );
   });
 });

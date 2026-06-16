@@ -2,10 +2,15 @@ import { describe, expect, it } from "vitest";
 import { validateScene, type Scene, type SceneNode } from "@motionforge/schema";
 import {
   fadeUp,
+  captionTemplateEntries,
+  captionTemplates,
   karaokeCaptions,
   popIn,
   pulse,
   slideIn,
+  styledCaptions,
+  styledSubtitles,
+  subtitleTemplates,
   tiktokCaptions,
   type CaptionWord,
 } from "./index.js";
@@ -150,5 +155,92 @@ describe("karaokeCaptions", () => {
       [50, "#ffffff"],
     ]);
     expect(second?.style?.textStroke).toBe("8px #000000");
+  });
+});
+
+describe("caption template catalog", () => {
+  it("exposes community subtitle templates with stable metadata", () => {
+    expect(captionTemplateEntries.map(([key]) => key)).toEqual([
+      "classic",
+      "minimalBar",
+      "handwritten",
+      "retro",
+      "cinematic",
+      "storyteller",
+      "hustle",
+      "spotlight",
+      "karaoke",
+      "neon",
+      "future",
+      "terminal",
+      "colorShift",
+    ]);
+    expect(subtitleTemplates).toBe(captionTemplates);
+  });
+
+  it("generates schema-valid styled captions for every template", () => {
+    for (const [key] of captionTemplateEntries) {
+      const captions = styledCaptions(words, {
+        fps: 30,
+        template: key,
+        idPrefix: `community-${key}`,
+      });
+      const result = validateScene(sceneWith(captions));
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+    }
+  });
+
+  it("segments static subtitle templates into readable line captions", () => {
+    const captions = styledSubtitles(words, {
+      fps: 30,
+      template: "classic",
+      maxWordsPerSegment: 2,
+      idPrefix: "classic-demo",
+    });
+
+    expect(captions.children).toHaveLength(3);
+    expect(captions.children?.[0]).toMatchObject({ from: 24, duration: 48 });
+    expect(captions.children?.[0]?.children?.[0]?.text).toBe("FORGE MOTION");
+    expect(captions.children?.[2]?.children?.[0]?.text).toBe("BROWSER");
+  });
+
+  it("adds animated active-word backgrounds for karaoke-style templates", () => {
+    const captions = styledCaptions(words, {
+      fps: 30,
+      template: "karaoke",
+      idPrefix: "karaoke-demo",
+    });
+    const firstSegment = captions.children?.[0];
+    const firstWord = firstSegment?.children?.[0];
+
+    expect(firstSegment?.type).toBe("div");
+    expect(firstWord?.type).toBe("text");
+    expect(firstWord?.style?.textBackgroundColor).toBe("rgba(236, 72, 153, 0)");
+    expect(
+      firstWord?.animations?.some((entry) => entry.property === "color"),
+    ).toBe(true);
+    expect(
+      firstWord?.animations?.some(
+        (entry) => entry.property === "textBackgroundColor",
+      ),
+    ).toBe(true);
+  });
+
+  it("keeps one-word punch templates compatible with tiktok-style timing", () => {
+    const captions = styledCaptions(words, {
+      fps: 30,
+      template: "hustle",
+      idPrefix: "hustle-demo",
+    });
+    const children = captions.children ?? [];
+    const firstText = children[0]?.children?.[0];
+
+    expect(children).toHaveLength(words.length);
+    expect(children[0]).toMatchObject({ from: 24, duration: 24 });
+    expect(firstText?.style?.textBackgroundColor).toBe("#ff3b30");
+    expect(
+      firstText?.animations?.some((entry) => entry.property === "transform"),
+    ).toBe(true);
   });
 });

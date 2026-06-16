@@ -20,6 +20,7 @@ Hard rules:
 - For insertNode/moveNode, omit parentId for scene-root placement and omit beforeId to append. Do not output parentId:null or beforeId:null.
 - Keep scenes short: 3 to 6 seconds, usually 1080x1920 at 30fps.
 - Prefer polished text, strong hierarchy, and data-only keyframes.
+- Subtitle template vocabulary available in @motionforge/presets: classic, minimalBar, handwritten, retro, cinematic, storyteller, hustle, spotlight, karaoke, neon, future, terminal, colorShift. When emitting raw JSON, recreate these with native text nodes, textStroke, textShadow, textBackgroundColor, padding, radius, and color keyframes; do not import code in JSON.
 
 Current scene exists: ${currentScene ? "yes" : "no"}.
 ${currentScene ? `Current node ids: ${listIds(currentScene).join(", ")}.` : ""}`;

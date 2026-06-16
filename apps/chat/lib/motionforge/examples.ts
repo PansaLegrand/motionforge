@@ -15,21 +15,24 @@ const starterTemplatePrompts = [
     title: "Product Launch",
     description:
       "A vertical launch card with bold contrast, a central title, and staggered preset motion.",
-    prompt: "Make a 5 second vertical product launch teaser for a new AI video app.",
+    prompt:
+      "Make a 5 second vertical product launch teaser for a new AI video app.",
   },
   {
     id: "kinetic-typography",
     title: "Kinetic Typography",
     description:
       "Punchy typography with a darker palette, spring title motion, and a caption-style callout.",
-    prompt: "Create a kinetic typography scene saying SHIP THE DEMO with punchy motion.",
+    prompt:
+      "Create a kinetic typography scene saying SHIP THE DEMO with punchy motion.",
   },
   {
     id: "founder-update",
     title: "Founder Update",
     description:
       "A calm update card for narrative edits, clean typography, and soft entrance timing.",
-    prompt: "Turn this into a calm founder update with a clean title and three points.",
+    prompt:
+      "Turn this into a calm founder update with a clean title and three points.",
   },
 ] satisfies Array<{
   id: string;
@@ -57,4 +60,7 @@ export const promptChips = [
   "Make the title bigger and add a spring pop-in animation.",
   "Change the color palette to bold coral and teal.",
   "Add TikTok-style caption text near the bottom.",
+  "Show a subtitle template gallery previewing all caption styles.",
+  "Add neon karaoke subtitles with active word highlights.",
+  "Use terminal-style subtitles for the caption track.",
 ];
