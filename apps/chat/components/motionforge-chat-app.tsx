@@ -495,6 +495,13 @@ export function MotionforgeChatApp() {
     [commitSceneChange, scene],
   );
 
+  const retimeLayerFromTimeline = useCallback(
+    (id: string, from: number) => {
+      editSelectedLayer(id, "from", String(from));
+    },
+    [editSelectedLayer],
+  );
+
   const exportCurrentScene = useCallback(async () => {
     if (!scene || exportReadiness.disabled) {
       return;
@@ -702,6 +709,7 @@ export function MotionforgeChatApp() {
               onSelectLayer={setSelectedLayerId}
               onTogglePlayback={togglePlayback}
               onSeek={seek}
+              onRetimeLayer={retimeLayerFromTimeline}
             />
           </div>
 

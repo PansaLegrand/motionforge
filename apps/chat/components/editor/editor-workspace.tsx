@@ -11,7 +11,14 @@ import {
   Sparkles,
   type LucideIcon,
 } from "lucide-react";
-import type { MouseEvent, PointerEvent, ReactNode, RefObject } from "react";
+import {
+  useRef,
+  useState,
+  type MouseEvent,
+  type PointerEvent,
+  type ReactNode,
+  type RefObject,
+} from "react";
 import type { Scene } from "@motionforge/schema";
 import {
   describeExportReadiness,
@@ -23,6 +30,7 @@ import {
   formatFrameTime,
   formatSeconds,
   frameFromTimelinePoint,
+  retimeLayerFromTimelineDrag,
 } from "@/lib/editor/time";
 import { cn } from "@/lib/ui/cn";
 import type { ChatMessage, EditorPanel, PlayerUiState } from "./types";
@@ -541,6 +549,15 @@ export function PreviewWorkspace({
   );
 }
 
+type TimelineDraggingLayer = {
+  id: string;
+  startFrame: number;
+  initialFrom: number;
+  initialAbsoluteFrom: number;
+  duration: number;
+  previewFrom: number;
+};
+
 export function TimelinePanel({
   scene,
   layers,
@@ -550,6 +567,7 @@ export function TimelinePanel({
   onSelectLayer,
   onTogglePlayback,
   onSeek,
+  onRetimeLayer,
 }: {
   scene: Scene | null;
   layers: EditorLayer[];
@@ -559,9 +577,17 @@ export function TimelinePanel({
   onSelectLayer: (id: string) => void;
   onTogglePlayback: () => void;
   onSeek: (frame: number) => void;
+  onRetimeLayer: (id: string, from: number) => void;
 }) {
   const duration = scene?.duration ?? 1;
   const canScrub = Boolean(scene && !playerState.loading && !playerState.error);
+  const draggingLayerRef = useRef<TimelineDraggingLayer | null>(null);
+  const [draggingLayer, setDraggingLayerState] =
+    useState<TimelineDraggingLayer | null>(null);
+  const setDraggingLayer = (state: TimelineDraggingLayer | null) => {
+    draggingLayerRef.current = state;
+    setDraggingLayerState(state);
+  };
   const exportReadiness = describeExportReadiness({
     hasScene: Boolean(scene),
     previewLoading: playerState.loading,
@@ -594,6 +620,68 @@ export function TimelinePanel({
   };
   const scrubMouseTimeline = (event: MouseEvent<HTMLDivElement>) => {
     scrubTimelineAtClientX(event.clientX, event.currentTarget);
+  };
+  const frameForTimelineEvent = (
+    clientX: number,
+    timelineElement: HTMLDivElement,
+  ) => {
+    const bounds = timelineElement.getBoundingClientRect();
+    return frameFromTimelinePoint({
+      clientX,
+      timelineLeft: bounds.left,
+      timelineWidth: bounds.width,
+      duration,
+    });
+  };
+  const previewLayerFrom = (
+    clientX: number,
+    timelineElement: HTMLDivElement,
+  ): number | null => {
+    const activeDrag = draggingLayerRef.current;
+
+    if (!activeDrag) {
+      return null;
+    }
+
+    const currentFrame = frameForTimelineEvent(clientX, timelineElement);
+    const previewFrom = retimeLayerFromTimelineDrag({
+      startFrame: activeDrag.startFrame,
+      currentFrame,
+      initialFrom: activeDrag.initialFrom,
+      layerDuration: activeDrag.duration,
+      sceneDuration: duration,
+    });
+
+    setDraggingLayer({ ...activeDrag, previewFrom });
+    return previewFrom;
+  };
+  const commitLayerDrag = (
+    clientX?: number,
+    timelineElement?: HTMLDivElement | null,
+  ) => {
+    const activeDrag = draggingLayerRef.current;
+
+    if (!activeDrag) {
+      setDraggingLayer(null);
+      return;
+    }
+
+    const nextFrom =
+      clientX !== undefined && timelineElement
+        ? retimeLayerFromTimelineDrag({
+            startFrame: activeDrag.startFrame,
+            currentFrame: frameForTimelineEvent(clientX, timelineElement),
+            initialFrom: activeDrag.initialFrom,
+            layerDuration: activeDrag.duration,
+            sceneDuration: duration,
+          })
+        : activeDrag.previewFrom;
+
+    if (nextFrom !== activeDrag.initialFrom) {
+      onRetimeLayer(activeDrag.id, nextFrom);
+    }
+
+    setDraggingLayer(null);
   };
 
   return (
@@ -680,7 +768,10 @@ export function TimelinePanel({
             scrubPointerTimeline(event);
           }}
           onPointerMove={(event) => {
-            if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+            if (
+              !event.currentTarget.hasPointerCapture(event.pointerId) ||
+              draggingLayer
+            ) {
               return;
             }
 
@@ -690,22 +781,30 @@ export function TimelinePanel({
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
               event.currentTarget.releasePointerCapture(event.pointerId);
             }
+            commitLayerDrag(event.clientX, event.currentTarget);
           }}
           onPointerCancel={(event) => {
             if (event.currentTarget.hasPointerCapture(event.pointerId)) {
               event.currentTarget.releasePointerCapture(event.pointerId);
             }
+            setDraggingLayer(null);
           }}
           onMouseDown={(event) => {
             scrubMouseTimeline(event);
           }}
           onMouseMove={(event) => {
+            if (draggingLayer) {
+              previewLayerFrom(event.clientX, event.currentTarget);
+              return;
+            }
+
             if (event.buttons !== 1) {
               return;
             }
 
             scrubMouseTimeline(event);
           }}
+          onMouseUp={(event) => commitLayerDrag(event.clientX, event.currentTarget)}
           aria-label="Timeline scrub area"
         >
           <div className="absolute inset-0 bg-[linear-gradient(to_right,hsl(214_18%_86%/.8)_1px,transparent_1px)] bg-[size:64px_100%]" />
@@ -718,28 +817,143 @@ export function TimelinePanel({
           <div className="pointer-events-none absolute inset-x-0 top-0 h-7 border-b border-border/70 bg-white/70" />
           <div className="relative h-full">
             {layers.length ? (
-              layers.slice(0, 4).map((layer, index) => (
-                <button
-                  key={layer.id}
-                  type="button"
-                  onPointerDown={(event) => event.stopPropagation()}
-                  onMouseDown={(event) => event.stopPropagation()}
-                  onClick={() => onSelectLayer(layer.id)}
-                  className={cn(
-                    "absolute h-6 rounded-md border px-2 text-left text-[11px] font-medium shadow-sm transition",
-                    selectedLayerId === layer.id
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : "border-primary/30 bg-primary/15 text-primary hover:bg-primary/20",
-                  )}
-                  style={{
-                    top: `${index * 32 + 34}px`,
-                    left: `${(layer.from / duration) * 100}%`,
-                    width: `${Math.max(4, (layer.duration / duration) * 100)}%`,
-                  }}
-                >
-                  <span className="block truncate">{layer.label}</span>
-                </button>
-              ))
+              layers.slice(0, 4).map((layer, index) => {
+                const dragPreview =
+                  draggingLayer?.id === layer.id
+                    ? draggingLayer.initialAbsoluteFrom +
+                      draggingLayer.previewFrom -
+                      draggingLayer.initialFrom
+                    : layer.from;
+                const timelineBlockStyle = {
+                  top: `${index * 32 + 34}px`,
+                  left: `${(dragPreview / duration) * 100}%`,
+                  width: `${Math.max(4, (layer.duration / duration) * 100)}%`,
+                };
+
+                return (
+                  <button
+                    key={layer.id}
+                    type="button"
+                    data-timeline-block-id={layer.id}
+                    onPointerDown={(event) => {
+                      event.stopPropagation();
+                      if (!canScrub) {
+                        return;
+                      }
+
+                      const timelineElement =
+                        timelineElementForBlock(event.currentTarget);
+                      if (!(timelineElement instanceof HTMLDivElement)) {
+                        return;
+                      }
+
+                      event.currentTarget.setPointerCapture(event.pointerId);
+                      setDraggingLayer({
+                        id: layer.id,
+                        startFrame: frameForTimelineEvent(
+                          event.clientX,
+                          timelineElement,
+                        ),
+                        initialFrom: layer.localFrom,
+                        initialAbsoluteFrom: layer.from,
+                        duration: layer.localDuration,
+                        previewFrom: layer.localFrom,
+                      });
+                      onSelectLayer(layer.id);
+                    }}
+                    onPointerMove={(event) => {
+                      if (
+                        !event.currentTarget.hasPointerCapture(
+                          event.pointerId,
+                        )
+                      ) {
+                        return;
+                      }
+
+                      const timelineElement =
+                        timelineElementForBlock(event.currentTarget);
+                      if (timelineElement instanceof HTMLDivElement) {
+                        previewLayerFrom(event.clientX, timelineElement);
+                      }
+                    }}
+                    onPointerUp={(event) => {
+                      if (
+                        event.currentTarget.hasPointerCapture(event.pointerId)
+                      ) {
+                        event.currentTarget.releasePointerCapture(
+                          event.pointerId,
+                        );
+                      }
+                      commitLayerDrag(
+                        event.clientX,
+                        timelineElementForBlock(event.currentTarget),
+                      );
+                    }}
+                    onPointerCancel={(event) => {
+                      if (
+                        event.currentTarget.hasPointerCapture(event.pointerId)
+                      ) {
+                        event.currentTarget.releasePointerCapture(
+                          event.pointerId,
+                        );
+                      }
+                      setDraggingLayer(null);
+                    }}
+                    onMouseDown={(event) => {
+                      event.stopPropagation();
+                      if (!canScrub) {
+                        return;
+                      }
+
+                      const timelineElement =
+                        timelineElementForBlock(event.currentTarget);
+                      if (!(timelineElement instanceof HTMLDivElement)) {
+                        return;
+                      }
+
+                      setDraggingLayer({
+                        id: layer.id,
+                        startFrame: frameForTimelineEvent(
+                          event.clientX,
+                          timelineElement,
+                        ),
+                        initialFrom: layer.localFrom,
+                        initialAbsoluteFrom: layer.from,
+                        duration: layer.localDuration,
+                        previewFrom: layer.localFrom,
+                      });
+                      onSelectLayer(layer.id);
+                    }}
+                    onMouseMove={(event) => {
+                      if (!draggingLayer) {
+                        return;
+                      }
+
+                      const timelineElement =
+                        timelineElementForBlock(event.currentTarget);
+                      if (timelineElement instanceof HTMLDivElement) {
+                        previewLayerFrom(event.clientX, timelineElement);
+                      }
+                    }}
+                    onMouseUp={(event) =>
+                      commitLayerDrag(
+                        event.clientX,
+                        timelineElementForBlock(event.currentTarget),
+                      )
+                    }
+                    onClick={() => onSelectLayer(layer.id)}
+                    className={cn(
+                      "absolute h-6 cursor-grab rounded-md border px-2 text-left text-[11px] font-medium shadow-sm transition active:cursor-grabbing",
+                      selectedLayerId === layer.id
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : "border-primary/30 bg-primary/15 text-primary hover:bg-primary/20",
+                    )}
+                    style={timelineBlockStyle}
+                  >
+                    <span className="block truncate">{layer.label}</span>
+                  </button>
+                );
+              })
             ) : (
               <div className="px-3 py-6 text-xs text-muted-foreground sm:px-4 sm:py-8">
                 Generated layers will appear on the timeline.
@@ -750,6 +964,11 @@ export function TimelinePanel({
       </div>
     </div>
   );
+}
+
+function timelineElementForBlock(element: HTMLElement): HTMLDivElement | null {
+  const timelineElement = element.closest('[aria-label="Timeline scrub area"]');
+  return timelineElement instanceof HTMLDivElement ? timelineElement : null;
 }
 
 function LayerRow({

@@ -33,3 +33,22 @@ export function frameFromTimelinePoint({
 
   return Math.round(clamped * maxFrame);
 }
+
+export function retimeLayerFromTimelineDrag({
+  startFrame,
+  currentFrame,
+  initialFrom,
+  layerDuration,
+  sceneDuration,
+}: {
+  startFrame: number;
+  currentFrame: number;
+  initialFrom: number;
+  layerDuration: number;
+  sceneDuration: number;
+}): number {
+  const maxFrom = Math.max(0, sceneDuration - Math.max(1, layerDuration));
+  const nextFrom = initialFrom + currentFrame - startFrame;
+
+  return Math.min(maxFrom, Math.max(0, nextFrom));
+}

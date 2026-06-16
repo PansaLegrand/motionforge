@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 12: timeline block retiming)
+
+### Changed
+
+- Added horizontal drag retiming for compact timeline layer blocks.
+- Dragging previews the new block position while preserving absolute placement for nested layers.
+- Releasing a dragged block commits through the existing inspector patch path, producing a `retime` patch and recording undo history.
+- Added a tested frame-delta helper, `retimeLayerFromTimelineDrag()`, with clamp coverage at both scene edges.
+- Kept timeline-surface scrubbing separate from block dragging so playhead seeking and layer retiming do not fight each other.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5184`: loaded **Animated Chart**, shortened the title layer through the Inspector to create a visible short block, dragged that title block from frame `0` to frame `20`, confirmed the last patch was `{"op":"retime","id":"title","from":20}`, and verified no browser console errors.
+
+### Notes
+
+- This slice covers moving existing blocks only. Duration handles, split at playhead, and snapping remain the next compact timeline editing steps.
+
 ## 2026-06-16 (chat + edit slice 11: compact timeline scrub)
 
 ### Changed

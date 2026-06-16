@@ -3,6 +3,7 @@ import {
   formatFrameTime,
   formatSeconds,
   frameFromTimelinePoint,
+  retimeLayerFromTimelineDrag,
 } from "./time";
 
 describe("editor time formatting", () => {
@@ -66,5 +67,38 @@ describe("editor time formatting", () => {
         duration: 0,
       }),
     ).toBe(0);
+  });
+
+  it("retimes a layer by the dragged frame delta", () => {
+    expect(
+      retimeLayerFromTimelineDrag({
+        startFrame: 30,
+        currentFrame: 45,
+        initialFrom: 10,
+        layerDuration: 20,
+        sceneDuration: 100,
+      }),
+    ).toBe(25);
+  });
+
+  it("clamps dragged layer timing inside the scene", () => {
+    expect(
+      retimeLayerFromTimelineDrag({
+        startFrame: 50,
+        currentFrame: 5,
+        initialFrom: 10,
+        layerDuration: 20,
+        sceneDuration: 100,
+      }),
+    ).toBe(0);
+    expect(
+      retimeLayerFromTimelineDrag({
+        startFrame: 5,
+        currentFrame: 90,
+        initialFrom: 10,
+        layerDuration: 30,
+        sceneDuration: 100,
+      }),
+    ).toBe(70);
   });
 });
