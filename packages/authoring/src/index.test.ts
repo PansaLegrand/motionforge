@@ -2,16 +2,21 @@ import { describe, expect, it } from "vitest";
 import { validateScene } from "@motionforge/schema";
 import {
   audioTrack,
+  audioAsset,
   bg,
+  defineAssets,
   fadeUp,
   frames,
   image,
+  imageAsset,
   makeScene,
+  publicAsset,
   seconds,
   textBlock,
   title,
   toFrames,
   toSeconds,
+  videoAsset,
   videoClip,
 } from "./index.js";
 
@@ -67,18 +72,17 @@ describe("@motionforge/authoring", () => {
   });
 
   it("builds media nodes with source trims and scene assets", () => {
+    const poster = imageAsset("poster", publicAsset("assets/poster.png"));
+    const clip = videoAsset("clip", publicAsset("public/assets/clip.mp4"));
+
     const scene = makeScene({
       size: "landscape",
       fps: 24,
       duration: seconds(4),
-      assets: {
-        poster: { id: "poster", type: "image", src: "/poster.png" },
-        clip: { id: "clip", type: "video", src: "/clip.mp4" },
-        music: { id: "music", type: "audio", src: "/music.mp3" },
-      },
+      assets: defineAssets(audioAsset("music", "/music.mp3")),
       children: [
-        image("poster", { id: "poster-node", duration: seconds(1) }),
-        videoClip("clip", {
+        image(poster, { id: "poster-node", duration: seconds(1) }),
+        videoClip(clip, {
           id: "clip-node",
           at: seconds(1),
           duration: seconds(2),
@@ -96,8 +100,8 @@ describe("@motionforge/authoring", () => {
 
     expect(validateScene(scene)).toMatchObject({ ok: true });
     expect(scene.assets).toMatchObject({
-      poster: { id: "poster", type: "image", src: "/poster.png" },
-      clip: { id: "clip", type: "video", src: "/clip.mp4" },
+      poster: { id: "poster", type: "image", src: "/assets/poster.png" },
+      clip: { id: "clip", type: "video", src: "/assets/clip.mp4" },
       music: { id: "music", type: "audio", src: "/music.mp3" },
     });
     expect(scene.nodes[1]).toMatchObject({
@@ -115,6 +119,16 @@ describe("@motionforge/authoring", () => {
       audioStartTime: 10,
       volume: 0.25,
     });
+  });
+
+  it("normalizes public asset paths and rejects paths outside public", () => {
+    expect(publicAsset("assets/logo.svg")).toBe("/assets/logo.svg");
+    expect(publicAsset("./public/assets/logo.svg")).toBe("/assets/logo.svg");
+    expect(publicAsset("/assets/logo.svg")).toBe("/assets/logo.svg");
+    expect(publicAsset("https://cdn.example.com/logo.svg")).toBe(
+      "https://cdn.example.com/logo.svg",
+    );
+    expect(() => publicAsset("../secret.mov")).toThrow("public");
   });
 
   it("uses scene-relative text defaults across aspect ratios", () => {

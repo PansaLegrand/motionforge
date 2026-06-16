@@ -78,6 +78,7 @@ function projectFiles(projectName: string): Array<[string, string]> {
   return [
     ["package.json", packageJson(projectName)],
     ["tsconfig.json", tsconfigJson()],
+    ["public/assets/logo.svg", logoSvg()],
     ["src/video.ts", videoTs()],
   ];
 }
@@ -168,11 +169,16 @@ function videoTs() {
   return `import {
   bg,
   fadeUp,
+  image,
+  imageAsset,
   makeScene,
+  publicAsset,
   seconds,
   textBlock,
   title,
 } from "@motionforge/authoring";
+
+const logo = imageAsset("logo", publicAsset("assets/logo.svg"));
 
 export default makeScene({
   size: "portrait",
@@ -180,8 +186,21 @@ export default makeScene({
   duration: seconds(5),
   children: [
     bg("#0f172a"),
+    image(logo, {
+      id: "logo",
+      at: seconds(0.2),
+      duration: seconds(4.6),
+      style: {
+        left: 432,
+        top: 360,
+        width: 216,
+        height: 216,
+        objectFit: "contain",
+      },
+      enter: fadeUp({ durationInFrames: 10 }),
+    }),
     title("Hello MotionForge", {
-      at: seconds(0.7),
+      at: seconds(0.8),
       duration: seconds(3.5),
       enter: fadeUp(),
     }),
@@ -192,5 +211,15 @@ export default makeScene({
     }),
   ],
 });
+`;
+}
+
+function logoSvg() {
+  return `<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512" role="img" aria-label="MotionForge starter logo">
+  <rect width="512" height="512" rx="96" fill="#f8fafc"/>
+  <circle cx="256" cy="256" r="164" fill="#111827"/>
+  <path d="M166 320 256 142l90 178h-58l-32-74-32 74h-58Z" fill="#14b8a6"/>
+  <path d="M210 372h92l-46-80-46 80Z" fill="#f59e0b"/>
+</svg>
 `;
 }

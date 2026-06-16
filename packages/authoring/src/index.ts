@@ -32,6 +32,7 @@ export type SceneSize =
     };
 
 export type AuthorNode = {
+  assets?: readonly SceneAsset[];
   toNode(fps: number, scene: ResolvedSceneOptions): ReturnType<typeof div>;
 };
 
@@ -76,6 +77,15 @@ export type AudioTrackOptions = AuthorTimingOptions & {
   volume?: number;
 };
 
+export type AuthorAsset<T extends SceneAsset["type"] = SceneAsset["type"]> =
+  SceneAsset & {
+    type: T;
+  };
+
+export type AssetReference<T extends SceneAsset["type"]> =
+  | string
+  | AuthorAsset<T>;
+
 type ResolvedSceneOptions = {
   width: number;
   height: number;
@@ -112,6 +122,64 @@ export function toSeconds(value: TimeValue | undefined, fps: number): number {
   return value.unit === "seconds" ? value.value : value.value / fps;
 }
 
+export function publicAsset(path: string): string {
+  const trimmed = path.trim();
+
+  if (trimmed === "") {
+    throw new Error("publicAsset() requires a non-empty path.");
+  }
+
+  if (/^[a-z][a-z0-9+.-]*:/i.test(trimmed) || trimmed.startsWith("//")) {
+    return trimmed;
+  }
+
+  const normalized = trimmed
+    .replace(/\\/g, "/")
+    .replace(/^\.\/+/, "")
+    .replace(/^\/+/, "");
+  const withoutPublic = normalized.startsWith("public/")
+    ? normalized.slice("public/".length)
+    : normalized;
+  const segments = withoutPublic.split("/").filter(Boolean);
+
+  if (segments.length === 0 || segments.includes("..")) {
+    throw new Error(
+      'publicAsset() paths must stay inside the project "public" directory.',
+    );
+  }
+
+  return `/${segments.join("/")}`;
+}
+
+export function imageAsset(id: string, src: string): AuthorAsset<"image"> {
+  return makeAsset(id, "image", src);
+}
+
+export function videoAsset(id: string, src: string): AuthorAsset<"video"> {
+  return makeAsset(id, "video", src);
+}
+
+export function audioAsset(id: string, src: string): AuthorAsset<"audio"> {
+  return makeAsset(id, "audio", src);
+}
+
+export function defineAssets(
+  ...assets: SceneAsset[]
+): Record<string, SceneAsset>;
+export function defineAssets(
+  assets: readonly SceneAsset[],
+): Record<string, SceneAsset>;
+export function defineAssets(
+  ...assetsOrList: [readonly SceneAsset[]] | SceneAsset[]
+): Record<string, SceneAsset> {
+  const assets =
+    assetsOrList.length === 1 && Array.isArray(assetsOrList[0])
+      ? assetsOrList[0]
+      : (assetsOrList as SceneAsset[]);
+
+  return Object.fromEntries(assets.map((asset) => [asset.id, asset]));
+}
+
 export function makeScene(options: MakeSceneOptions): Scene {
   const fps = options.fps ?? 30;
   const size = resolveSceneSize(options.size);
@@ -123,6 +191,10 @@ export function makeScene(options: MakeSceneOptions): Scene {
     fps,
     duration: durationFrames,
   });
+
+  for (const asset of collectAuthorNodeAssets(options.children)) {
+    builder.asset(asset);
+  }
 
   for (const asset of normalizeAssets(options.assets)) {
     builder.asset(asset);
@@ -147,6 +219,7 @@ export function bg(color: string, options: Omit<BoxOptions, "style"> = {}) {
 
 export function box(options: BoxOptions = {}): AuthorNode {
   return {
+    assets: collectAuthorNodeAssets(options.children),
     toNode(fps, scene) {
       const node = div({
         ...timedNodeOptions(options, fps),
@@ -224,10 +297,14 @@ export function textNode(value: string, options: TextOptions = {}): AuthorNode {
   };
 }
 
-export function image(assetId: string, options: MediaOptions = {}): AuthorNode {
+export function image(
+  asset: AssetReference<"image">,
+  options: MediaOptions = {},
+): AuthorNode {
   return {
+    assets: assetsFromReference(asset),
     toNode(fps, scene) {
-      const node = img(assetId, {
+      const node = img(assetIdFromReference(asset), {
         ...timedNodeOptions(options, fps),
         style: mediaStyle(scene, options),
       });
@@ -242,10 +319,11 @@ export function image(assetId: string, options: MediaOptions = {}): AuthorNode {
 }
 
 export function videoClip(
-  assetId: string,
+  asset: AssetReference<"video">,
   options: VideoClipOptions = {},
 ): AuthorNode {
   return {
+    assets: assetsFromReference(asset),
     toNode(fps, scene) {
       const nodeOptions: VideoNodeOptions = {
         ...timedNodeOptions(options, fps),
@@ -253,7 +331,7 @@ export function videoClip(
         videoStartTime: toSeconds(options.trimStart, fps),
         playbackRate: options.playbackRate,
       };
-      const node = video(assetId, {
+      const node = video(assetIdFromReference(asset), {
         ...nodeOptions,
         volume: options.volume,
       } as VideoNodeOptions & { volume?: number });
@@ -268,10 +346,11 @@ export function videoClip(
 }
 
 export function audioTrack(
-  assetId: string,
+  asset: AssetReference<"audio">,
   options: AudioTrackOptions = {},
 ): AuthorNode {
   return {
+    assets: assetsFromReference(asset),
     toNode(fps) {
       const nodeOptions: AudioNodeOptions = {
         ...timedNodeOptions(options, fps),
@@ -279,9 +358,31 @@ export function audioTrack(
         volume: options.volume,
       };
 
-      return audio(assetId, nodeOptions);
+      return audio(assetIdFromReference(asset), nodeOptions);
     },
   };
+}
+
+function makeAsset<T extends SceneAsset["type"]>(
+  id: string,
+  type: T,
+  src: string,
+): AuthorAsset<T> {
+  return { id, type, src };
+}
+
+function assetIdFromReference(asset: AssetReference<SceneAsset["type"]>) {
+  return typeof asset === "string" ? asset : asset.id;
+}
+
+function assetsFromReference(
+  asset: AssetReference<SceneAsset["type"]>,
+): readonly SceneAsset[] {
+  return typeof asset === "string" ? [] : [asset];
+}
+
+function collectAuthorNodeAssets(nodes: readonly AuthorNode[] = []) {
+  return nodes.flatMap((node) => node.assets ?? []);
 }
 
 function timedNodeOptions(

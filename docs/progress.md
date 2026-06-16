@@ -2,6 +2,36 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (DX slice DX5: asset path story)
+
+### Changed
+
+- Added `publicAsset()` to `@motionforge/authoring` for the supported local asset convention: files under `public/assets` are referenced as `/assets/...` in emitted scene JSON.
+- Added typed authoring asset helpers: `imageAsset()`, `videoAsset()`, `audioAsset()`, and `defineAssets()`.
+- Updated `image()`, `videoClip()`, and `audioTrack()` so callers can pass either an existing asset id or a typed asset object; typed asset objects are auto-collected into `scene.assets`.
+- Updated `create-motionforge` to generate `public/assets/logo.svg` and a starter scene that uses `imageAsset()` plus `publicAsset()`.
+- Documented where programmers put asset files and how those paths map to browser-fetchable scene asset URLs.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring build`
+- `pnpm --filter create-motionforge test`
+- `pnpm --filter create-motionforge typecheck`
+- `pnpm --filter create-motionforge build`
+- Generated-project smoke in `/tmp/motionforge-dx5-smoke`, confirming:
+  - `create-motionforge` emits `public/assets/logo.svg` and `src/video.ts`
+  - `motionforge validate src/video.ts` passes when the local package link is available
+  - `motionforge print src/video.ts` emits `assets.logo.src` as `/assets/logo.svg`
+  - `motionforge dev src/video.ts --host 127.0.0.1 --port 5189` serves `/assets/logo.svg` and `/__motionforge/scene`
+
+### Notes
+
+- The runtime remains intentionally explicit: MotionForge scene JSON stores asset ids and fetchable `src` strings. There is no hidden resolver attached to a project directory.
+- Outside-the-monorepo `file:` installs of unpublished workspace packages still fail on internal `workspace:*` dependencies. This is the same pre-publish limitation recorded in DX3; smoke validation used local symlinks to simulate installed packages.
+- Large video/audio files still load as whole blobs through the existing renderer/export path. Streaming sources remain a future runtime improvement.
+
 ## 2026-06-17 (DX slice DX4: CLI-hosted Studio)
 
 ### Changed

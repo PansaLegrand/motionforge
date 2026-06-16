@@ -57,20 +57,29 @@ Bare numbers are intentionally not accepted as timing values. Use `seconds(n)` f
 
 ## Media
 
-Media helpers accept an existing scene asset id:
+Put local media files in your project's `public/assets` directory. Vite serves files from `public` at the site root, so `public/assets/clip.mp4` is referenced as `/assets/clip.mp4`.
 
 ```ts
-import { makeScene, seconds, videoClip } from "@motionforge/authoring";
+import {
+  image,
+  imageAsset,
+  makeScene,
+  publicAsset,
+  seconds,
+  videoAsset,
+  videoClip,
+} from "@motionforge/authoring";
+
+const logo = imageAsset("logo", publicAsset("assets/logo.png"));
+const clip = videoAsset("clip", publicAsset("assets/clip.mp4"));
 
 export default makeScene({
   size: "landscape",
   fps: 30,
   duration: seconds(5),
-  assets: {
-    clip: { id: "clip", type: "video", src: "/clip.mp4" },
-  },
   children: [
-    videoClip("clip", {
+    image(logo, { duration: seconds(5) }),
+    videoClip(clip, {
       trimStart: seconds(5),
       duration: seconds(5),
     }),
@@ -78,7 +87,13 @@ export default makeScene({
 });
 ```
 
-Local asset path resolution is intentionally not magical in this package. Starters and the future CLI/studio will define project-relative asset handling.
+`publicAsset()` normalizes local public-folder paths and leaves absolute URLs alone. The emitted scene JSON still contains explicit asset entries and fetchable `src` strings; there is no hidden resolver.
+
+You can still pass an existing asset id when assets are defined elsewhere:
+
+```ts
+videoClip("clip", { trimStart: seconds(5) });
+```
 
 ## License
 

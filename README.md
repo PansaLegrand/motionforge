@@ -165,11 +165,16 @@ Write a scene in TypeScript with the authoring helpers:
 import {
   bg,
   fadeUp,
+  image,
+  imageAsset,
   makeScene,
+  publicAsset,
   seconds,
   textBlock,
   title,
 } from "@motionforge/authoring";
+
+const logo = imageAsset("logo", publicAsset("assets/logo.svg"));
 
 export default makeScene({
   size: "portrait",
@@ -177,6 +182,11 @@ export default makeScene({
   duration: seconds(5),
   children: [
     bg("#0f172a"),
+    image(logo, {
+      at: seconds(0.2),
+      duration: seconds(4.6),
+      style: { left: 432, top: 360, width: 216, height: 216 },
+    }),
     title("Hello MotionForge", {
       at: seconds(0.8),
       duration: seconds(3),
@@ -191,6 +201,8 @@ export default makeScene({
 ```
 
 This emits plain validated scene JSON. Use the lower-level builder when you want direct control over every node:
+
+For local media in CLI Studio, put files under `public/assets` and reference them as `publicAsset("assets/file.ext")`, which emits `/assets/file.ext` in the scene JSON.
 
 Validate or inspect a scene module with the CLI:
 

@@ -180,7 +180,7 @@ Tasks:
   - `src/video.ts`
   - package scripts: `dev`, `validate`, `print`, `build`
 - Use `@motionforge/authoring` in the starter.
-- Keep v1 text-only. Asset path handling is DX5.
+- Keep v1 initially text-only; DX5 adds the first local asset convention.
 
 Done when:
 
@@ -214,20 +214,24 @@ Done when:
 - The Studio can reload the scene module on demand without restarting the server.
 - The served client resolves MotionForge runtime packages through the CLI package, so generated projects only need `@motionforge/cli` and `@motionforge/authoring`.
 
-### Slice DX5 - Asset Path Story
+### Slice DX5 - Asset Path Story ✅
 
 **Goal:** Programmer-authored videos can use local assets without hand-writing object URLs or data URLs.
 
 Tasks:
 
-- Define how `asset("clip.mp4")` resolves in browser dev mode.
-- Define how the same scene resolves for export.
-- Keep emitted scene JSON portable: either public URLs, bundled URLs, or explicit asset manifest.
+- Define `public/assets` as the starter and Studio convention for local files.
+- Add `publicAsset()` so source code can use `publicAsset("assets/clip.mp4")` while emitted scene JSON stores `/assets/clip.mp4`.
+- Add typed helpers: `imageAsset()`, `videoAsset()`, `audioAsset()`, and `defineAssets()`.
+- Allow `image()`, `videoClip()`, and `audioTrack()` to accept either an asset id or a typed asset object; asset objects are auto-collected into `scene.assets`.
+- Keep emitted scene JSON portable and explicit: asset ids plus fetchable `src` strings.
 - Document large-file limits and streaming-source roadmap.
 
 Done when:
 
-- A starter project can use one local image and one local video in preview/export.
+- A starter project uses a local image from `public/assets`.
+- Docs show the same pattern for images, video, and audio.
+- Preview/export use the same browser-fetchable asset URLs.
 
 ### Slice DX6 - Documentation Path
 

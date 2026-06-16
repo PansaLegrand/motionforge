@@ -15,6 +15,7 @@ describe("create-motionforge", () => {
       expect(result.files).toEqual([
         "package.json",
         "tsconfig.json",
+        "public/assets/logo.svg",
         "src/video.ts",
       ]);
 
@@ -40,6 +41,12 @@ describe("create-motionforge", () => {
       await expect(
         readFile(join(result.projectDir, "src/video.ts"), "utf8"),
       ).resolves.toContain("makeScene");
+      await expect(
+        readFile(join(result.projectDir, "src/video.ts"), "utf8"),
+      ).resolves.toContain('publicAsset("assets/logo.svg")');
+      await expect(
+        readFile(join(result.projectDir, "public/assets/logo.svg"), "utf8"),
+      ).resolves.toContain("<svg");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
