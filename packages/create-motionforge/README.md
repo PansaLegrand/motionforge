@@ -12,7 +12,17 @@ pnpm validate
 pnpm dev
 ```
 
-The generated project uses `@motionforge/authoring` for scene source, `@motionforge/cli` for validation/printing, Vite for browser preview, and `@motionforge/export` for in-browser MP4 export.
+The generated project uses `@motionforge/authoring` for scene source and `@motionforge/cli` for validation, scene printing, Studio preview, and browser MP4 export.
+
+The starter intentionally keeps the authored project small:
+
+```txt
+src/video.ts
+package.json
+tsconfig.json
+```
+
+Run `pnpm dev` to open MotionForge Studio for `src/video.ts`.
 
 ## License
 

@@ -15,10 +15,7 @@ describe("create-motionforge", () => {
       expect(result.files).toEqual([
         "package.json",
         "tsconfig.json",
-        "index.html",
         "src/video.ts",
-        "src/main.ts",
-        "src/style.css",
       ]);
 
       const packageJson = JSON.parse(
@@ -31,23 +28,18 @@ describe("create-motionforge", () => {
 
       expect(packageJson.name).toBe("hello-video");
       expect(packageJson.scripts).toMatchObject({
-        dev: "vite --host 127.0.0.1 --port 5173",
+        dev: "motionforge dev src/video.ts",
         validate: "motionforge validate src/video.ts",
         print: "motionforge print src/video.ts",
       });
       expect(packageJson.dependencies).toMatchObject({
         "@motionforge/authoring": "^0.3.0",
         "@motionforge/cli": "^0.3.0",
-        "@motionforge/export": "^0.3.0",
-        "@motionforge/player": "^0.3.0",
       });
 
       await expect(
         readFile(join(result.projectDir, "src/video.ts"), "utf8"),
       ).resolves.toContain("makeScene");
-      await expect(
-        readFile(join(result.projectDir, "src/main.ts"), "utf8"),
-      ).resolves.toContain("createPlayer");
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

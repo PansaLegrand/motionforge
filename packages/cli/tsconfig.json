@@ -7,5 +7,9 @@
     "tsBuildInfoFile": "dist/.tsbuildinfo"
   },
   "include": ["src"],
-  "references": [{ "path": "../schema" }]
+  "references": [
+    { "path": "../schema" },
+    { "path": "../player" },
+    { "path": "../export" }
+  ]
 }

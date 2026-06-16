@@ -1,12 +1,12 @@
-import { readFile } from "node:fs/promises";
-import { extname, resolve } from "node:path";
-import { pathToFileURL } from "node:url";
-import { validateScene, type Scene } from "@motionforge/schema";
+import { validateScene } from "@motionforge/schema";
+import { loadSceneModule } from "./loader.js";
+import { createStudioServer, type StudioServerOptions } from "./studio.js";
 
 export type CliResult = {
   exitCode: number;
   stdout: string;
   stderr: string;
+  close?: () => Promise<void>;
 };
 
 export type CliIo = {
@@ -14,13 +14,12 @@ export type CliIo = {
   stderr: (value: string) => void;
 };
 
-type SceneExport = Scene | (() => Scene | Promise<Scene>) | Promise<Scene>;
-
 const helpText = `motionforge
 
 Usage:
   motionforge validate <scene-module>
   motionforge print <scene-module>
+  motionforge dev <scene-module> [--host <host>] [--port <port>]
 
 Scene modules may be .json, .js, .mjs, .cjs, .ts, .mts, or .cts files.
 The default export may be a Scene, a function returning a Scene, or a Promise.
@@ -51,6 +50,10 @@ export async function executeCli(argv: string[]): Promise<CliResult> {
 
   if (!command || command === "--help" || command === "-h") {
     return { exitCode: 0, stdout: helpText, stderr: "" };
+  }
+
+  if (command === "dev") {
+    return await executeDevCommand(modulePath, rest);
   }
 
   if (command !== "validate" && command !== "print") {
@@ -103,34 +106,80 @@ export async function executeCli(argv: string[]): Promise<CliResult> {
   }
 }
 
-export async function loadSceneModule(modulePath: string): Promise<unknown> {
-  const absolutePath = resolve(modulePath);
-  const extension = extname(absolutePath);
-
-  if (extension === ".json") {
-    return JSON.parse(await readFile(absolutePath, "utf8")) as unknown;
+async function executeDevCommand(
+  modulePath: string | undefined,
+  args: string[],
+): Promise<CliResult> {
+  if (!modulePath) {
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: `Usage error: expected a scene module path.\n\n${helpText}`,
+    };
   }
 
-  if (isTypeScriptExtension(extension)) {
-    await import("tsx/esm");
+  const options = parseDevOptions(args);
+
+  if (!options.ok) {
+    return { exitCode: 2, stdout: "", stderr: `${options.error}\n\n${helpText}` };
   }
 
-  const imported = (await import(
-    `${pathToFileURL(absolutePath).href}?t=${Date.now()}`
-  )) as {
-    default?: SceneExport;
-    scene?: SceneExport;
-  };
-  const exported = imported.default ?? imported.scene;
+  try {
+    const server = await createStudioServer({
+      sceneModulePath: modulePath,
+      host: options.host,
+      port: options.port,
+    });
 
-  if (exported === undefined) {
-    throw new Error(
-      `Scene module "${modulePath}" must export a default scene or named "scene".`,
-    );
+    return {
+      exitCode: 0,
+      stdout: `MotionForge Studio running at ${server.url}\nScene: ${server.sceneModulePath}\n`,
+      stderr: "",
+      close: server.close,
+    };
+  } catch (error) {
+    return {
+      exitCode: 1,
+      stdout: "",
+      stderr: `${error instanceof Error ? error.message : String(error)}\n`,
+    };
+  }
+}
+
+function parseDevOptions(
+  args: string[],
+): ({ ok: true } & Pick<StudioServerOptions, "host" | "port">) | {
+  ok: false;
+  error: string;
+} {
+  let host: string | undefined;
+  let port: number | undefined;
+
+  for (let index = 0; index < args.length; index += 1) {
+    const arg = args[index];
+
+    if (arg === "--host") {
+      host = args[index + 1];
+      index += 1;
+      continue;
+    }
+
+    if (arg === "--port") {
+      const rawPort = args[index + 1];
+      port = rawPort ? Number.parseInt(rawPort, 10) : Number.NaN;
+      index += 1;
+
+      if (!Number.isInteger(port) || port < 0) {
+        return { ok: false, error: "--port must be a non-negative integer." };
+      }
+
+      continue;
+    }
+
+    return { ok: false, error: `Unknown dev option "${arg ?? ""}".` };
   }
 
-  const value = typeof exported === "function" ? exported() : exported;
-  return await value;
+  return { ok: true, host, port };
 }
 
 function formatValidationErrors(modulePath: string, errors: string[]) {
@@ -139,8 +188,4 @@ function formatValidationErrors(modulePath: string, errors: string[]) {
     ...errors.map((error) => `- ${error}`),
     "",
   ].join("\n");
-}
-
-function isTypeScriptExtension(extension: string) {
-  return extension === ".ts" || extension === ".mts" || extension === ".cts";
 }

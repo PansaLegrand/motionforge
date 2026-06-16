@@ -64,6 +64,8 @@ flowchart TB
 | Package                                                        | What it does                                         | Status     |
 | -------------------------------------------------------------- | ---------------------------------------------------- | ---------- |
 | [`@motionforge/authoring`](packages/authoring)                 | Seconds-first TypeScript authoring helpers           | ✅ working |
+| [`@motionforge/cli`](packages/cli)                             | Validate, print, and preview scene modules           | ✅ working |
+| [`create-motionforge`](packages/create-motionforge)            | Starter project generator                            | ✅ working |
 | [`@motionforge/schema`](packages/schema)                       | Scene format, validation, JSON Schema export         | ✅ working |
 | [`@motionforge/core`](packages/core)                           | Builder API, keyframe evaluator, layout pass         | ✅ working |
 | [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                          | ✅ working |
@@ -99,6 +101,19 @@ This project treats LLM agents as first-class users:
 - [`tools/agent-eval`](tools/agent-eval) runs generate/edit suites against any OpenAI-compatible chat endpoint and scores the result mechanically with the same validation and patch APIs.
 
 ## Quickstart
+
+Create a programmer-authored MotionForge video:
+
+```sh
+pnpm create motionforge hello-video
+cd hello-video
+pnpm install
+pnpm dev
+```
+
+The starter project contains `src/video.ts`. `pnpm dev` runs `motionforge dev src/video.ts`, which opens MotionForge Studio with preview, play/pause, frame scrubbing, scene JSON inspection, validation feedback, and browser MP4 export when WebCodecs is available.
+
+To work on this repository:
 
 ```sh
 pnpm install
@@ -182,9 +197,10 @@ Validate or inspect a scene module with the CLI:
 ```sh
 motionforge validate src/video.ts
 motionforge print src/video.ts
+motionforge dev src/video.ts
 ```
 
-The CLI accepts `.json`, `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` scene modules. A module can default-export a `Scene`, a function returning a `Scene`, or a promise.
+The CLI accepts `.json`, `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` scene modules. A module can default-export a `Scene`, a function returning a `Scene`, or a promise. `motionforge dev` hosts the Studio directly from the CLI, so a new project does not need preview boilerplate.
 
 ```ts
 import { composition, div, text } from "@motionforge/core";

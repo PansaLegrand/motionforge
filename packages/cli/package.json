@@ -48,8 +48,11 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@motionforge/export": "workspace:*",
+    "@motionforge/player": "workspace:*",
     "@motionforge/schema": "workspace:*",
-    "tsx": "^4.22.4"
+    "tsx": "^4.22.4",
+    "vite": "^7.3.5"
   },
   "devDependencies": {
     "vitest": "^3.2.4"

@@ -1,8 +1,15 @@
 import { mkdtemp, rm, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
+import type { StudioServerResult } from "./studio.js";
 import { executeCli } from "./index.js";
+
+const openServers: StudioServerResult[] = [];
+
+afterEach(async () => {
+  await Promise.all(openServers.splice(0).map((server) => server.close()));
+});
 
 describe("@motionforge/cli", () => {
   it("validates a JSON scene file", async () => {
@@ -35,7 +42,7 @@ describe("@motionforge/cli", () => {
       const result = await executeCli(["print", scenePath]);
       const printed = JSON.parse(result.stdout) as unknown;
 
-      expect(result.exitCode).toBe(0);
+      expect(result, result.stderr).toMatchObject({ exitCode: 0 });
       expect(result.stderr).toBe("");
       expect(printed).toMatchObject({
         schemaVersion: 0,
@@ -117,6 +124,61 @@ describe("@motionforge/cli", () => {
       exitCode: 2,
       stdout: "",
     });
+  });
+
+  it("starts a studio server for a scene module", async () => {
+    const dir = await tempDir();
+
+    try {
+      const scenePath = join(dir, "scene.json");
+      await writeFile(scenePath, JSON.stringify(validScene()));
+
+      const result = await executeCli([
+        "dev",
+        scenePath,
+        "--host",
+        "127.0.0.1",
+        "--port",
+        "0",
+      ]);
+
+      expect(result, result.stderr).toMatchObject({ exitCode: 0 });
+      expect(result.stdout).toContain("MotionForge Studio running at");
+      expect(result.stdout).toContain(scenePath);
+      expect(result.close).toBeTypeOf("function");
+
+      const match = result.stdout.match(/(http:\/\/127\.0\.0\.1:\d+\/)/);
+      expect(match?.[1]).toBeTruthy();
+      openServers.push({
+        close: result.close ?? (async () => {}),
+        sceneModulePath: scenePath,
+        url: match?.[1] ?? "",
+      });
+
+      const response = await fetch(`${match?.[1]}__motionforge/scene`);
+      const payload = (await response.json()) as {
+        ok: boolean;
+        scene?: { width?: number };
+      };
+
+      expect(payload).toMatchObject({ ok: true, scene: { width: 1080 } });
+
+      const html = await (await fetch(match?.[1] ?? "")).text();
+      expect(html).toContain(
+        "/@id/__x00__virtual:motionforge-studio-client",
+      );
+
+      const clientResponse = await fetch(
+        `${match?.[1]}@id/__x00__virtual:motionforge-studio-client`,
+      );
+      const client = await clientResponse.text();
+
+      expect(clientResponse.status, client).toBe(200);
+      expect(client).toContain("createPlayer");
+      expect(client).not.toContain('from "@motionforge/player"');
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
   });
 });
 

@@ -178,40 +178,41 @@ Tasks:
 - `pnpm create motionforge my-video` / `npm create motionforge@latest my-video`
 - Generate a minimal TypeScript project with:
   - `src/video.ts`
-  - `src/main.ts` preview bootstrap
-  - `index.html`
-  - package scripts: `dev`, `validate`, `print`
+  - package scripts: `dev`, `validate`, `print`, `build`
 - Use `@motionforge/authoring` in the starter.
 - Keep v1 text-only. Asset path handling is DX5.
 
 Done when:
 
 - The generator creates the expected project files, scripts, and public npm dependency ranges.
-- The template uses `@motionforge/authoring`, browser preview through `@motionforge/player`, and browser MP4 export through `@motionforge/export`.
+- The template uses `@motionforge/authoring` for source and `@motionforge/cli` for validation, Studio preview, scene inspection, and browser MP4 export.
 - Full install/preview validation is finalized after package publishing or local package packing, because unpublished workspace packages use `workspace:*` internally.
 
-### Slice DX4 - Developer Studio App
+### Slice DX4 - Developer Studio App ✅
 
 **Goal:** Programmers get a Remotion Studio-like loop without changing the data-first model.
 
 Code targets:
 
-- `apps/studio` or evolution of `apps/playground`
+- `packages/cli`
 
 Tasks:
 
-- Load one or more local scene modules.
-- Composition/scene picker.
+- Add `motionforge dev <scene-module>`.
+- Load a local scene module and validate it through the same CLI loader.
+- Serve a CLI-hosted Studio through Vite.
 - Canvas preview with play/pause/seek.
-- Frame/time display.
+- Frame display and scrubber.
 - JSON inspector.
-- Validation panel.
+- Validation feedback from the scene endpoint.
 - Export button when WebCodecs is available.
+- Keep the starter project pointed at `motionforge dev src/video.ts`.
 
 Done when:
 
 - `motionforge dev` opens the studio for the current project.
-- Editing a scene module refreshes the preview.
+- The Studio can reload the scene module on demand without restarting the server.
+- The served client resolves MotionForge runtime packages through the CLI package, so generated projects only need `@motionforge/cli` and `@motionforge/authoring`.
 
 ### Slice DX5 - Asset Path Story
 

@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (DX slice DX4: CLI-hosted Studio)
+
+### Changed
+
+- Added `motionforge dev <scene-module>` to `@motionforge/cli`.
+- Implemented a CLI-hosted MotionForge Studio using Vite middleware and a virtual browser client module.
+- The Studio loads a local scene module through the existing CLI loader, validates it through `@motionforge/schema`, renders via `@motionforge/player`, and exposes play/pause, frame scrubbing, reload, JSON inspection, and browser MP4 export through `@motionforge/export`.
+- Split scene-module loading into `packages/cli/src/loader.ts` so CLI commands and Studio share the loader without an import cycle.
+- Added runtime aliasing so the Studio client resolves MotionForge player/export/schema/renderer packages from the CLI package graph rather than requiring generated projects to depend on every runtime package directly.
+- Simplified the `create-motionforge` starter so projects contain only `src/video.ts`, `package.json`, and `tsconfig.json`; `pnpm dev` now runs `motionforge dev src/video.ts`.
+- Updated package docs, the root README, and the DX roadmap for the new first-run path.
+
+### Tested
+
+- `pnpm --filter @motionforge/cli test`
+- `pnpm --filter @motionforge/cli typecheck`
+- `pnpm --filter @motionforge/cli build`
+- `pnpm --filter create-motionforge test`
+- `pnpm --filter create-motionforge typecheck`
+- `pnpm --filter create-motionforge build`
+- Built-command smoke with `node packages/cli/dist/bin/motionforge.js dev examples/generated/intro.json --host 127.0.0.1 --port 5188`, confirming the Studio HTML, `/__motionforge/scene`, and transformed virtual client load successfully.
+
+### Notes
+
+- Hot module reload for arbitrary scene module edits is not automatic yet; the Studio ships a reliable `Reload scene` button. File-watcher-driven reload can be added after the asset-path slice if it proves useful.
+- Browser visual smoke through the in-app browser could not be completed because the browser helper in this session did not expose the expected tab/documentation methods. The Studio server and transformed client were verified directly with HTTP checks.
+
 ## 2026-06-17 (DX slice DX3: create-motionforge starter)
 
 ### Changed
