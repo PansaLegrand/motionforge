@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 13: timeline duration handles)
+
+### Changed
+
+- Added compact timeline right-edge resize handles for visible layer blocks.
+- Dragging the handle previews block width changes and commits through the same patch-backed `retime` duration path as the Inspector.
+- Shared the block drag lifecycle between move and resize interactions so future snap/split behavior can build on one timeline gesture path.
+- Added `resizeLayerDurationFromTimelineDrag()` with tests for drag deltas, one-frame minimums, and scene-end clamping.
+- Updated the roadmap to mark duration handles complete while leaving split-at-playhead and snapping as follow-up timeline slices.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5185`: loaded **Animated Chart**, dragged the title block's right-edge handle shorter, confirmed the last patch was `{"op":"retime","id":"title","duration":117}`, and verified no browser console errors.
+
+### Notes
+
+- This slice covers right-edge duration changes only. Left-edge trim, snapping, and split-at-playhead remain separate follow-up decisions.
+
 ## 2026-06-16 (chat + edit slice 12: timeline block retiming)
 
 ### Changed

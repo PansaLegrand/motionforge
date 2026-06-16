@@ -52,3 +52,22 @@ export function retimeLayerFromTimelineDrag({
 
   return Math.min(maxFrom, Math.max(0, nextFrom));
 }
+
+export function resizeLayerDurationFromTimelineDrag({
+  startFrame,
+  currentFrame,
+  initialDuration,
+  layerFrom,
+  sceneDuration,
+}: {
+  startFrame: number;
+  currentFrame: number;
+  initialDuration: number;
+  layerFrom: number;
+  sceneDuration: number;
+}): number {
+  const maxDuration = Math.max(1, sceneDuration - Math.max(0, layerFrom));
+  const nextDuration = initialDuration + currentFrame - startFrame;
+
+  return Math.min(maxDuration, Math.max(1, nextDuration));
+}

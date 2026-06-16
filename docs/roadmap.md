@@ -153,7 +153,8 @@ Decisions recorded 2026-06-12:
 - ✅ Usable narrow-viewport layout: the editor stacks rail, active panel, preview, and compact timeline below `lg`, with no horizontal overflow in mobile smoke.
 - ✅ Compact timeline scrub: click/drag the timeline surface to move the playhead frame.
 - ✅ Compact timeline block retiming: drag a timeline block horizontally to preview and commit a patch-backed `retime` update.
-- Compact timeline editing: resize duration handles, split at playhead, and snap to neighboring blocks.
+- ✅ Compact timeline duration handles: drag a block's right edge to preview and commit a patch-backed duration update.
+- Compact timeline editing: split at playhead, and snap to neighboring blocks.
 - Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
 - Deploy (Vercel or Pages), record the demo video + GIFs, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo.
 

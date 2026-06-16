@@ -31,6 +31,7 @@ import {
   formatSeconds,
   frameFromTimelinePoint,
   retimeLayerFromTimelineDrag,
+  resizeLayerDurationFromTimelineDrag,
 } from "@/lib/editor/time";
 import { cn } from "@/lib/ui/cn";
 import type { ChatMessage, EditorPanel, PlayerUiState } from "./types";
@@ -550,12 +551,14 @@ export function PreviewWorkspace({
 }
 
 type TimelineDraggingLayer = {
+  mode: "move" | "resize-end";
   id: string;
   startFrame: number;
   initialFrom: number;
   initialAbsoluteFrom: number;
   duration: number;
   previewFrom: number;
+  previewDuration: number;
 };
 
 export function TimelinePanel({
@@ -568,6 +571,7 @@ export function TimelinePanel({
   onTogglePlayback,
   onSeek,
   onRetimeLayer,
+  onResizeLayerDuration,
 }: {
   scene: Scene | null;
   layers: EditorLayer[];
@@ -578,6 +582,7 @@ export function TimelinePanel({
   onTogglePlayback: () => void;
   onSeek: (frame: number) => void;
   onRetimeLayer: (id: string, from: number) => void;
+  onResizeLayerDuration: (id: string, duration: number) => void;
 }) {
   const duration = scene?.duration ?? 1;
   const canScrub = Boolean(scene && !playerState.loading && !playerState.error);
@@ -633,10 +638,10 @@ export function TimelinePanel({
       duration,
     });
   };
-  const previewLayerFrom = (
+  const previewLayerDrag = (
     clientX: number,
     timelineElement: HTMLDivElement,
-  ): number | null => {
+  ): TimelineDraggingLayer | null => {
     const activeDrag = draggingLayerRef.current;
 
     if (!activeDrag) {
@@ -644,16 +649,31 @@ export function TimelinePanel({
     }
 
     const currentFrame = frameForTimelineEvent(clientX, timelineElement);
-    const previewFrom = retimeLayerFromTimelineDrag({
-      startFrame: activeDrag.startFrame,
-      currentFrame,
-      initialFrom: activeDrag.initialFrom,
-      layerDuration: activeDrag.duration,
-      sceneDuration: duration,
-    });
+    const nextDrag =
+      activeDrag.mode === "move"
+        ? {
+            ...activeDrag,
+            previewFrom: retimeLayerFromTimelineDrag({
+              startFrame: activeDrag.startFrame,
+              currentFrame,
+              initialFrom: activeDrag.initialFrom,
+              layerDuration: activeDrag.previewDuration,
+              sceneDuration: duration,
+            }),
+          }
+        : {
+            ...activeDrag,
+            previewDuration: resizeLayerDurationFromTimelineDrag({
+              startFrame: activeDrag.startFrame,
+              currentFrame,
+              initialDuration: activeDrag.duration,
+              layerFrom: activeDrag.previewFrom,
+              sceneDuration: duration,
+            }),
+          };
 
-    setDraggingLayer({ ...activeDrag, previewFrom });
-    return previewFrom;
+    setDraggingLayer(nextDrag);
+    return nextDrag;
   };
   const commitLayerDrag = (
     clientX?: number,
@@ -666,23 +686,173 @@ export function TimelinePanel({
       return;
     }
 
-    const nextFrom =
+    const finalDrag =
       clientX !== undefined && timelineElement
-        ? retimeLayerFromTimelineDrag({
-            startFrame: activeDrag.startFrame,
+        ? previewDragWithoutState(activeDrag, {
             currentFrame: frameForTimelineEvent(clientX, timelineElement),
-            initialFrom: activeDrag.initialFrom,
-            layerDuration: activeDrag.duration,
             sceneDuration: duration,
           })
-        : activeDrag.previewFrom;
+        : activeDrag;
 
-    if (nextFrom !== activeDrag.initialFrom) {
-      onRetimeLayer(activeDrag.id, nextFrom);
+    if (
+      finalDrag.mode === "move" &&
+      finalDrag.previewFrom !== finalDrag.initialFrom
+    ) {
+      onRetimeLayer(finalDrag.id, finalDrag.previewFrom);
+    }
+
+    if (
+      finalDrag.mode === "resize-end" &&
+      finalDrag.previewDuration !== finalDrag.duration
+    ) {
+      onResizeLayerDuration(finalDrag.id, finalDrag.previewDuration);
     }
 
     setDraggingLayer(null);
   };
+  const startLayerDrag = (
+    mode: TimelineDraggingLayer["mode"],
+    layer: EditorLayer,
+    clientX: number,
+    timelineElement: HTMLDivElement,
+  ) => {
+    setDraggingLayer({
+      mode,
+      id: layer.id,
+      startFrame: frameForTimelineEvent(clientX, timelineElement),
+      initialFrom: layer.localFrom,
+      initialAbsoluteFrom: layer.from,
+      duration: layer.localDuration,
+      previewFrom: layer.localFrom,
+      previewDuration: layer.localDuration,
+    });
+    onSelectLayer(layer.id);
+  };
+  const beginLayerDragFromElement = (
+    mode: TimelineDraggingLayer["mode"],
+    layer: EditorLayer,
+    clientX: number,
+    element: HTMLElement,
+  ) => {
+    if (!canScrub) {
+      return false;
+    }
+
+    const timelineElement = timelineElementForBlock(element);
+
+    if (!(timelineElement instanceof HTMLDivElement)) {
+      return false;
+    }
+
+    startLayerDrag(mode, layer, clientX, timelineElement);
+    return true;
+  };
+  const handleLayerPointerDown = (
+    mode: TimelineDraggingLayer["mode"],
+    layer: EditorLayer,
+    event: PointerEvent<HTMLElement>,
+  ) => {
+    event.stopPropagation();
+
+    if (
+      beginLayerDragFromElement(
+        mode,
+        layer,
+        event.clientX,
+        event.currentTarget,
+      )
+    ) {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    }
+  };
+  const handleLayerPointerMove = (event: PointerEvent<HTMLElement>) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+
+    const timelineElement = timelineElementForBlock(event.currentTarget);
+
+    if (timelineElement instanceof HTMLDivElement) {
+      previewLayerDrag(event.clientX, timelineElement);
+    }
+  };
+  const handleLayerPointerUp = (event: PointerEvent<HTMLElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    commitLayerDrag(
+      event.clientX,
+      timelineElementForBlock(event.currentTarget),
+    );
+  };
+  const handleLayerPointerCancel = (event: PointerEvent<HTMLElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    setDraggingLayer(null);
+  };
+  const handleLayerMouseDown = (
+    mode: TimelineDraggingLayer["mode"],
+    layer: EditorLayer,
+    event: MouseEvent<HTMLElement>,
+  ) => {
+    event.stopPropagation();
+    beginLayerDragFromElement(
+      mode,
+      layer,
+      event.clientX,
+      event.currentTarget,
+    );
+  };
+  const handleLayerMouseMove = (event: MouseEvent<HTMLElement>) => {
+    if (!draggingLayer) {
+      return;
+    }
+
+    const timelineElement = timelineElementForBlock(event.currentTarget);
+
+    if (timelineElement instanceof HTMLDivElement) {
+      previewLayerDrag(event.clientX, timelineElement);
+    }
+  };
+  const handleLayerMouseUp = (event: MouseEvent<HTMLElement>) => {
+    commitLayerDrag(
+      event.clientX,
+      timelineElementForBlock(event.currentTarget),
+    );
+  };
+
+  function previewDragWithoutState(
+    activeDrag: TimelineDraggingLayer,
+    {
+      currentFrame,
+      sceneDuration,
+    }: { currentFrame: number; sceneDuration: number },
+  ): TimelineDraggingLayer {
+    if (activeDrag.mode === "move") {
+      const nextFrom = retimeLayerFromTimelineDrag({
+        startFrame: activeDrag.startFrame,
+        currentFrame,
+        initialFrom: activeDrag.initialFrom,
+        layerDuration: activeDrag.previewDuration,
+        sceneDuration,
+      });
+
+      return { ...activeDrag, previewFrom: nextFrom };
+    }
+
+    const nextDuration = resizeLayerDurationFromTimelineDrag({
+      startFrame: activeDrag.startFrame,
+      currentFrame,
+      initialDuration: activeDrag.duration,
+      layerFrom: activeDrag.previewFrom,
+      sceneDuration,
+    });
+
+    return { ...activeDrag, previewDuration: nextDuration };
+  }
 
   return (
     <div className="flex min-h-0 flex-col border-t border-border bg-card">
@@ -794,7 +964,7 @@ export function TimelinePanel({
           }}
           onMouseMove={(event) => {
             if (draggingLayer) {
-              previewLayerFrom(event.clientX, event.currentTarget);
+              previewLayerDrag(event.clientX, event.currentTarget);
               return;
             }
 
@@ -824,134 +994,76 @@ export function TimelinePanel({
                       draggingLayer.previewFrom -
                       draggingLayer.initialFrom
                     : layer.from;
+                const durationPreview =
+                  draggingLayer?.id === layer.id
+                    ? draggingLayer.previewDuration
+                    : layer.duration;
+                const blockWidth = Math.max(
+                  4,
+                  (durationPreview / duration) * 100,
+                );
                 const timelineBlockStyle = {
                   top: `${index * 32 + 34}px`,
                   left: `${(dragPreview / duration) * 100}%`,
-                  width: `${Math.max(4, (layer.duration / duration) * 100)}%`,
+                  width: `${blockWidth}%`,
                 };
 
                 return (
-                  <button
+                  <div
                     key={layer.id}
-                    type="button"
                     data-timeline-block-id={layer.id}
-                    onPointerDown={(event) => {
-                      event.stopPropagation();
-                      if (!canScrub) {
-                        return;
-                      }
-
-                      const timelineElement =
-                        timelineElementForBlock(event.currentTarget);
-                      if (!(timelineElement instanceof HTMLDivElement)) {
-                        return;
-                      }
-
-                      event.currentTarget.setPointerCapture(event.pointerId);
-                      setDraggingLayer({
-                        id: layer.id,
-                        startFrame: frameForTimelineEvent(
-                          event.clientX,
-                          timelineElement,
-                        ),
-                        initialFrom: layer.localFrom,
-                        initialAbsoluteFrom: layer.from,
-                        duration: layer.localDuration,
-                        previewFrom: layer.localFrom,
-                      });
-                      onSelectLayer(layer.id);
-                    }}
-                    onPointerMove={(event) => {
-                      if (
-                        !event.currentTarget.hasPointerCapture(
-                          event.pointerId,
-                        )
-                      ) {
-                        return;
-                      }
-
-                      const timelineElement =
-                        timelineElementForBlock(event.currentTarget);
-                      if (timelineElement instanceof HTMLDivElement) {
-                        previewLayerFrom(event.clientX, timelineElement);
-                      }
-                    }}
-                    onPointerUp={(event) => {
-                      if (
-                        event.currentTarget.hasPointerCapture(event.pointerId)
-                      ) {
-                        event.currentTarget.releasePointerCapture(
-                          event.pointerId,
-                        );
-                      }
-                      commitLayerDrag(
-                        event.clientX,
-                        timelineElementForBlock(event.currentTarget),
-                      );
-                    }}
-                    onPointerCancel={(event) => {
-                      if (
-                        event.currentTarget.hasPointerCapture(event.pointerId)
-                      ) {
-                        event.currentTarget.releasePointerCapture(
-                          event.pointerId,
-                        );
-                      }
-                      setDraggingLayer(null);
-                    }}
-                    onMouseDown={(event) => {
-                      event.stopPropagation();
-                      if (!canScrub) {
-                        return;
-                      }
-
-                      const timelineElement =
-                        timelineElementForBlock(event.currentTarget);
-                      if (!(timelineElement instanceof HTMLDivElement)) {
-                        return;
-                      }
-
-                      setDraggingLayer({
-                        id: layer.id,
-                        startFrame: frameForTimelineEvent(
-                          event.clientX,
-                          timelineElement,
-                        ),
-                        initialFrom: layer.localFrom,
-                        initialAbsoluteFrom: layer.from,
-                        duration: layer.localDuration,
-                        previewFrom: layer.localFrom,
-                      });
-                      onSelectLayer(layer.id);
-                    }}
-                    onMouseMove={(event) => {
-                      if (!draggingLayer) {
-                        return;
-                      }
-
-                      const timelineElement =
-                        timelineElementForBlock(event.currentTarget);
-                      if (timelineElement instanceof HTMLDivElement) {
-                        previewLayerFrom(event.clientX, timelineElement);
-                      }
-                    }}
-                    onMouseUp={(event) =>
-                      commitLayerDrag(
-                        event.clientX,
-                        timelineElementForBlock(event.currentTarget),
-                      )
-                    }
-                    onClick={() => onSelectLayer(layer.id)}
                     className={cn(
-                      "absolute h-6 cursor-grab rounded-md border px-2 text-left text-[11px] font-medium shadow-sm transition active:cursor-grabbing",
+                      "absolute flex h-6 min-w-10 overflow-hidden rounded-md border text-left text-[11px] font-medium shadow-sm transition",
                       selectedLayerId === layer.id
                         ? "border-primary bg-primary text-primary-foreground"
                         : "border-primary/30 bg-primary/15 text-primary hover:bg-primary/20",
                     )}
                     style={timelineBlockStyle}
                   >
-                    <span className="block truncate">{layer.label}</span>
-                  </button>
+                    <button
+                      type="button"
+                      className="min-w-0 flex-1 cursor-grab px-2 text-left active:cursor-grabbing"
+                      data-timeline-block-body-id={layer.id}
+                      onPointerDown={(event) =>
+                        handleLayerPointerDown("move", layer, event)
+                      }
+                      onPointerMove={handleLayerPointerMove}
+                      onPointerUp={handleLayerPointerUp}
+                      onPointerCancel={handleLayerPointerCancel}
+                      onMouseDown={(event) =>
+                        handleLayerMouseDown("move", layer, event)
+                      }
+                      onMouseMove={handleLayerMouseMove}
+                      onMouseUp={handleLayerMouseUp}
+                      onClick={() => onSelectLayer(layer.id)}
+                    >
+                      <span className="block truncate">{layer.label}</span>
+                    </button>
+                    <button
+                      type="button"
+                      aria-label={`Resize ${layer.label} duration`}
+                      className={cn(
+                        "flex h-full w-3 shrink-0 cursor-ew-resize items-center justify-center border-l",
+                        selectedLayerId === layer.id
+                          ? "border-primary-foreground/30 bg-primary-foreground/15"
+                          : "border-primary/25 bg-primary/10",
+                      )}
+                      data-timeline-resize-end-id={layer.id}
+                      onPointerDown={(event) =>
+                        handleLayerPointerDown("resize-end", layer, event)
+                      }
+                      onPointerMove={handleLayerPointerMove}
+                      onPointerUp={handleLayerPointerUp}
+                      onPointerCancel={handleLayerPointerCancel}
+                      onMouseDown={(event) =>
+                        handleLayerMouseDown("resize-end", layer, event)
+                      }
+                      onMouseMove={handleLayerMouseMove}
+                      onMouseUp={handleLayerMouseUp}
+                    >
+                      <span className="h-3 w-px rounded bg-current opacity-70" />
+                    </button>
+                  </div>
                 );
               })
             ) : (

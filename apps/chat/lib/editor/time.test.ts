@@ -4,6 +4,7 @@ import {
   formatSeconds,
   frameFromTimelinePoint,
   retimeLayerFromTimelineDrag,
+  resizeLayerDurationFromTimelineDrag,
 } from "./time";
 
 describe("editor time formatting", () => {
@@ -100,5 +101,38 @@ describe("editor time formatting", () => {
         sceneDuration: 100,
       }),
     ).toBe(70);
+  });
+
+  it("resizes a layer duration by the dragged frame delta", () => {
+    expect(
+      resizeLayerDurationFromTimelineDrag({
+        startFrame: 40,
+        currentFrame: 52,
+        initialDuration: 24,
+        layerFrom: 10,
+        sceneDuration: 100,
+      }),
+    ).toBe(36);
+  });
+
+  it("clamps resized layer duration to at least one frame and the scene end", () => {
+    expect(
+      resizeLayerDurationFromTimelineDrag({
+        startFrame: 50,
+        currentFrame: 5,
+        initialDuration: 20,
+        layerFrom: 10,
+        sceneDuration: 100,
+      }),
+    ).toBe(1);
+    expect(
+      resizeLayerDurationFromTimelineDrag({
+        startFrame: 5,
+        currentFrame: 90,
+        initialDuration: 40,
+        layerFrom: 35,
+        sceneDuration: 100,
+      }),
+    ).toBe(65);
   });
 });
