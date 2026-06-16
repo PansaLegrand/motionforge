@@ -1,0 +1,57 @@
+{
+  "name": "@motionforge/cli",
+  "version": "0.3.0",
+  "description": "Command-line validation and inspection tools for MotionForge scene modules.",
+  "keywords": [
+    "motionforge",
+    "video",
+    "cli",
+    "validate",
+    "scene"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PansaLegrand/motionforge.git",
+    "directory": "packages/cli"
+  },
+  "homepage": "https://github.com/PansaLegrand/motionforge#readme",
+  "bugs": "https://github.com/PansaLegrand/motionforge/issues",
+  "type": "module",
+  "bin": {
+    "motionforge": "./dist/bin/motionforge.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.*",
+    "!dist/.tsbuildinfo"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@motionforge/schema": "workspace:*",
+    "tsx": "^4.22.4"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}

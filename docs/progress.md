@@ -2,6 +2,59 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (DX slice DX2: minimal CLI)
+
+### Changed
+
+- Added `@motionforge/cli` with a `motionforge` bin entry.
+- Implemented `motionforge validate <scene-module>` for `.json`, JavaScript, and TypeScript scene modules.
+- Implemented `motionforge print <scene-module>` to validate then print normalized scene JSON.
+- Supported default exports, named `scene` exports, functions returning scenes, and promises resolving to scenes.
+- Added CLI tests for valid JSON scenes, JavaScript module printing, invalid-scene diagnostics, TypeScript module loading, and usage errors.
+- Updated the root README with the CLI validation/printing commands.
+- Updated the DX roadmap to mark DX1 and DX2 complete and explicitly defer still rendering until the Node canvas dependency story is settled.
+
+### Tested
+
+- `pnpm --filter @motionforge/cli test`
+- `pnpm --filter @motionforge/cli typecheck`
+- `pnpm --filter @motionforge/cli build`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm typecheck`
+- `pnpm build`
+
+### Notes
+
+- `motionforge still` and `motionforge render` are intentionally not shipped in this slice. The first CLI release is validation/inspection only so the dependency and runtime behavior stay reliable.
+- The CLI TypeScript loader uses `tsx/esm`, so source-level CLI tests require workspace dependency links from `pnpm install`. The packaged CLI includes `tsx` as a dependency.
+- The first full `pnpm typecheck` attempt ran before Next regenerated `apps/chat/.next/types`; after `pnpm build`, the same command passed.
+- `pnpm build` still reports the existing playground warnings from `lottie-web` eval usage and large chunks; the build exits successfully.
+
+## 2026-06-17 (DX roadmap + slice DX1: authoring helpers)
+
+### Changed
+
+- Added `docs/dx-roadmap.md`, an executable roadmap for making MotionForge easier for programmers to author with: authoring helpers, CLI, starter, studio, asset path, and docs.
+- Added `@motionforge/authoring`, a seconds-first TypeScript authoring package that compiles friendly scene helpers into normal validated MotionForge `Scene` JSON.
+- Added timing helpers: `seconds()`, `frames()`, `time()`, `toFrames()`, and `toSeconds()`.
+- Added scene/node helpers: `makeScene()`, `bg()`, `box()`, `title()`, `textBlock()`, `textNode()`, `image()`, `videoClip()`, and `audioTrack()`.
+- Re-exported safe motion presets from `@motionforge/presets` so beginner examples can use one import.
+- Updated the root README package table and quickstart to lead with `@motionforge/authoring` before the lower-level builder API.
+- Linked the DX roadmap from the main roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring build`
+- `pnpm typecheck`
+- `pnpm build`
+
+### Notes
+
+- This is the first move toward Remotion-level first-run clarity, not the full developer workflow yet. CLI, project scaffolding, local asset path resolution, and a Studio-style app remain follow-up slices.
+- `pnpm build` still reports the existing playground warnings from `lottie-web` eval usage and large chunks; the build exits successfully.
+
 ## 2026-06-17 (media assets + chat slice M9: large-file readiness)
 
 ### Changed

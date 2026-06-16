@@ -94,6 +94,112 @@ The chat app is currently a JSON scene plus JSON patch loop. It does not use MCP
 
 The important current limitation: follow-up memory is mostly the current scene JSON. The UI sends recent chat history, but the API prompt currently relies on the current scene and the latest instruction. That is enough for direct scene edits, but conversation-aware references should become a future improvement.
 
+## Chat Command Cookbook
+
+The chat input is natural language first. There are no required slash commands today. The most reliable pattern is:
+
+```txt
+verb + asset/layer reference + timing + style/content
+```
+
+For uploaded media, use the asset labels shown in the Assets panel (`Video 1`, `Image 1`, `Audio 1`) or click an asset chip to insert an explicit mention such as `@Video 1`. Mentions can include source ranges:
+
+```txt
+@Video 1[00:05-00:10]
+@Video 1[5-10]
+@beach.mp4[12-18]
+```
+
+The local fallback supports the core media sequence flow and several first-draft/edit commands. With an LLM configured, the same examples are sent with the current scene and uploaded-media manifest, so the model can produce broader patch ops.
+
+### First Drafts
+
+Use these when there is no scene yet:
+
+| Goal | Prompt |
+|---|---|
+| Product teaser | `Make a 5 second vertical product launch teaser for a new AI video app.` |
+| Kinetic typography | `Create a kinetic typography scene saying SHIP THE DEMO with punchy motion.` |
+| Founder update | `Turn this into a calm founder update with a clean title and three points.` |
+| Subtitle gallery | `Show a subtitle template gallery previewing all caption styles.` |
+| Karaoke subtitle style | `Make a vertical video with neon karaoke subtitles.` |
+
+### Uploaded Video And Image Commands
+
+Upload media first in the Assets panel. The app assigns stable names like `Video 1`, `Video 2`, and `Image 1`.
+
+| Goal | Prompt |
+|---|---|
+| Add one clip | `Use @Video 1.` |
+| Trim one clip | `Use @Video 1[00:05-00:10].` |
+| Sequence two clips | `Put video one first from 5 to 10 seconds, then video two full.` |
+| Sequence with overlay text | `Put video one first, only keep it from 5 to 10 seconds, then video two full. Write text "I love this" on top of the second video.` |
+| Use filenames | `Use @beach.mp4[3-8] then @city.mp4.` |
+| Mix images and video | `Use @Image 1 first, then @Video 1, and write "Launch day" in the center.` |
+
+Current local behavior for media sequence commands:
+
+- Visual media (`video` and `image`) is sequenced full-frame with `objectFit: "cover"`.
+- A video source range becomes `videoStartTime` plus node `duration`.
+- Images default to 5 seconds.
+- Quoted text becomes a text overlay on the targeted clip, usually the second clip when the prompt says `second video`.
+- The assistant shows an operation plan; clicking a plan row selects the generated layer.
+
+Audio assets are visible in the asset shelf and can be inserted manually. Model-backed chat is instructed to use `audio` nodes, `audioStartTime`, and `volume`, but the deterministic local media compiler currently focuses on visual sequencing.
+
+### Follow-Up Edit Commands
+
+Use these after a scene exists:
+
+| Goal | Prompt |
+|---|---|
+| Change title text | `Change the title to "Launch in 3 days".` |
+| Make title larger | `Make the title bigger.` |
+| Add title motion | `Add a spring pop-in animation to the title.` |
+| Change palette | `Change the color palette to bold coral and teal.` |
+| Make timing shorter | `Make it faster.` |
+| Make timing longer | `Make it slower.` |
+| Add captions | `Add TikTok-style caption text near the bottom.` |
+| Add a specific subtitle style | `Use terminal-style subtitles for the caption track.` |
+| Add karaoke captions | `Add neon karaoke subtitles with active word highlights.` |
+
+### Practical End-To-End Cases
+
+**Case 1: Two phone clips into a short edit**
+
+1. Upload two videos.
+2. Confirm the Assets panel shows `Video 1` and `Video 2` as `ready`.
+3. Send:
+
+```txt
+Put video one first, only keep it from 5 to 10 seconds, then video two full.
+Write text "I love this" on top of the second video.
+```
+
+Expected result: a sequence with `Video 1` trimmed to source seconds 5-10, `Video 2` appended after it, and a top text overlay during `Video 2`.
+
+**Case 2: Explicit mentions when names are ambiguous**
+
+```txt
+Use @Video 1[00:02-00:04] then @Video 2. Write "Before / After" in the center.
+```
+
+Expected result: the app does not need to infer which file is which; the mention tokens map directly to the uploaded asset manifest.
+
+**Case 3: Generate, then refine manually and by chat**
+
+```txt
+Make a 5 second vertical product launch teaser for a new AI video app.
+```
+
+Then:
+
+```txt
+Make the title bigger and add a spring pop-in animation.
+```
+
+Then use the Inspector or timeline to adjust exact positions, source starts, volume, and timing. Chat and manual edits both produce validated scene patches against the same scene document.
+
 ## How This Compares To Other Agentic Design Tools
 
 Most agentic design and app-building products use the same broad loop:

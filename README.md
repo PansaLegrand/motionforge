@@ -63,6 +63,7 @@ flowchart TB
 
 | Package                                                        | What it does                                         | Status     |
 | -------------------------------------------------------------- | ---------------------------------------------------- | ---------- |
+| [`@motionforge/authoring`](packages/authoring)                 | Seconds-first TypeScript authoring helpers           | ✅ working |
 | [`@motionforge/schema`](packages/schema)                       | Scene format, validation, JSON Schema export         | ✅ working |
 | [`@motionforge/core`](packages/core)                           | Builder API, keyframe evaluator, layout pass         | ✅ working |
 | [`@motionforge/renderer-canvas2d`](packages/renderer-canvas2d) | Canvas2D reference renderer                          | ✅ working |
@@ -143,7 +144,47 @@ pnpm --filter @motionforge/golden exec playwright install chromium
 pnpm golden:test
 ```
 
-Build a scene in TypeScript:
+Write a scene in TypeScript with the authoring helpers:
+
+```ts
+import {
+  bg,
+  fadeUp,
+  makeScene,
+  seconds,
+  textBlock,
+  title,
+} from "@motionforge/authoring";
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    bg("#0f172a"),
+    title("Hello MotionForge", {
+      at: seconds(0.8),
+      duration: seconds(3),
+      enter: fadeUp(),
+    }),
+    textBlock("Deterministic video as TypeScript data.", {
+      at: seconds(1.4),
+      enter: fadeUp({ delay: 6 }),
+    }),
+  ],
+});
+```
+
+This emits plain validated scene JSON. Use the lower-level builder when you want direct control over every node:
+
+Validate or inspect a scene module with the CLI:
+
+```sh
+motionforge validate src/video.ts
+motionforge print src/video.ts
+```
+
+The CLI accepts `.json`, `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` scene modules. A module can default-export a `Scene`, a function returning a `Scene`, or a promise.
 
 ```ts
 import { composition, div, text } from "@motionforge/core";
