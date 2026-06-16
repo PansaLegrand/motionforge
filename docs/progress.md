@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 16: preview drag-to-move)
+
+### Changed
+
+- Turned the selected preview outline into a drag handle for bounded layers in the clip area.
+- Added scene-space drag math that converts rendered canvas pixel movement into patchable `left`/`top` style values.
+- Preview movement commits as a single `setStyle` patch so one drag is one undoable edit.
+- Added mouse-window fallback handling so drag remains stable when the cursor leaves the outline during a move.
+- Updated the roadmap to mark preview direct manipulation complete and queue preview resize handles next.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5188`: loaded **Animated Chart**, selected the title layer, dragged its preview outline, confirmed the last patch was `{"op":"setStyle","id":"title","style":{"left":174,"top":97}}`, confirmed Undo restored the original outline position, and verified no current-tab browser console errors.
+
+### Notes
+
+- This slice moves bounded layers only. Resize handles and keyboard nudging should be separate follow-up slices so each interaction can share the same patch-backed drag/undo behavior deliberately.
+
 ## 2026-06-16 (chat + edit slice 15: preview selection feedback)
 
 ### Changed

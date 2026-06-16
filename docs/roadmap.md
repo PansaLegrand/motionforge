@@ -156,6 +156,8 @@ Decisions recorded 2026-06-12:
 - ✅ Compact timeline duration handles: drag a block's right edge to preview and commit a patch-backed duration update.
 - ✅ Compact timeline split at playhead: split selected leaf layers into two adjacent patch-backed nodes.
 - ✅ Preview selection feedback: selecting a layer draws its canvas-space outline/label in the clip area, with hidden-at-playhead feedback when timing excludes the current frame.
+- ✅ Preview direct manipulation: drag a selected bounded layer in the clip area to commit a patch-backed `left`/`top` move.
+- Preview resize handles: drag selected-layer handles in the clip area to commit patch-backed size changes.
 - Compact timeline editing: snap to neighboring blocks.
 - Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
 - Record the demo video + GIFs from a local build, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo; public hosting can be added later without changing the engine path.

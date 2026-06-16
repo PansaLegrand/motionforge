@@ -1,6 +1,9 @@
 import { describe, expect, it } from "vitest";
 import type { EditorLayer } from "./layers";
-import { createPreviewSelectionOverlay } from "./preview-selection";
+import {
+  createPreviewSelectionOverlay,
+  movePreviewLayerBoundsFromDrag,
+} from "./preview-selection";
 
 const layer: EditorLayer = {
   id: "title",
@@ -74,5 +77,39 @@ describe("createPreviewSelectionOverlay", () => {
       label: "Launch title · text",
       visible: true,
     });
+  });
+});
+
+describe("movePreviewLayerBoundsFromDrag", () => {
+  it("converts rendered canvas drag deltas back into scene coordinates", () => {
+    expect(
+      movePreviewLayerBoundsFromDrag({
+        initialLeft: 100,
+        initialTop: 80,
+        startClientX: 200,
+        startClientY: 100,
+        currentClientX: 260,
+        currentClientY: 70,
+        sceneWidth: 1000,
+        sceneHeight: 500,
+        canvasRect: { width: 500, height: 250 },
+      }),
+    ).toEqual({ left: 220, top: 20 });
+  });
+
+  it("keeps the layer in place when geometry cannot be measured", () => {
+    expect(
+      movePreviewLayerBoundsFromDrag({
+        initialLeft: 100,
+        initialTop: 80,
+        startClientX: 200,
+        startClientY: 100,
+        currentClientX: 260,
+        currentClientY: 70,
+        sceneWidth: 1000,
+        sceneHeight: 500,
+        canvasRect: { width: 0, height: 250 },
+      }),
+    ).toEqual({ left: 100, top: 80 });
   });
 });

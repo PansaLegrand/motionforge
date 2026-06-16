@@ -49,6 +49,7 @@ import type {
   PlayerUiState,
 } from "@/components/editor/types";
 import { describeExportReadiness } from "@/lib/editor/capability-messages";
+import type { PreviewLayerMove } from "@/lib/editor/preview-selection";
 import {
   cloneStarterTemplateScene,
   promptChips,
@@ -510,6 +511,32 @@ export function MotionforgeChatApp() {
     [editSelectedLayer],
   );
 
+  const moveLayerFromPreview = useCallback(
+    (id: string, move: PreviewLayerMove) => {
+      if (!scene) {
+        setEditorError("Create or load a scene before editing.");
+        return;
+      }
+
+      const patch: ScenePatch = [
+        { op: "setStyle", id, style: { left: move.left, top: move.top } },
+      ];
+      const result = applyScenePatch(scene, patch);
+
+      if (!result.ok) {
+        setEditorError(result.errors.map((error) => error.message).join("\n"));
+        return;
+      }
+
+      commitSceneChange(result.scene, "inspector");
+      setSelectedLayerId(id);
+      setLastPatch(patch);
+      setEditorError(null);
+      setExportStatus("");
+    },
+    [commitSceneChange, scene],
+  );
+
   const splitSelectedLayerAtPlayhead = useCallback(() => {
     if (!scene || !selectedLayerId || !selectedLayer) {
       setEditorError("Select a layer before splitting.");
@@ -744,6 +771,7 @@ export function MotionforgeChatApp() {
               scene={scene}
               playerState={playerState}
               selectedLayer={selectedLayer}
+              onMoveLayer={moveLayerFromPreview}
             />
 
             <TimelinePanel

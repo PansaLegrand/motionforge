@@ -25,6 +25,11 @@ export type PreviewSelectionOverlay =
       visible: boolean;
     };
 
+export type PreviewLayerMove = {
+  left: number;
+  top: number;
+};
+
 export function createPreviewSelectionOverlay({
   layer,
   sceneWidth,
@@ -61,5 +66,46 @@ export function createPreviewSelectionOverlay({
     label,
     visible,
     rect: { left, top, width, height },
+  };
+}
+
+export function movePreviewLayerBoundsFromDrag({
+  initialLeft,
+  initialTop,
+  startClientX,
+  startClientY,
+  currentClientX,
+  currentClientY,
+  sceneWidth,
+  sceneHeight,
+  canvasRect,
+}: {
+  initialLeft: number;
+  initialTop: number;
+  startClientX: number;
+  startClientY: number;
+  currentClientX: number;
+  currentClientY: number;
+  sceneWidth: number;
+  sceneHeight: number;
+  canvasRect: PreviewCanvasRect;
+}): PreviewLayerMove {
+  if (
+    sceneWidth <= 0 ||
+    sceneHeight <= 0 ||
+    canvasRect.width <= 0 ||
+    canvasRect.height <= 0
+  ) {
+    return { left: initialLeft, top: initialTop };
+  }
+
+  const sceneDeltaX =
+    ((currentClientX - startClientX) / canvasRect.width) * sceneWidth;
+  const sceneDeltaY =
+    ((currentClientY - startClientY) / canvasRect.height) * sceneHeight;
+
+  return {
+    left: Math.round(initialLeft + sceneDeltaX),
+    top: Math.round(initialTop + sceneDeltaY),
   };
 }

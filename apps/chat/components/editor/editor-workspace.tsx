@@ -30,7 +30,9 @@ import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
 import {
   createPreviewSelectionOverlay,
+  movePreviewLayerBoundsFromDrag,
   type PreviewCanvasRect,
+  type PreviewLayerMove,
 } from "@/lib/editor/preview-selection";
 import {
   formatFrameTime,
@@ -503,16 +505,25 @@ export function PreviewWorkspace({
   scene,
   playerState,
   selectedLayer,
+  onMoveLayer,
 }: {
   canvasRef: RefObject<HTMLCanvasElement>;
   scene: Scene | null;
   playerState: Pick<PlayerUiState, "frame" | "loading" | "error">;
   selectedLayer: EditorLayer | null;
+  onMoveLayer: (id: string, move: PreviewLayerMove) => void;
 }) {
   const stageRef = useRef<HTMLDivElement | null>(null);
+  const draggingLayerRef = useRef<PreviewDraggingLayer | null>(null);
   const [canvasRect, setCanvasRect] = useState<
     (PreviewCanvasRect & { left: number; top: number }) | null
   >(null);
+  const [draggingLayer, setDraggingLayerState] =
+    useState<PreviewDraggingLayer | null>(null);
+  const setDraggingLayer = (state: PreviewDraggingLayer | null) => {
+    draggingLayerRef.current = state;
+    setDraggingLayerState(state);
+  };
   const overlay = describePreviewOverlay({
     hasScene: Boolean(scene),
     previewLoading: playerState.loading,
@@ -528,6 +539,22 @@ export function PreviewWorkspace({
           frame: playerState.frame,
         })
       : null;
+  const displaySelectionOverlay =
+    selectionOverlay?.kind === "bounds" && draggingLayer
+      ? {
+          ...selectionOverlay,
+          rect: {
+            ...selectionOverlay.rect,
+            left: (draggingLayer.previewLeft / (scene?.width ?? 1)) *
+              (canvasRect?.width ?? 1),
+            top: (draggingLayer.previewTop / (scene?.height ?? 1)) *
+              (canvasRect?.height ?? 1),
+          },
+        }
+      : selectionOverlay;
+  const canDragSelection =
+    Boolean(scene && canvasRect && selectedLayer?.bounds) &&
+    displaySelectionOverlay?.kind === "bounds";
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -563,6 +590,164 @@ export function PreviewWorkspace({
     return () => observer.disconnect();
   }, [canvasRef, scene?.height, scene?.width]);
 
+  const previewLayerDrag = (
+    currentClientX: number,
+    currentClientY: number,
+  ): PreviewDraggingLayer | null => {
+    const activeDrag = draggingLayerRef.current;
+
+    if (!activeDrag || !scene || !canvasRect) {
+      return activeDrag;
+    }
+
+    const move = movePreviewLayerBoundsFromDrag({
+      initialLeft: activeDrag.initialLeft,
+      initialTop: activeDrag.initialTop,
+      startClientX: activeDrag.startClientX,
+      startClientY: activeDrag.startClientY,
+      currentClientX,
+      currentClientY,
+      sceneWidth: scene.width,
+      sceneHeight: scene.height,
+      canvasRect,
+    });
+    const nextDrag = {
+      ...activeDrag,
+      previewLeft: move.left,
+      previewTop: move.top,
+    };
+
+    setDraggingLayer(nextDrag);
+    return nextDrag;
+  };
+  const commitLayerDrag = (currentClientX?: number, currentClientY?: number) => {
+    const activeDrag = draggingLayerRef.current;
+
+    if (!activeDrag) {
+      setDraggingLayer(null);
+      return;
+    }
+
+    const finalDrag =
+      currentClientX !== undefined && currentClientY !== undefined
+        ? previewLayerDrag(currentClientX, currentClientY) ?? activeDrag
+        : activeDrag;
+
+    if (
+      finalDrag.previewLeft !== finalDrag.initialLeft ||
+      finalDrag.previewTop !== finalDrag.initialTop
+    ) {
+      onMoveLayer(finalDrag.id, {
+        left: finalDrag.previewLeft,
+        top: finalDrag.previewTop,
+      });
+    }
+
+    setDraggingLayer(null);
+  };
+  const handleSelectionPointerDown = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (
+      !canDragSelection ||
+      !selectedLayer?.bounds
+    ) {
+      return;
+    }
+
+    const initialLeft = selectedLayer.bounds.left ?? 0;
+    const initialTop = selectedLayer.bounds.top ?? 0;
+
+    if (!Number.isFinite(initialLeft) || !Number.isFinite(initialTop)) {
+      return;
+    }
+
+    event.stopPropagation();
+    event.currentTarget.setPointerCapture(event.pointerId);
+    setDraggingLayer({
+      id: selectedLayer.id,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      initialLeft,
+      initialTop,
+      previewLeft: initialLeft,
+      previewTop: initialTop,
+    });
+  };
+  const handleSelectionPointerMove = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (!event.currentTarget.hasPointerCapture(event.pointerId)) {
+      return;
+    }
+
+    previewLayerDrag(event.clientX, event.clientY);
+  };
+  const handleSelectionPointerUp = (event: PointerEvent<HTMLDivElement>) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    commitLayerDrag(event.clientX, event.clientY);
+  };
+  const handleSelectionPointerCancel = (
+    event: PointerEvent<HTMLDivElement>,
+  ) => {
+    if (event.currentTarget.hasPointerCapture(event.pointerId)) {
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    }
+
+    setDraggingLayer(null);
+  };
+  const handleSelectionMouseDown = (event: MouseEvent<HTMLDivElement>) => {
+    if (
+      draggingLayerRef.current ||
+      !canDragSelection ||
+      !selectedLayer?.bounds
+    ) {
+      return;
+    }
+
+    const initialLeft = selectedLayer.bounds.left ?? 0;
+    const initialTop = selectedLayer.bounds.top ?? 0;
+
+    if (!Number.isFinite(initialLeft) || !Number.isFinite(initialTop)) {
+      return;
+    }
+
+    event.stopPropagation();
+    setDraggingLayer({
+      id: selectedLayer.id,
+      startClientX: event.clientX,
+      startClientY: event.clientY,
+      initialLeft,
+      initialTop,
+      previewLeft: initialLeft,
+      previewTop: initialTop,
+    });
+  };
+
+  useEffect(() => {
+    if (!draggingLayer) {
+      return;
+    }
+
+    const handleWindowMouseMove = (event: globalThis.MouseEvent) => {
+      previewLayerDrag(event.clientX, event.clientY);
+    };
+    const handleWindowMouseUp = (event: globalThis.MouseEvent) => {
+      commitLayerDrag(event.clientX, event.clientY);
+    };
+
+    window.addEventListener("mousemove", handleWindowMouseMove);
+    window.addEventListener("mouseup", handleWindowMouseUp);
+
+    return () => {
+      window.removeEventListener("mousemove", handleWindowMouseMove);
+      window.removeEventListener("mouseup", handleWindowMouseUp);
+    };
+  }, [draggingLayer]);
+
   return (
     <div
       className="relative min-h-0 min-w-0 overflow-hidden bg-[hsl(218_18%_92%)] bg-[linear-gradient(to_right,hsl(218_16%_82%/.55)_1px,transparent_1px),linear-gradient(to_bottom,hsl(218_16%_82%/.55)_1px,transparent_1px)] bg-[size:16px_16px]"
@@ -581,7 +766,7 @@ export function PreviewWorkspace({
               background: "hsl(220 18% 12%)",
             }}
           />
-          {selectionOverlay?.kind === "bounds" ? (
+          {displaySelectionOverlay?.kind === "bounds" ? (
             <div
               className="pointer-events-none absolute"
               data-preview-selection-overlay
@@ -595,40 +780,49 @@ export function PreviewWorkspace({
               <div
                 className={cn(
                   "absolute rounded-sm px-1.5 py-0.5 text-[10px] font-semibold shadow-sm",
-                  selectionOverlay.visible
+                  displaySelectionOverlay.visible
                     ? "bg-primary text-primary-foreground"
                     : "bg-amber-400 text-amber-950",
                 )}
                 style={{
-                  left: `${selectionOverlay.rect.left}px`,
-                  top: `${Math.max(0, selectionOverlay.rect.top - 22)}px`,
+                  left: `${displaySelectionOverlay.rect.left}px`,
+                  top: `${Math.max(0, displaySelectionOverlay.rect.top - 22)}px`,
                 }}
               >
-                {selectionOverlay.visible
-                  ? selectionOverlay.label
-                  : `${selectionOverlay.label} · hidden at playhead`}
+                {displaySelectionOverlay.visible
+                  ? displaySelectionOverlay.label
+                  : `${displaySelectionOverlay.label} · hidden at playhead`}
               </div>
               <div
                 className={cn(
                   "absolute border-2 shadow-[0_0_0_1px_rgba(0,0,0,.28)]",
-                  selectionOverlay.visible
+                  canDragSelection
+                    ? "pointer-events-auto cursor-move touch-none"
+                    : "",
+                  displaySelectionOverlay.visible
                     ? "border-[hsl(var(--primary))]"
                     : "border-dashed border-amber-400",
                 )}
+                data-preview-selection-handle
+                onPointerDown={handleSelectionPointerDown}
+                onPointerMove={handleSelectionPointerMove}
+                onPointerUp={handleSelectionPointerUp}
+                onPointerCancel={handleSelectionPointerCancel}
+                onMouseDown={handleSelectionMouseDown}
                 style={{
-                  left: `${selectionOverlay.rect.left}px`,
-                  top: `${selectionOverlay.rect.top}px`,
-                  width: `${selectionOverlay.rect.width}px`,
-                  height: `${selectionOverlay.rect.height}px`,
+                  left: `${displaySelectionOverlay.rect.left}px`,
+                  top: `${displaySelectionOverlay.rect.top}px`,
+                  width: `${displaySelectionOverlay.rect.width}px`,
+                  height: `${displaySelectionOverlay.rect.height}px`,
                 }}
               />
             </div>
           ) : null}
-          {selectionOverlay?.kind === "unbounded" ? (
+          {displaySelectionOverlay?.kind === "unbounded" ? (
             <div
               className={cn(
                 "pointer-events-none absolute rounded-sm px-2 py-1 text-[11px] font-semibold shadow-sm",
-                selectionOverlay.visible
+                displaySelectionOverlay.visible
                   ? "bg-primary text-primary-foreground"
                   : "bg-amber-400 text-amber-950",
               )}
@@ -638,9 +832,9 @@ export function PreviewWorkspace({
                 top: `${(canvasRect?.top ?? 0) + 8}px`,
               }}
             >
-              {selectionOverlay.visible
-                ? selectionOverlay.label
-                : `${selectionOverlay.label} · hidden at playhead`}
+              {displaySelectionOverlay.visible
+                ? displaySelectionOverlay.label
+                : `${displaySelectionOverlay.label} · hidden at playhead`}
             </div>
           ) : null}
           {overlay?.kind === "empty" ? (
@@ -680,6 +874,16 @@ type TimelineDraggingLayer = {
   duration: number;
   previewFrom: number;
   previewDuration: number;
+};
+
+type PreviewDraggingLayer = {
+  id: string;
+  startClientX: number;
+  startClientY: number;
+  initialLeft: number;
+  initialTop: number;
+  previewLeft: number;
+  previewTop: number;
 };
 
 export function TimelinePanel({
