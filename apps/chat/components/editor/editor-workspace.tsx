@@ -40,6 +40,7 @@ import {
   type TimelineMediaInfo,
 } from "@/lib/editor/timeline-media";
 import {
+  describeLocalMediaAssetReadiness,
   formatFileSize,
   formatMediaDuration,
   isLocalMediaAssetUsed,
@@ -303,6 +304,7 @@ function AssetCard({
   const previewSrc =
     asset.thumbnailUrl ?? (asset.type === "image" ? asset.objectUrl : undefined);
   const metadata = assetMetadata(asset);
+  const readiness = describeLocalMediaAssetReadiness(asset);
 
   return (
     <div className="grid grid-cols-[56px_minmax(0,1fr)] gap-2 rounded-md border border-border bg-white p-2 shadow-sm">
@@ -325,6 +327,20 @@ function AssetCard({
           <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
             {used ? "used" : "unused"}
           </span>
+          <span
+            className={cn(
+              "shrink-0 rounded px-1.5 py-0.5 text-[10px] uppercase",
+              readiness.severity === "error"
+                ? "bg-destructive/10 text-destructive"
+                : readiness.severity === "warning"
+                  ? "bg-[hsl(38_92%_92%)] text-[hsl(32_95%_30%)]"
+                  : readiness.severity === "probing"
+                    ? "bg-primary/10 text-primary"
+                    : "bg-[hsl(154_55%_92%)] text-[hsl(154_70%_24%)]",
+            )}
+          >
+            {readiness.label}
+          </span>
         </div>
         <p
           className="mt-0.5 truncate text-xs text-muted-foreground"
@@ -333,20 +349,31 @@ function AssetCard({
           {asset.fileName}
         </p>
         <p className="mt-1 truncate text-[11px] text-muted-foreground">
-          {asset.status === "error"
-            ? asset.error ?? "Could not read metadata"
-            : metadata}
+          {metadata}
         </p>
+        {readiness.severity !== "ready" ? (
+          <p
+            className={cn(
+              "mt-1 max-h-8 overflow-hidden text-[11px] leading-4",
+              readiness.severity === "error"
+                ? "text-destructive"
+                : "text-muted-foreground",
+            )}
+            title={readiness.detail}
+          >
+            {readiness.detail}
+          </p>
+        ) : null}
         <div className="mt-2 flex items-center gap-1.5">
           <button
             type="button"
             onClick={onInsert}
-            disabled={asset.status !== "ready"}
+            disabled={readiness.blocksUse}
             className="inline-flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md bg-[hsl(220_18%_12%)] px-2 text-xs font-medium text-white hover:bg-[hsl(220_18%_18%)] disabled:cursor-not-allowed disabled:opacity-45"
             title={
-              asset.status === "ready"
+              !readiness.blocksUse
                 ? `Add ${asset.label} to scene`
-                : `${asset.label} is not ready yet`
+                : readiness.detail
             }
           >
             <Plus className="h-3.5 w-3.5" />
@@ -577,27 +604,53 @@ function ChatPanel({
           {mediaAssets.length ? (
             <div className="flex flex-wrap gap-1.5 border-t border-border/70 px-2.5 py-2">
               {mediaAssets.slice(0, 5).map((asset) => (
-                <button
+                <MentionAssetButton
                   key={asset.id}
-                  type="button"
-                  onClick={() =>
-                    onInputChange(appendMentionToken(input, asset))
-                  }
-                  disabled={isSending || asset.status !== "ready"}
-                  className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border border-border bg-muted px-2 text-xs text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-45"
-                  title={`Mention ${asset.label}`}
-                >
-                  <AssetTypeIcon type={asset.type} />
-                  <span className="truncate">
-                    {mediaMentionToken(localAssetMentionItem(asset))}
-                  </span>
-                </button>
+                  asset={asset}
+                  input={input}
+                  isSending={isSending}
+                  onInputChange={onInputChange}
+                />
               ))}
             </div>
           ) : null}
         </div>
       </form>
     </>
+  );
+}
+
+function MentionAssetButton({
+  asset,
+  input,
+  isSending,
+  onInputChange,
+}: {
+  asset: LocalMediaAsset;
+  input: string;
+  isSending: boolean;
+  onInputChange: (value: string) => void;
+}) {
+  const readiness = describeLocalMediaAssetReadiness(asset);
+
+  return (
+    <button
+      type="button"
+      onClick={() => onInputChange(appendMentionToken(input, asset))}
+      disabled={isSending || readiness.blocksUse}
+      className={cn(
+        "inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border px-2 text-xs hover:text-foreground disabled:cursor-not-allowed disabled:opacity-45",
+        readiness.severity === "warning"
+          ? "border-[hsl(38_80%_72%)] bg-[hsl(38_92%_94%)] text-[hsl(32_95%_30%)]"
+          : "border-border bg-muted text-muted-foreground",
+      )}
+      title={readiness.blocksUse ? readiness.detail : `Mention ${asset.label}`}
+    >
+      <AssetTypeIcon type={asset.type} />
+      <span className="truncate">
+        {mediaMentionToken(localAssetMentionItem(asset))}
+      </span>
+    </button>
   );
 }
 

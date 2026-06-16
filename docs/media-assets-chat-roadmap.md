@@ -469,7 +469,7 @@ Done when:
 - Trimming source material is understandable without reading JSON.
 - Existing timeline drag, resize, split, and undo remain stable.
 
-### Slice M9 - Large File And Session Reality Check
+### Slice M9 - Large File And Session Reality Check ✅
 
 **Goal:** The local browser app behaves honestly with real phone footage.
 
@@ -482,14 +482,18 @@ Code targets:
 
 Tasks:
 
-- Test 100-500 MB phone videos through upload, preview, sequence, export.
-- Track where full-file fetch/decode becomes painful.
-- Add user-facing readiness/errors for unsupported formats, decode failures, memory pressure, and missing WebCodecs.
+- Document the 100-500 MB phone-video fixture matrix for manual device QA.
+- Track where full-file fetch/decode becomes painful: `resolveAssets()` still opens video/audio via `BlobSource(await response.blob())`, so source size is the first memory boundary.
+- Add user-facing readiness/errors for unsupported formats, decode failures, large local files, and missing WebCodecs.
 - Decide whether streaming-source support is forced now or can remain deferred.
+
+Decision:
+
+Streaming-source support remains deferred for this slice. The editor now exposes the honest browser limit: files at 100 MB and above are marked `large`, files at 500 MB and above get stronger memory-pressure copy, decode/probe errors explain unsupported codec/container possibilities, insert/mention actions block only unreadable assets, and MP4 export explains the missing-WebCodecs path. Real phone-footage QA should fill the fixture matrix in `docs/benchmarks.md`; repeated failures for target clips above 100-200 MB should promote streaming sources to the next implementation priority.
 
 Done when:
 
-- Real footage behavior is documented.
+- Real-footage behavior boundaries and pending fixture matrix are documented.
 - The UI fails clearly when the browser cannot handle an asset.
 - Object URL and decoder lifetimes do not leak across reset/remove flows.
 

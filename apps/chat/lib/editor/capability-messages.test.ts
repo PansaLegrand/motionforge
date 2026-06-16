@@ -50,7 +50,8 @@ describe("capability messages", () => {
     ).toEqual({
       disabled: true,
       status: "MP4 unavailable · JSON available",
-      title: "This browser does not expose WebCodecs VideoEncoder.",
+      title:
+        "MP4 export needs WebCodecs VideoEncoder. Try Chrome or Edge on desktop, or use JSON in this browser.",
     });
   });
 

@@ -3,11 +3,15 @@ import type { Scene } from "@motionforge/schema";
 import {
   createChatMediaAssetManifest,
   createLocalMediaAssetShell,
+  describeLargeLocalMediaAsset,
+  describeLocalMediaAssetReadiness,
   formatFileSize,
   formatMediaDuration,
   isLocalMediaAssetUsed,
+  largeLocalMediaAssetBytes,
   localMediaTypeFromFile,
   revokeLocalMediaAssetUrls,
+  veryLargeLocalMediaAssetBytes,
   type LocalMediaAsset,
 } from "./assets";
 
@@ -122,6 +126,80 @@ describe("local media asset helpers", () => {
     expect(formatFileSize(512)).toBe("512 B");
     expect(formatFileSize(1536)).toBe("1.5 KB");
     expect(formatFileSize(2_621_440)).toBe("2.5 MB");
+  });
+
+  it("describes readiness for probing, errors, ready, and large files", () => {
+    expect(
+      describeLocalMediaAssetReadiness(
+        assetLike({
+          id: "video-1",
+          sceneAssetId: "video_1",
+          type: "video",
+          status: "probing",
+        }),
+      ),
+    ).toMatchObject({
+      severity: "probing",
+      label: "reading",
+      blocksUse: true,
+    });
+
+    expect(
+      describeLocalMediaAssetReadiness(
+        assetLike({
+          id: "video-1",
+          sceneAssetId: "video_1",
+          type: "video",
+          status: "error",
+          error: "Could not read video metadata.",
+        }),
+      ),
+    ).toEqual({
+      severity: "error",
+      label: "error",
+      detail: "Could not read video metadata.",
+      blocksUse: true,
+    });
+
+    expect(
+      describeLocalMediaAssetReadiness(
+        assetLike({
+          id: "video-1",
+          sceneAssetId: "video_1",
+          type: "video",
+          sizeBytes: largeLocalMediaAssetBytes,
+        }),
+      ),
+    ).toMatchObject({
+      severity: "warning",
+      label: "large",
+      blocksUse: false,
+    });
+
+    expect(
+      describeLocalMediaAssetReadiness(
+        assetLike({
+          id: "image-1",
+          sceneAssetId: "image_1",
+          type: "image",
+        }),
+      ),
+    ).toEqual({
+      severity: "ready",
+      label: "ready",
+      detail: "Ready to use.",
+      blocksUse: false,
+    });
+  });
+
+  it("describes the whole-blob memory boundary for large local files", () => {
+    expect(describeLargeLocalMediaAsset(largeLocalMediaAssetBytes - 1)).toBeNull();
+    expect(describeLargeLocalMediaAsset(largeLocalMediaAssetBytes)).toContain(
+      "whole blobs",
+    );
+    expect(
+      describeLargeLocalMediaAsset(veryLargeLocalMediaAssetBytes),
+    ).toContain("full source in memory");
   });
 
   it("revokes object urls through an injectable revoker", () => {

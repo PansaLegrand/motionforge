@@ -17,6 +17,34 @@ A 30-second 1080p export with **two simultaneous decoders finishes in 26 s — f
 
 Same profile as landscape: 7.5 / 19.2 / 33.6 ms per frame, ≤ 40 MiB heap.
 
+## Local media reality check (2026-06-17)
+
+The chat app now treats large uploaded files as a product readiness state, not as a silent implementation detail.
+
+Current local-media path:
+
+- Upload/probe uses browser object URLs and media elements (`<img>`, `<video>`, `<audio>`) to read dimensions, durations, and thumbnails.
+- Preview/export resolves renderable scene assets through `resolveAssets()`.
+- Video/audio resolution still calls `BlobSource(await response.blob())`, so local `blob:` media is opened as a whole source before decode/composite/encode work begins.
+
+Readiness thresholds:
+
+| Asset size | UI behavior | Product interpretation |
+|---|---|---|
+| `< 100 MB` | Normal ready/error state | Expected to work in supported desktop browsers if the codec/container decodes. |
+| `100-499 MB` | Asset remains usable, marked `large` | Preview/export can be memory-heavy because the whole source is loaded as a blob. |
+| `>= 500 MB` | Asset remains usable, marked `large` with stronger copy | Browser memory pressure is likely enough that users should try a shorter proxy if decode/export fails. |
+
+Manual device QA still needs real phone clips in this matrix:
+
+| Fixture | Upload/probe | Preview | Sequence + trim | Export | Notes |
+|---|---|---|---|---|---|
+| 100 MB iPhone/Android MP4 | pending real fixture | pending | pending | pending | Should validate the warning boundary and normal desktop behavior. |
+| 250 MB iPhone/Android MP4 | pending real fixture | pending | pending | pending | Expected to expose source-load latency before frame-loop cost. |
+| 500 MB iPhone/Android MP4 | pending real fixture | pending | pending | pending | Expected to determine whether streaming must move from deferred to required. |
+
+Streaming-source decision: **deferred for now**. The measured exporter is faster than realtime for production-size synthetic footage, object URL cleanup is already centralized, and users now see readiness/errors when a browser cannot decode or safely handle a file. Streaming becomes forced when real-device QA shows repeatable failure for the target clip size, or when production requirements include routine editing of >100-200 MB source footage without proxies.
+
 ## Conclusions
 
 1. **Worker-parallel export is not needed now.** Export beats realtime at production sizes on a single thread; the roadmap item stays parked until a measured workload demands it.

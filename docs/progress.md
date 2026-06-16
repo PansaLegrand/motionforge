@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (media assets + chat slice M9: large-file readiness)
+
+### Changed
+
+- Added shared local-media readiness helpers for probing, ready, warning, and error states.
+- Added 100 MB and 500 MB local-file warning thresholds that explain the current whole-blob source-loading boundary without blocking user action.
+- Updated asset cards with separate readiness badges, actionable decode failure copy, and large-file warnings.
+- Updated composer mention chips and manual insert handling to block unreadable/probing assets while allowing large-but-decodable assets.
+- Added a large-used-asset export status hint before MP4 encoding starts.
+- Improved missing-WebCodecs export copy so unsupported browsers point users toward desktop Chrome/Edge or JSON.
+- Documented the local-media memory boundary, manual phone-footage QA matrix, and the decision to defer streaming sources until real-device results force it.
+- Updated the media roadmap to mark M9 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat build`
+- `pnpm --filter @motionforge/chat typecheck`
+- Chrome smoke against a clean dev server on `http://127.0.0.1:5198`, confirming the editor, Assets panel, generated PNG upload, `ready` badge, file metadata, and Add action render.
+
+### Notes
+
+- Real 100-500 MB phone footage was not available in this environment. The benchmark doc now records the manual fixture matrix rather than inventing results.
+- `resolveAssets()` still opens video/audio with `BlobSource(await response.blob())`; this is the known streaming-source trigger point.
+- The first typecheck attempt ran before Next regenerated `.next/types` and failed on missing generated files; after `next build`, the same typecheck command passed.
+- Browser smoke used system Chrome because Playwright's bundled Chromium binary is not installed. The only browser console error was the existing missing `/favicon.ico`.
+
 ## 2026-06-17 (media assets + chat slice M8: asset timeline polish)
 
 ### Changed

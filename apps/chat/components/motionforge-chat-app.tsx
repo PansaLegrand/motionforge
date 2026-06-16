@@ -53,6 +53,8 @@ import type { PreviewLayerMove } from "@/lib/editor/preview-selection";
 import {
   createChatMediaAssetManifest,
   createLocalMediaAssetShell,
+  describeLargeLocalMediaAsset,
+  describeLocalMediaAssetReadiness,
   probeLocalMediaAsset,
   revokeLocalMediaAssetUrls,
   type LocalMediaAsset,
@@ -447,6 +449,13 @@ export function MotionforgeChatApp() {
         return;
       }
 
+      const readiness = describeLocalMediaAssetReadiness(asset);
+
+      if (readiness.blocksUse) {
+        setEditorError(readiness.detail);
+        return;
+      }
+
       const insertResult = createInsertLocalMediaAssetPatch({
         scene,
         asset,
@@ -756,7 +765,10 @@ export function MotionforgeChatApp() {
     }
 
     setIsExporting(true);
-    setExportStatus("Starting export...");
+    setExportStatus(
+      describeLargeUsedLocalMediaForExport(scene, mediaAssetsRef.current) ??
+        "Starting export...",
+    );
 
     try {
       const { blob, codec, totalFrames } = await exportVideo({
@@ -1038,6 +1050,22 @@ export function MotionforgeChatApp() {
       ) : null}
     </main>
   );
+}
+
+function describeLargeUsedLocalMediaForExport(
+  scene: Scene,
+  assets: LocalMediaAsset[],
+) {
+  const largestAsset = assets
+    .filter((asset) => scene.assets[asset.sceneAssetId])
+    .sort((left, right) => right.sizeBytes - left.sizeBytes)[0];
+  const warning = largestAsset
+    ? describeLargeLocalMediaAsset(largestAsset.sizeBytes)
+    : null;
+
+  return largestAsset && warning
+    ? `Starting export · ${largestAsset.label}: ${warning}`
+    : null;
 }
 
 function downloadBlob(blob: Blob, filename: string) {

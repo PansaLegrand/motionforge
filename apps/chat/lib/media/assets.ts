@@ -3,6 +3,9 @@ import type { Scene } from "@motionforge/schema";
 export type LocalMediaType = "image" | "video" | "audio";
 export type LocalMediaAssetStatus = "probing" | "ready" | "error";
 
+export const largeLocalMediaAssetBytes = 100 * 1024 * 1024;
+export const veryLargeLocalMediaAssetBytes = 500 * 1024 * 1024;
+
 export type LocalMediaAsset = {
   id: string;
   sceneAssetId: string;
@@ -21,6 +24,13 @@ export type LocalMediaAsset = {
   waveformPeaks?: number[];
   status: LocalMediaAssetStatus;
   error?: string;
+};
+
+export type LocalMediaAssetReadiness = {
+  severity: "probing" | "ready" | "warning" | "error";
+  label: string;
+  detail: string;
+  blocksUse: boolean;
 };
 
 export type ChatMediaAssetManifestItem = {
@@ -175,6 +185,60 @@ export function revokeLocalMediaAssetUrls(
   revoke: (url: string) => void = URL.revokeObjectURL,
 ) {
   revoke(asset.objectUrl);
+}
+
+export function describeLocalMediaAssetReadiness(
+  asset: Pick<LocalMediaAsset, "status" | "type" | "sizeBytes" | "error">,
+): LocalMediaAssetReadiness {
+  if (asset.status === "error") {
+    return {
+      severity: "error",
+      label: "error",
+      detail:
+        asset.error ??
+        `Could not read ${asset.type} metadata. Try a different codec or file.`,
+      blocksUse: true,
+    };
+  }
+
+  if (asset.status === "probing") {
+    return {
+      severity: "probing",
+      label: "reading",
+      detail: "Reading media metadata in this browser.",
+      blocksUse: true,
+    };
+  }
+
+  const largeFileDetail = describeLargeLocalMediaAsset(asset.sizeBytes);
+
+  if (largeFileDetail) {
+    return {
+      severity: "warning",
+      label: "large",
+      detail: largeFileDetail,
+      blocksUse: false,
+    };
+  }
+
+  return {
+    severity: "ready",
+    label: "ready",
+    detail: "Ready to use.",
+    blocksUse: false,
+  };
+}
+
+export function describeLargeLocalMediaAsset(sizeBytes: number): string | null {
+  if (sizeBytes >= veryLargeLocalMediaAssetBytes) {
+    return `Very large local file (${formatFileSize(sizeBytes)}). Preview and export may need the full source in memory; use a shorter proxy if decode or export fails.`;
+  }
+
+  if (sizeBytes >= largeLocalMediaAssetBytes) {
+    return `Large local file (${formatFileSize(sizeBytes)}). Preview and export can be memory-heavy because this build opens media as whole blobs.`;
+  }
+
+  return null;
 }
 
 export async function probeLocalMediaAsset(
@@ -338,7 +402,12 @@ function probeImage(src: string): Promise<{ width: number; height: number }> {
         width: image.naturalWidth,
         height: image.naturalHeight,
       });
-    image.onerror = () => reject(new Error("Could not read image metadata."));
+    image.onerror = () =>
+      reject(
+        new Error(
+          "Could not read image metadata. The browser may not support this image format, or the file may be damaged.",
+        ),
+      );
     image.src = src;
   });
 }
@@ -353,7 +422,11 @@ function probeAudioDuration(src: string): Promise<number> {
     };
     audio.onerror = () => {
       cleanup();
-      reject(new Error("Could not read audio metadata."));
+      reject(
+        new Error(
+          "Could not read audio metadata. The browser may not support this audio codec/container, or the file may be damaged.",
+        ),
+      );
     };
 
     const cleanup = () => {
@@ -395,7 +468,11 @@ function probeVideo(src: string): Promise<{
 
     video.onerror = () => {
       cleanup();
-      reject(new Error("Could not read video metadata."));
+      reject(
+        new Error(
+          "Could not read video metadata. The browser may not support this video codec/container, or the file may be damaged.",
+        ),
+      );
     };
 
     video.onloadedmetadata = () => {
