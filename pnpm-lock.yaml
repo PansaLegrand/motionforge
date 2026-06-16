@@ -170,6 +170,12 @@ importers:
         specifier: ^3.2.4
         version: 3.2.6(@types/node@22.19.21)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0)
 
+  packages/create-motionforge:
+    devDependencies:
+      vitest:
+        specifier: ^3.2.4
+        version: 3.2.6(@types/node@22.19.21)(jiti@1.21.7)(tsx@4.22.4)(yaml@2.9.0)
+
   packages/export:
     dependencies:
       '@motionforge/renderer-canvas2d':

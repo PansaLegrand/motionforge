@@ -2,6 +2,32 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (DX slice DX3: create-motionforge starter)
+
+### Changed
+
+- Added `create-motionforge`, a publishable starter generator with a `create-motionforge` bin.
+- The generator creates a minimal Vite + TypeScript MotionForge project with:
+  - `src/video.ts` authored through `@motionforge/authoring`
+  - `src/main.ts` preview/export bootstrap using `@motionforge/player` and `@motionforge/export`
+  - `index.html`
+  - `src/style.css`
+  - scripts for `dev`, `validate`, `print`, and `build`
+- Added generator tests for project creation, package scripts/dependencies, source contents, non-empty directory refusal, and `--force` behavior.
+- Updated the DX roadmap to mark DX3 complete and keep asset examples deferred to DX5.
+
+### Tested
+
+- `pnpm --filter create-motionforge test`
+- `pnpm --filter create-motionforge typecheck`
+- `pnpm --filter create-motionforge build`
+- Manual generator smoke with `/tmp/motionforge-create-smoke`, confirming project files and package scripts/dependencies.
+
+### Notes
+
+- The generated project uses public semver dependency ranges such as `@motionforge/authoring@^0.3.0`. Full outside-the-monorepo install/preview validation should be repeated after packages are published or packed, because local `file:` installs of unpublished workspace packages still expose their internal `workspace:*` dependencies.
+- The starter is intentionally text-only. Local asset path resolution belongs to DX5.
+
 ## 2026-06-17 (DX slice DX2: minimal CLI)
 
 ### Changed

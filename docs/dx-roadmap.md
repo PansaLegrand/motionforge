@@ -164,7 +164,7 @@ Done when:
 - `motionforge print` writes formatted scene JSON.
 - Docs explain browser-only export vs CLI validation clearly.
 
-### Slice DX3 - Create MotionForge Starter
+### Slice DX3 - Create MotionForge Starter ✅
 
 **Goal:** The first command creates a working project.
 
@@ -175,18 +175,20 @@ Code targets:
 
 Tasks:
 
-- `pnpm create motionforge my-video`
+- `pnpm create motionforge my-video` / `npm create motionforge@latest my-video`
 - Generate a minimal TypeScript project with:
   - `src/video.ts`
   - `src/main.ts` preview bootstrap
   - `index.html`
   - package scripts: `dev`, `validate`, `print`
 - Use `@motionforge/authoring` in the starter.
-- Include one image/video asset example only if asset path handling is already clear; otherwise keep v1 text-only.
+- Keep v1 text-only. Asset path handling is DX5.
 
 Done when:
 
-- A generated project installs, validates its scene, and opens a preview without touching the monorepo.
+- The generator creates the expected project files, scripts, and public npm dependency ranges.
+- The template uses `@motionforge/authoring`, browser preview through `@motionforge/player`, and browser MP4 export through `@motionforge/export`.
+- Full install/preview validation is finalized after package publishing or local package packing, because unpublished workspace packages use `workspace:*` internally.
 
 ### Slice DX4 - Developer Studio App
 

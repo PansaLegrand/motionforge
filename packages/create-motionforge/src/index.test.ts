@@ -1,0 +1,85 @@
+import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { describe, expect, it } from "vitest";
+import { createMotionforgeProject } from "./index.js";
+
+describe("create-motionforge", () => {
+  it("creates a minimal starter project", async () => {
+    const dir = await tempDir();
+
+    try {
+      const result = await createMotionforgeProject("Hello Video", { cwd: dir });
+
+      expect(result.projectName).toBe("hello-video");
+      expect(result.files).toEqual([
+        "package.json",
+        "tsconfig.json",
+        "index.html",
+        "src/video.ts",
+        "src/main.ts",
+        "src/style.css",
+      ]);
+
+      const packageJson = JSON.parse(
+        await readFile(join(result.projectDir, "package.json"), "utf8"),
+      ) as {
+        name: string;
+        scripts: Record<string, string>;
+        dependencies: Record<string, string>;
+      };
+
+      expect(packageJson.name).toBe("hello-video");
+      expect(packageJson.scripts).toMatchObject({
+        dev: "vite --host 127.0.0.1 --port 5173",
+        validate: "motionforge validate src/video.ts",
+        print: "motionforge print src/video.ts",
+      });
+      expect(packageJson.dependencies).toMatchObject({
+        "@motionforge/authoring": "^0.3.0",
+        "@motionforge/cli": "^0.3.0",
+        "@motionforge/export": "^0.3.0",
+        "@motionforge/player": "^0.3.0",
+      });
+
+      await expect(
+        readFile(join(result.projectDir, "src/video.ts"), "utf8"),
+      ).resolves.toContain("makeScene");
+      await expect(
+        readFile(join(result.projectDir, "src/main.ts"), "utf8"),
+      ).resolves.toContain("createPlayer");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  it("refuses to write into a non-empty directory unless forced", async () => {
+    const dir = await tempDir();
+
+    try {
+      const projectDir = join(dir, "existing");
+      await createMotionforgeProject("existing", { cwd: dir });
+      await writeFile(join(projectDir, "custom.txt"), "do not overwrite");
+
+      await expect(
+        createMotionforgeProject("existing", { cwd: dir }),
+      ).rejects.toThrow("not empty");
+
+      await expect(
+        createMotionforgeProject("existing", { cwd: dir, force: true }),
+      ).resolves.toMatchObject({
+        projectName: "existing",
+        projectDir,
+      });
+      await expect(
+        readFile(join(projectDir, "custom.txt"), "utf8"),
+      ).resolves.toBe("do not overwrite");
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+});
+
+async function tempDir() {
+  return await mkdtemp(join(tmpdir(), "create-motionforge-"));
+}

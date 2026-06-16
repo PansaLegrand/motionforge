@@ -1,0 +1,53 @@
+{
+  "name": "create-motionforge",
+  "version": "0.3.0",
+  "description": "Create a starter MotionForge video project.",
+  "keywords": [
+    "motionforge",
+    "video",
+    "starter",
+    "scaffold",
+    "create"
+  ],
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/PansaLegrand/motionforge.git",
+    "directory": "packages/create-motionforge"
+  },
+  "homepage": "https://github.com/PansaLegrand/motionforge#readme",
+  "bugs": "https://github.com/PansaLegrand/motionforge/issues",
+  "type": "module",
+  "bin": {
+    "create-motionforge": "./dist/bin/create-motionforge.js"
+  },
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "!dist/**/*.test.*",
+    "!dist/.tsbuildinfo"
+  ],
+  "sideEffects": false,
+  "engines": {
+    "node": ">=18"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.4"
+  }
+}
