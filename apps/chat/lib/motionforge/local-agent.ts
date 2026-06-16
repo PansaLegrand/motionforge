@@ -20,6 +20,9 @@ import {
   type CaptionTemplateKey,
   type CaptionWord,
 } from "@motionforge/presets";
+import type { ChatMediaAssetManifestItem } from "../media/assets";
+import { compileMediaInstruction } from "../media/instruction-compiler";
+import type { MediaOperationPlan } from "../media/plan";
 
 export type MotionforgeAgentResult = {
   mode: "scene" | "patch";
@@ -28,6 +31,7 @@ export type MotionforgeAgentResult = {
   summary: string;
   source: "local" | "model";
   diagnostics: string[];
+  mediaPlan?: MediaOperationPlan;
 };
 
 type Theme = {
@@ -810,7 +814,39 @@ function uniqueCaptionPrefix(scene: Scene, base: string): string {
 export function applyInstructionLocally(
   currentScene: Scene | null,
   instruction: string,
+  mediaAssets: ChatMediaAssetManifestItem[] = [],
 ): MotionforgeAgentResult {
+  const mediaResult = compileMediaInstruction({
+    scene: currentScene,
+    instruction,
+    mediaAssets,
+  });
+
+  if (mediaResult.ok) {
+    const result = applyScenePatch(mediaResult.baseScene, mediaResult.patch);
+
+    if (!result.ok) {
+      return {
+        mode: currentScene ? "patch" : "scene",
+        scene: currentScene ?? mediaResult.baseScene,
+        patch: mediaResult.patch,
+        summary: "The local media patch did not apply.",
+        source: "local",
+        diagnostics: result.errors.map((error) => error.message),
+      };
+    }
+
+    return {
+      mode: currentScene ? "patch" : "scene",
+      scene: result.scene,
+      patch: mediaResult.patch,
+      summary: mediaResult.summary,
+      source: "local",
+      diagnostics: [],
+      mediaPlan: mediaResult.plan,
+    };
+  }
+
   if (!currentScene) {
     const scene = createSceneFromInstruction(instruction);
     return {

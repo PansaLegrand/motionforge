@@ -1,5 +1,8 @@
 import {
   ChevronRight,
+  FileAudio,
+  FileVideo,
+  Image as ImageIcon,
   Info,
   Layers,
   Loader2,
@@ -11,8 +14,12 @@ import {
   Send,
   Sparkles,
   type LucideIcon,
+  Trash2,
+  Upload,
 } from "lucide-react";
 import {
+  type ChangeEvent,
+  type DragEvent,
   useEffect,
   useRef,
   useState,
@@ -28,6 +35,18 @@ import {
 } from "@/lib/editor/capability-messages";
 import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
+import {
+  formatFileSize,
+  formatMediaDuration,
+  isLocalMediaAssetUsed,
+  type LocalMediaAsset,
+} from "@/lib/media/assets";
+import { mediaMentionToken } from "@/lib/media/mentions";
+import {
+  describeMediaPlanStep,
+  type MediaOperationPlan,
+  type MediaOperationPlanStep,
+} from "@/lib/media/plan";
 import {
   createPreviewSelectionOverlay,
   movePreviewLayerBoundsFromDrag,
@@ -53,6 +72,7 @@ export function ToolRail({
 }) {
   const items: Array<{ id: EditorPanel; label: string; icon: LucideIcon }> = [
     { id: "chat", label: "Assistant", icon: MessageSquare },
+    { id: "assets", label: "Assets", icon: ImageIcon },
     { id: "layers", label: "Layers", icon: Layers },
     { id: "inspector", label: "Inspector", icon: Info },
   ];
@@ -92,6 +112,7 @@ export function PanelSwitcher({
   input,
   isSending,
   scene,
+  mediaAssets,
   durationLabel,
   editorLayers,
   selectedLayer,
@@ -101,7 +122,11 @@ export function PanelSwitcher({
   onSubmitPrompt,
   onShowExamples,
   onNewSession,
+  onAddMediaFiles,
+  onInsertMediaAsset,
+  onRemoveMediaAsset,
   onSelectLayer,
+  onSelectPlanStep,
   onEditLayer,
 }: {
   activePanel: EditorPanel;
@@ -111,6 +136,7 @@ export function PanelSwitcher({
   input: string;
   isSending: boolean;
   scene: Scene | null;
+  mediaAssets: LocalMediaAsset[];
   durationLabel: string;
   editorLayers: EditorLayer[];
   selectedLayer: EditorLayer | null;
@@ -120,13 +146,29 @@ export function PanelSwitcher({
   onSubmitPrompt: (value?: string) => Promise<void>;
   onShowExamples: () => void;
   onNewSession: () => void;
+  onAddMediaFiles: (files: File[]) => void;
+  onInsertMediaAsset: (id: string) => void;
+  onRemoveMediaAsset: (id: string) => void;
   onSelectLayer: (id: string) => void;
+  onSelectPlanStep: (id: string) => void;
   onEditLayer: (
     id: string,
     field: InspectorEditableField,
     value: string,
   ) => void;
 }) {
+  if (activePanel === "assets") {
+    return (
+      <AssetsPanel
+        assets={mediaAssets}
+        scene={scene}
+        onAddMediaFiles={onAddMediaFiles}
+        onInsertMediaAsset={onInsertMediaAsset}
+        onRemoveMediaAsset={onRemoveMediaAsset}
+      />
+    );
+  }
+
   if (activePanel === "layers") {
     return (
       <LayersPanel
@@ -155,13 +197,227 @@ export function PanelSwitcher({
       input={input}
       isSending={isSending}
       scene={scene}
+      mediaAssets={mediaAssets}
       durationLabel={durationLabel}
       onInputChange={onInputChange}
       onSubmitPrompt={onSubmitPrompt}
       onShowExamples={onShowExamples}
       onNewSession={onNewSession}
+      onSelectPlanStep={onSelectPlanStep}
     />
   );
+}
+
+function AssetsPanel({
+  assets,
+  scene,
+  onAddMediaFiles,
+  onInsertMediaAsset,
+  onRemoveMediaAsset,
+}: {
+  assets: LocalMediaAsset[];
+  scene: Scene | null;
+  onAddMediaFiles: (files: File[]) => void;
+  onInsertMediaAsset: (id: string) => void;
+  onRemoveMediaAsset: (id: string) => void;
+}) {
+  const handleInputChange = (event: ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(event.currentTarget.files ?? []);
+
+    if (files.length) {
+      onAddMediaFiles(files);
+    }
+
+    event.currentTarget.value = "";
+  };
+  const handleDrop = (event: DragEvent<HTMLDivElement>) => {
+    event.preventDefault();
+    const files = Array.from(event.dataTransfer.files ?? []);
+
+    if (files.length) {
+      onAddMediaFiles(files);
+    }
+  };
+
+  return (
+    <>
+      <PanelHeader
+        icon={ImageIcon}
+        title="Assets"
+        detail={`${assets.length} files`}
+      />
+      <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-3">
+        <div
+          className="rounded-md border border-dashed border-border bg-muted/35 p-3"
+          onDragOver={(event) => event.preventDefault()}
+          onDrop={handleDrop}
+        >
+          <label className="flex cursor-pointer items-center justify-center gap-2 rounded-md border border-border bg-white px-3 py-2 text-sm font-medium text-foreground shadow-sm hover:bg-muted">
+            <Upload className="h-4 w-4 text-muted-foreground" />
+            Upload media
+            <input
+              type="file"
+              accept="image/*,video/*,audio/*"
+              multiple
+              className="sr-only"
+              onChange={handleInputChange}
+            />
+          </label>
+        </div>
+
+        {assets.length ? (
+          <div className="mt-3 space-y-2">
+            {assets.map((asset) => (
+              <AssetCard
+                key={`${asset.id}:${asset.objectUrl}`}
+                asset={asset}
+                used={isLocalMediaAssetUsed(asset, scene)}
+                onInsert={() => onInsertMediaAsset(asset.id)}
+                onRemove={() => onRemoveMediaAsset(asset.id)}
+              />
+            ))}
+          </div>
+        ) : (
+          <EmptyPanelText text="No local media assets." />
+        )}
+      </div>
+    </>
+  );
+}
+
+function AssetCard({
+  asset,
+  used,
+  onInsert,
+  onRemove,
+}: {
+  asset: LocalMediaAsset;
+  used: boolean;
+  onInsert: () => void;
+  onRemove: () => void;
+}) {
+  const previewSrc =
+    asset.thumbnailUrl ?? (asset.type === "image" ? asset.objectUrl : undefined);
+  const metadata = assetMetadata(asset);
+
+  return (
+    <div className="grid grid-cols-[56px_minmax(0,1fr)] gap-2 rounded-md border border-border bg-white p-2 shadow-sm">
+      <div className="flex h-14 w-14 items-center justify-center overflow-hidden rounded-md bg-muted text-muted-foreground">
+        {previewSrc ? (
+          <img
+            src={previewSrc}
+            alt=""
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          <AssetTypeIcon type={asset.type} />
+        )}
+      </div>
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-1.5">
+          <p className="truncate text-sm font-semibold text-foreground">
+            {asset.label}
+          </p>
+          <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 text-[10px] uppercase text-muted-foreground">
+            {used ? "used" : "unused"}
+          </span>
+        </div>
+        <p
+          className="mt-0.5 truncate text-xs text-muted-foreground"
+          title={asset.fileName}
+        >
+          {asset.fileName}
+        </p>
+        <p className="mt-1 truncate text-[11px] text-muted-foreground">
+          {asset.status === "error"
+            ? asset.error ?? "Could not read metadata"
+            : metadata}
+        </p>
+        <div className="mt-2 flex items-center gap-1.5">
+          <button
+            type="button"
+            onClick={onInsert}
+            disabled={asset.status !== "ready"}
+            className="inline-flex h-7 flex-1 items-center justify-center gap-1.5 rounded-md bg-[hsl(220_18%_12%)] px-2 text-xs font-medium text-white hover:bg-[hsl(220_18%_18%)] disabled:cursor-not-allowed disabled:opacity-45"
+            title={
+              asset.status === "ready"
+                ? `Add ${asset.label} to scene`
+                : `${asset.label} is not ready yet`
+            }
+          >
+            <Plus className="h-3.5 w-3.5" />
+            Add
+          </button>
+          <button
+            type="button"
+            onClick={onRemove}
+            disabled={used}
+            className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-destructive disabled:cursor-not-allowed disabled:opacity-45"
+            title={
+              used
+                ? `${asset.label} is used in the scene`
+                : `Remove ${asset.label}`
+            }
+            aria-label={`Remove ${asset.label}`}
+          >
+            <Trash2 className="h-3.5 w-3.5" />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function AssetTypeIcon({ type }: { type: LocalMediaAsset["type"] }) {
+  if (type === "video") {
+    return <FileVideo className="h-5 w-5" />;
+  }
+
+  if (type === "audio") {
+    return <FileAudio className="h-5 w-5" />;
+  }
+
+  return <ImageIcon className="h-5 w-5" />;
+}
+
+function assetMetadata(asset: LocalMediaAsset) {
+  const parts = [formatFileSize(asset.sizeBytes)];
+
+  if (asset.type === "video" || asset.type === "audio") {
+    parts.push(formatMediaDuration(asset.durationSeconds));
+  }
+
+  if (asset.width && asset.height) {
+    parts.push(`${asset.width}x${asset.height}`);
+  }
+
+  if (asset.status === "probing") {
+    parts.push("reading");
+  }
+
+  return parts.join(" · ");
+}
+
+function localAssetMentionItem(asset: LocalMediaAsset) {
+  return {
+    id: asset.id,
+    sceneAssetId: asset.sceneAssetId,
+    type: asset.type,
+    src: asset.objectUrl,
+    label: asset.label,
+    aliases: asset.aliases,
+    fileName: asset.fileName,
+    durationSeconds: asset.durationSeconds,
+    width: asset.width,
+    height: asset.height,
+    alreadyInScene: false,
+  };
+}
+
+function appendMentionToken(input: string, asset: LocalMediaAsset) {
+  const token = mediaMentionToken(localAssetMentionItem(asset));
+  const separator = input.trim() ? " " : "";
+  return `${input}${separator}${token} `;
 }
 
 function ChatPanel({
@@ -171,11 +427,13 @@ function ChatPanel({
   input,
   isSending,
   scene,
+  mediaAssets,
   durationLabel,
   onInputChange,
   onSubmitPrompt,
   onShowExamples,
   onNewSession,
+  onSelectPlanStep,
 }: {
   messages: ChatMessage[];
   messagesScrollerRef: RefObject<HTMLDivElement>;
@@ -183,11 +441,13 @@ function ChatPanel({
   input: string;
   isSending: boolean;
   scene: Scene | null;
+  mediaAssets: LocalMediaAsset[];
   durationLabel: string;
   onInputChange: (value: string) => void;
   onSubmitPrompt: (value?: string) => Promise<void>;
   onShowExamples: () => void;
   onNewSession: () => void;
+  onSelectPlanStep: (id: string) => void;
 }) {
   return (
     <>
@@ -240,6 +500,12 @@ function ChatPanel({
                 ) : null}
               </div>
               <p className="whitespace-pre-wrap">{message.content}</p>
+              {message.mediaPlan ? (
+                <MediaPlanView
+                  plan={message.mediaPlan}
+                  onSelectPlanStep={onSelectPlanStep}
+                />
+              ) : null}
               {message.diagnostics?.length ? (
                 <pre className="mt-2 max-h-24 overflow-auto rounded-md border border-amber-200 bg-amber-50 px-2 py-1.5 text-xs leading-5 text-amber-800">
                   {message.diagnostics.join("\n")}
@@ -304,10 +570,94 @@ function ChatPanel({
               Send
             </button>
           </div>
+          {mediaAssets.length ? (
+            <div className="flex flex-wrap gap-1.5 border-t border-border/70 px-2.5 py-2">
+              {mediaAssets.slice(0, 5).map((asset) => (
+                <button
+                  key={asset.id}
+                  type="button"
+                  onClick={() =>
+                    onInputChange(appendMentionToken(input, asset))
+                  }
+                  disabled={isSending || asset.status !== "ready"}
+                  className="inline-flex h-7 max-w-full items-center gap-1.5 rounded-md border border-border bg-muted px-2 text-xs text-muted-foreground hover:text-foreground disabled:cursor-not-allowed disabled:opacity-45"
+                  title={`Mention ${asset.label}`}
+                >
+                  <AssetTypeIcon type={asset.type} />
+                  <span className="truncate">
+                    {mediaMentionToken(localAssetMentionItem(asset))}
+                  </span>
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
       </form>
     </>
   );
+}
+
+function MediaPlanView({
+  plan,
+  onSelectPlanStep,
+}: {
+  plan: MediaOperationPlan;
+  onSelectPlanStep: (id: string) => void;
+}) {
+  if (!plan.steps.length) {
+    return null;
+  }
+
+  return (
+    <div className="mt-2 overflow-hidden rounded-md border border-border/80 bg-muted/25">
+      <div className="flex items-center justify-between gap-2 border-b border-border/70 px-2 py-1.5">
+        <span className="text-[10px] font-semibold uppercase text-muted-foreground">
+          Operation plan
+        </span>
+        <span className="text-[10px] text-muted-foreground">
+          {plan.steps.length} step{plan.steps.length === 1 ? "" : "s"}
+        </span>
+      </div>
+      <div className="divide-y divide-border/70">
+        {plan.steps.map((step, index) => {
+          const description = describeMediaPlanStep(step, plan.fps);
+
+          return (
+            <button
+              key={`${step.type}:${step.nodeId}:${index}`}
+              type="button"
+              onClick={() => onSelectPlanStep(step.nodeId)}
+              className="grid w-full grid-cols-[18px_minmax(0,1fr)_16px] items-center gap-2 px-2 py-1.5 text-left transition hover:bg-white"
+              title={`Select ${description.title}`}
+            >
+              <MediaPlanStepIcon step={step} />
+              <span className="min-w-0">
+                <span className="block truncate text-xs font-semibold text-foreground">
+                  {description.title}
+                </span>
+                <span className="block truncate text-[11px] leading-4 text-muted-foreground">
+                  {description.detail}
+                </span>
+              </span>
+              <ChevronRight className="h-3.5 w-3.5 text-muted-foreground" />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function MediaPlanStepIcon({ step }: { step: MediaOperationPlanStep }) {
+  if (step.type === "text-overlay") {
+    return <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />;
+  }
+
+  if (step.mediaType === "image") {
+    return <ImageIcon className="h-3.5 w-3.5 text-muted-foreground" />;
+  }
+
+  return <FileVideo className="h-3.5 w-3.5 text-muted-foreground" />;
 }
 
 function LayersPanel({

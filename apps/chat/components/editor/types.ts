@@ -1,4 +1,6 @@
-export type EditorPanel = "chat" | "layers" | "inspector";
+import type { MediaOperationPlan } from "../../lib/media/plan";
+
+export type EditorPanel = "chat" | "assets" | "layers" | "inspector";
 
 export type ChatMessage = {
   id: string;
@@ -6,6 +8,7 @@ export type ChatMessage = {
   content: string;
   source?: "local" | "model";
   diagnostics?: string[];
+  mediaPlan?: MediaOperationPlan;
 };
 
 export type PlayerUiState = {

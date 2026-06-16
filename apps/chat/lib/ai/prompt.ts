@@ -1,6 +1,11 @@
 import type { Scene } from "@motionforge/schema";
+import type { ChatMediaAssetManifestItem } from "../media/assets";
+import { formatMediaAssetManifestForPrompt } from "../media/manifest";
 
-export function buildMotionforgeSystemPrompt(currentScene: Scene | null) {
+export function buildMotionforgeSystemPrompt(
+  currentScene: Scene | null,
+  mediaAssets: ChatMediaAssetManifestItem[] = [],
+) {
   return `You are the motionforge scene agent.
 
 Return ONLY JSON. No prose, no markdown.
@@ -22,8 +27,20 @@ Hard rules:
 - Prefer polished text, strong hierarchy, and data-only keyframes.
 - Subtitle template vocabulary available in @motionforge/presets: classic, minimalBar, handwritten, retro, cinematic, storyteller, hustle, spotlight, karaoke, neon, future, terminal, colorShift. When emitting raw JSON, recreate these with native text nodes, textStroke, textShadow, textBackgroundColor, padding, radius, and color keyframes; do not import code in JSON.
 
+Uploaded media rules:
+- The user may refer to uploaded assets by label, alias, filename, or @ mention.
+- Use only uploaded assets listed in the media manifest. Do not invent asset ids or URLs.
+- When using an uploaded asset that is not already in scene.assets, emit a setAsset op first with that asset's sceneAssetId, type, and src from the media manifest.
+- Use video nodes for video assets, img nodes for image assets, and audio nodes for audio assets.
+- Video/image nodes should usually be full-frame absolute nodes with objectFit:"cover" unless the user asks for a layout.
+- Use videoStartTime in seconds for video source trims. Use audioStartTime in seconds for audio source trims.
+- Convert user timing in seconds to integer frames using scene.fps for node from/duration.
+- When sequencing clips, make node from/duration windows adjacent unless the user asks for overlap.
+
 Current scene exists: ${currentScene ? "yes" : "no"}.
-${currentScene ? `Current node ids: ${listIds(currentScene).join(", ")}.` : ""}`;
+${currentScene ? `Current node ids: ${listIds(currentScene).join(", ")}.` : ""}
+Uploaded media manifest:
+${formatMediaAssetManifestForPrompt(mediaAssets)}`;
 }
 
 function listIds(scene: Scene): string[] {

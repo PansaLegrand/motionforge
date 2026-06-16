@@ -2,6 +2,131 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (media assets + chat slice M7: operation plan UI)
+
+### Changed
+
+- Added a typed `MediaOperationPlan` structure for media chat edits, including generated node ids, source trim ranges, scene timing, and text overlay placement.
+- The deterministic media compiler now returns operation-plan data alongside the canonical `ScenePatch`.
+- Threaded `mediaPlan` through the local agent result, API response type, assistant chat messages, and chat panel rendering.
+- Rendered compact operation rows in assistant messages, with clip/text icons, human-readable timing, and click-to-select behavior that opens the Layers panel on the affected generated node.
+- Kept the plan as explanatory UI data only; scene state still flows through `ScenePatch` and `applyScenePatch`.
+- Updated the media roadmap to mark M7 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Chrome smoke against a clean dev server on `http://127.0.0.1:5194`, confirming the editor renders with the Assets rail and no page errors.
+- Live `/api/chat` smoke on `http://127.0.0.1:5194` for the north-star two-video prompt, confirming a 3-step `mediaPlan` and 510-frame scene.
+
+### Notes
+
+- Revert still uses the existing undo control. A dedicated "revert last assistant edit" button should wait until scene history tracks semantic edit sources, so it cannot accidentally undo a later manual edit.
+- Browser automation used system Chrome because Playwright's bundled Chromium binary is not installed. The only browser console error in smoke was a missing `/favicon.ico`, which is unrelated to the media-plan UI.
+
+## 2026-06-16 (media assets + chat slice M5: local media instruction compiler)
+
+### Changed
+
+- Added a deterministic media instruction compiler for the first high-value chat workflow: sequence uploaded visual media, trim the first referenced video by source seconds, keep later clips full length, and add quoted text overlays to the target clip.
+- The compiler consumes the same chat media manifest sent to the model, produces a canonical `ScenePatch`, creates a default scene when needed, and validates through the normal `applyScenePatch` path.
+- Implemented support for explicit mention ranges like `@Video 1[00:05-00:10]` and natural references like `video one`, `video two`, `first video`, and `second video`.
+- Wired the compiler into `applyInstructionLocally()`, so the north-star two-video prompt now works without model credentials.
+- Added tests for the north-star prompt, explicit `@` ranges, unique ids against existing scenes, and local-agent integration.
+- Updated the media roadmap to mark M5 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+
+### Notes
+
+- The v0 compiler is intentionally narrow. It handles the production-critical sequence/trim/text-overlay path and leaves broader edit grammar, operation-plan UI, and model/eval hardening to later slices.
+
+## 2026-06-16 (media assets + chat slice M4: chat asset context)
+
+### Changed
+
+- Added a typed chat media manifest that carries uploaded asset ids, renderable `sceneAssetId`s, object URL `src`s, labels, aliases, filenames, dimensions, durations, and scene usage state into `/api/chat`.
+- Added server-side manifest sanitization before prompt construction.
+- Expanded the MotionForge system prompt with uploaded-media rules: use only manifest assets, emit `setAsset` before `insertNode` for unused assets, choose the correct node type, and map source trims/timing through `videoStartTime`, `audioStartTime`, `from`, and `duration`.
+- Included the media manifest in the user prompt for easier model debugging.
+- Added `@` mention and alias helpers for parsing `@Video 1[00:05-00:10]`, resolving natural aliases like `video one`, and generating mention tokens.
+- Added composer asset chips that append `@Video 1`-style mentions so users can reference files without guessing exact names.
+- Updated the media roadmap to mark M4 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+
+### Notes
+
+- This slice gives model-backed chat the right media context. The local fallback still does not compile the full two-video natural-language edit; that is the next M5 slice.
+
+## 2026-06-16 (media assets + chat slice M2: manual add-to-scene)
+
+### Changed
+
+- Added a patch-backed media insertion compiler that turns a local uploaded asset into a `setAsset` + `insertNode` patch against the canonical scene.
+- Added default scene creation for first media inserts, sizing visual scenes from the first image/video where possible and using a vertical default for audio-only starts.
+- Inserted images/videos as full-frame bounded visual layers with `objectFit: "cover"` and inserted audio as a timeline-only `audio` node.
+- Extended existing scenes when inserted media would run past the current duration, selected the new layer, switched to Layers, showed the generated patch, and recorded one-click insertion as an undoable scene change.
+- Added Add controls to asset cards and disabled removal for assets already used by the scene so local object URLs cannot be revoked while preview/export still depend on them.
+- Updated the media roadmap to mark M2 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+
+### Notes
+
+- This is the manual bridge that chat will reuse conceptually: asset intent becomes a visible `ScenePatch`. The next implementation slice should expose media-specific inspector controls or send the asset manifest into chat, depending on whether we want manual precision or natural-language asset targeting next.
+
+## 2026-06-16 (media assets + chat slice M1: asset catalog and shelf)
+
+### Changed
+
+- Added a local media asset model for uploaded images, videos, and audio, including stable ids, renderable `sceneAssetId`s, display labels, natural-language aliases, object URLs, metadata, and compact chat manifests.
+- Added pure helpers and tests for media type detection, label/alias generation, manifest creation, usage detection, duration/file-size formatting, and object URL revocation.
+- Added an **Assets** panel to the editor rail with upload/drop-zone UI, asset cards, status metadata, thumbnails for images/video when available, used/unused state, and remove controls.
+- Wired app-level upload state, browser metadata probing, session reset cleanup, unmount cleanup, and unsupported-file handling without inserting uploaded files into `scene.assets` yet.
+- Updated the media roadmap to mark M1 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5190`: opened the new Assets rail panel, confirmed the empty upload state rendered, and verified no browser console errors.
+
+### Notes
+
+- The in-app browser control surface does not expose a file-chooser setter, so the actual upload path is covered by unit-tested helper behavior and TypeScript/build coverage in this slice. M2 should add a deeper browser or harness-level upload smoke when we wire insertion into the scene.
+- Uploaded files intentionally stay in the local asset catalog until a manual add or chat command uses them.
+
+## 2026-06-16 (media assets + chat roadmap)
+
+### Changed
+
+- Added `docs/media-assets-chat-roadmap.md`, an executable roadmap for introducing uploaded video, image, and audio assets into the chat + manual editor.
+- Defined the north-star two-video flow: trim `Video 1` to `00:05-00:10`, append `Video 2`, and add a top text overlay on the second clip.
+- Specified the product rule that media upload state lives in a local asset catalog while all renderable edits still converge on the canonical `Scene` through `ScenePatch`.
+- Broke implementation into slices for the asset shelf, manual add-to-scene, media inspector controls, chat asset context, local media instruction compiler, model path, operation-plan UI, timeline polish, and large-file reality checks.
+- Linked the new media roadmap from the Phase 2 roadmap.
+
+### Tested
+
+- Docs-only change; no code tests run.
+
+### Notes
+
+- The first implementation target should be the vertical slice: upload two videos, reference them as `Video 1`/`Video 2` in chat, generate the sequence and text overlay, preview, undo, and export.
+
 ## 2026-06-16 (chat + edit slice 16: preview drag-to-move)
 
 ### Changed

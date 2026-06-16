@@ -99,6 +99,8 @@ North-star demo: upload a clip → type "add TikTok-style subtitles and a title 
 
 The reference app direction is recorded in [`docs/chat-edit-app-plan.md`](chat-edit-app-plan.md): chat creates and transforms, manual tools refine and finish, and both surfaces mutate the canonical scene through RFC 0001 patch ops.
 
+The next media-aware editor direction is recorded in [`docs/media-assets-chat-roadmap.md`](media-assets-chat-roadmap.md): uploaded videos/images/audio become first-class assets, chat can reference them with `@` mentions and stable aliases, and media instructions compile into visible patch-backed scene operations.
+
 Decisions recorded 2026-06-12:
 
 - **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.

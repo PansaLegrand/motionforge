@@ -51,6 +51,14 @@ import type {
 import { describeExportReadiness } from "@/lib/editor/capability-messages";
 import type { PreviewLayerMove } from "@/lib/editor/preview-selection";
 import {
+  createChatMediaAssetManifest,
+  createLocalMediaAssetShell,
+  probeLocalMediaAsset,
+  revokeLocalMediaAssetUrls,
+  type LocalMediaAsset,
+} from "@/lib/media/assets";
+import { createInsertLocalMediaAssetPatch } from "@/lib/media/insert";
+import {
   cloneStarterTemplateScene,
   promptChips,
   starterTemplateExamples,
@@ -93,6 +101,7 @@ export function MotionforgeChatApp() {
   );
   const [showExamples, setShowExamples] = useState(false);
   const [activePanel, setActivePanel] = useState<EditorPanel>("chat");
+  const [mediaAssets, setMediaAssets] = useState<LocalMediaAsset[]>([]);
   const [selectedLayerId, setSelectedLayerId] = useState<string | null>(null);
   const [lastPatch, setLastPatch] = useState<ScenePatch | null>(null);
   const [editorError, setEditorError] = useState<string | null>(null);
@@ -107,6 +116,7 @@ export function MotionforgeChatApp() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const playerRef = useRef<Player | null>(null);
   const assetsRef = useRef<ResolvedAssets | undefined>(undefined);
+  const mediaAssetsRef = useRef<LocalMediaAsset[]>([]);
   const loadIdRef = useRef(0);
   const messagesScrollerRef = useRef<HTMLDivElement | null>(null);
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
@@ -142,6 +152,14 @@ export function MotionforgeChatApp() {
       }),
     [editorLayers.length, exportStatus, isExporting, playerState, scene],
   );
+  const mediaAssetManifest = useMemo(
+    () => createChatMediaAssetManifest({ assets: mediaAssets, scene }),
+    [mediaAssets, scene],
+  );
+
+  useEffect(() => {
+    mediaAssetsRef.current = mediaAssets;
+  }, [mediaAssets]);
 
   useEffect(() => {
     if (!scene) {
@@ -158,6 +176,14 @@ export function MotionforgeChatApp() {
 
     setSelectedLayerId(editorLayers[0]?.id ?? null);
   }, [editorLayers, scene, selectedLayerId]);
+
+  useEffect(() => {
+    return () => {
+      for (const asset of mediaAssetsRef.current) {
+        revokeLocalMediaAssetUrls(asset);
+      }
+    };
+  }, []);
 
   const loadScene = useCallback(async (nextScene: Scene | null) => {
     const canvas = canvasRef.current;
@@ -325,6 +351,148 @@ export function MotionforgeChatApp() {
     [scene],
   );
 
+  const clearMediaAssets = useCallback(() => {
+    for (const asset of mediaAssetsRef.current) {
+      revokeLocalMediaAssetUrls(asset);
+    }
+
+    mediaAssetsRef.current = [];
+    setMediaAssets([]);
+  }, []);
+
+  const addMediaFiles = useCallback((files: File[]) => {
+    const currentAssets = mediaAssetsRef.current;
+    const nextAssets = [...currentAssets];
+    const createdAssets: LocalMediaAsset[] = [];
+    const unsupportedFiles: string[] = [];
+
+    for (const file of files) {
+      const objectUrl = URL.createObjectURL(file);
+      const asset = createLocalMediaAssetShell({
+        file,
+        objectUrl,
+        existingAssets: nextAssets,
+      });
+
+      if (!asset) {
+        URL.revokeObjectURL(objectUrl);
+        unsupportedFiles.push(file.name);
+        continue;
+      }
+
+      nextAssets.push(asset);
+      createdAssets.push(asset);
+    }
+
+    if (!createdAssets.length && unsupportedFiles.length) {
+      setEditorError(`Unsupported media file: ${unsupportedFiles.join(", ")}`);
+      return;
+    }
+
+    if (createdAssets.length) {
+      mediaAssetsRef.current = nextAssets;
+      setMediaAssets(nextAssets);
+      setActivePanel("assets");
+      setEditorError(
+        unsupportedFiles.length
+          ? `Skipped unsupported file: ${unsupportedFiles.join(", ")}`
+          : null,
+      );
+      setExportStatus("");
+    }
+
+    for (const asset of createdAssets) {
+      void probeLocalMediaAsset(asset).then((probedAsset) => {
+        setMediaAssets((current) => {
+          const next = current.map((item) =>
+            item.id === probedAsset.id &&
+            item.objectUrl === probedAsset.objectUrl
+              ? probedAsset
+              : item,
+          );
+          mediaAssetsRef.current = next;
+          return next;
+        });
+      });
+    }
+  }, []);
+
+  const removeMediaAsset = useCallback((id: string) => {
+    const currentAssets = mediaAssetsRef.current;
+    const asset = currentAssets.find((item) => item.id === id);
+
+    if (asset && scene?.assets[asset.sceneAssetId]) {
+      setEditorError(
+        `${asset.label} is used in the scene. Undo or remove the layer before removing the asset.`,
+      );
+      return;
+    }
+
+    if (asset) {
+      revokeLocalMediaAssetUrls(asset);
+    }
+
+    const nextAssets = currentAssets.filter((item) => item.id !== id);
+    mediaAssetsRef.current = nextAssets;
+    setMediaAssets(nextAssets);
+    setEditorError(null);
+  }, [scene]);
+
+  const insertMediaAsset = useCallback(
+    (id: string) => {
+      const asset = mediaAssetsRef.current.find((item) => item.id === id);
+
+      if (!asset) {
+        setEditorError("Choose a media asset before adding it.");
+        return;
+      }
+
+      const insertResult = createInsertLocalMediaAssetPatch({
+        scene,
+        asset,
+        insertAtFrame: playerState.frame,
+      });
+
+      if (!insertResult.ok) {
+        setEditorError(insertResult.error);
+        return;
+      }
+
+      const patchResult = applyScenePatch(
+        insertResult.baseScene,
+        insertResult.patch,
+      );
+
+      if (!patchResult.ok) {
+        setEditorError(
+          patchResult.errors.map((error) => error.message).join("\n"),
+        );
+        return;
+      }
+
+      setSceneHistory((history) =>
+        recordSceneHistory(history, scene ?? insertResult.baseScene),
+      );
+      setScene(patchResult.scene);
+      setSelectedLayerId(insertResult.nodeId);
+      setLastPatch(insertResult.patch);
+      setEditorError(null);
+      setExportStatus("");
+      setShowJson(false);
+      setActivePanel("layers");
+      setMessages((items) => [
+        ...items,
+        {
+          id: crypto.randomUUID(),
+          role: "assistant",
+          content: insertResult.summary,
+          source: "local",
+        },
+      ]);
+    },
+    [playerState.frame, scene],
+  );
+
   const undoSceneChange = useCallback(() => {
     const result = undoSceneHistory(scene, sceneHistory);
 
@@ -379,6 +547,7 @@ export function MotionforgeChatApp() {
           body: JSON.stringify({
             instruction,
             scene,
+            mediaAssets: mediaAssetManifest,
             history: messages.slice(-8).map(({ role, content }) => ({
               role,
               content,
@@ -393,6 +562,11 @@ export function MotionforgeChatApp() {
 
         commitSceneChange(payload.result.scene, "assistant");
         setLastPatch(payload.result.patch ?? null);
+        const firstPlanNodeId = payload.result.mediaPlan?.steps[0]?.nodeId;
+
+        if (firstPlanNodeId) {
+          setSelectedLayerId(firstPlanNodeId);
+        }
         setMessages((items) => [
           ...items,
           {
@@ -401,6 +575,7 @@ export function MotionforgeChatApp() {
             content: payload.result.summary,
             source: payload.result.source,
             diagnostics: payload.result.diagnostics,
+            mediaPlan: payload.result.mediaPlan,
           },
         ]);
       } catch (error) {
@@ -417,7 +592,7 @@ export function MotionforgeChatApp() {
         setIsSending(false);
       }
     },
-    [commitSceneChange, input, isSending, messages, scene],
+    [commitSceneChange, input, isSending, mediaAssetManifest, messages, scene],
   );
 
   const togglePlayback = useCallback(() => {
@@ -451,6 +626,7 @@ export function MotionforgeChatApp() {
   const startNewSession = useCallback(() => {
     setScene(null);
     setSceneHistory(createSceneHistory());
+    clearMediaAssets();
     setSelectedLayerId(null);
     setMessages([
       {
@@ -466,7 +642,7 @@ export function MotionforgeChatApp() {
     setLastPatch(null);
     setEditorError(null);
     setShowJson(false);
-  }, []);
+  }, [clearMediaAssets]);
 
   const editSelectedLayer = useCallback(
     (id: string, field: InspectorEditableField, value: string) => {
@@ -621,6 +797,11 @@ export function MotionforgeChatApp() {
     setShowExamples(false);
   }, []);
 
+  const selectMediaPlanStep = useCallback((nodeId: string) => {
+    setSelectedLayerId(nodeId);
+    setActivePanel("layers");
+  }, []);
+
   const loadStarterTemplate = useCallback((example: StarterTemplateExample) => {
     commitSceneChange(cloneStarterTemplateScene(example), "template");
     setSelectedLayerId(null);
@@ -679,6 +860,7 @@ export function MotionforgeChatApp() {
             input={input}
             isSending={isSending}
             scene={scene}
+            mediaAssets={mediaAssets}
             durationLabel={durationLabel}
             editorLayers={editorLayers}
             selectedLayer={selectedLayer}
@@ -688,7 +870,11 @@ export function MotionforgeChatApp() {
             onSubmitPrompt={submitPrompt}
             onShowExamples={() => setShowExamples(true)}
             onNewSession={startNewSession}
+            onAddMediaFiles={addMediaFiles}
+            onInsertMediaAsset={insertMediaAsset}
+            onRemoveMediaAsset={removeMediaAsset}
             onSelectLayer={setSelectedLayerId}
+            onSelectPlanStep={selectMediaPlanStep}
             onEditLayer={editSelectedLayer}
           />
         </aside>

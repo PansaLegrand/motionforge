@@ -9,6 +9,11 @@ import {
   type MotionforgeAgentResult,
 } from "@/lib/motionforge/local-agent";
 import { buildMotionforgeSystemPrompt } from "@/lib/ai/prompt";
+import {
+  formatMediaAssetManifestForPrompt,
+  readChatMediaAssetManifest,
+} from "@/lib/media/manifest";
+import type { ChatMediaAssetManifestItem } from "@/lib/media/assets";
 
 export const runtime = "nodejs";
 const DEBUG = process.env.MOTIONFORGE_DEBUG === "1";
@@ -19,6 +24,7 @@ const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-4.1-mini";
 type ChatRequest = {
   instruction?: unknown;
   scene?: unknown;
+  mediaAssets?: unknown;
   history?: Array<{ role: "user" | "assistant"; content: string }>;
 };
 
@@ -42,7 +48,12 @@ export async function POST(request: Request) {
   }
 
   const currentScene = readScene(body.scene);
-  const localFallback = applyInstructionLocally(currentScene, instruction);
+  const mediaAssets = readChatMediaAssetManifest(body.mediaAssets);
+  const localFallback = applyInstructionLocally(
+    currentScene,
+    instruction,
+    mediaAssets,
+  );
 
   const llm = readLlmModel();
 
@@ -51,7 +62,10 @@ export async function POST(request: Request) {
       ok: true,
       result: {
         ...localFallback,
-        summary: `${localFallback.summary} ${llm.message}`,
+        summary: `${localFallback.summary} ${llm.message}`.replace(
+          /\s+/g,
+          " ",
+        ),
       },
     });
   }
@@ -64,8 +78,8 @@ export async function POST(request: Request) {
 
     const modelPromise = generateText({
       model: llm.model,
-      system: buildMotionforgeSystemPrompt(currentScene),
-      prompt: buildUserPrompt(instruction, currentScene),
+      system: buildMotionforgeSystemPrompt(currentScene, mediaAssets),
+      prompt: buildUserPrompt(instruction, currentScene, mediaAssets),
       temperature: 0.2,
       maxOutputTokens: 5000,
       abortSignal: controller.signal,
@@ -142,12 +156,19 @@ function readScene(input: unknown): Scene | null {
   return result.ok ? result.scene : null;
 }
 
-function buildUserPrompt(instruction: string, currentScene: Scene | null) {
+function buildUserPrompt(
+  instruction: string,
+  currentScene: Scene | null,
+  mediaAssets: ChatMediaAssetManifestItem[],
+) {
   const sceneText = currentScene
     ? `\n\nCurrent scene JSON:\n${JSON.stringify(currentScene)}`
     : "";
+  const mediaText = mediaAssets.length
+    ? `\n\nUploaded media manifest:\n${formatMediaAssetManifestForPrompt(mediaAssets)}`
+    : "";
 
-  return `User instruction:\n${instruction}${sceneText}`;
+  return `User instruction:\n${instruction}${mediaText}${sceneText}`;
 }
 
 function json(response: ChatResponse, status = 200) {

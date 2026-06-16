@@ -130,4 +130,53 @@ describe("local motionforge agent", () => {
       "Courier New",
     );
   });
+
+  it("compiles local media instructions when uploaded assets are available", () => {
+    const result = applyInstructionLocally(
+      null,
+      'Put video one first from 5 to 10 seconds, then video two full, write text "I love this" on top.',
+      [
+        {
+          id: "video-1",
+          sceneAssetId: "video_1",
+          type: "video",
+          src: "blob:video-1",
+          label: "Video 1",
+          aliases: ["video one", "first video"],
+          fileName: "first.mp4",
+          durationSeconds: 20,
+          width: 1920,
+          height: 1080,
+          alreadyInScene: false,
+        },
+        {
+          id: "video-2",
+          sceneAssetId: "video_2",
+          type: "video",
+          src: "blob:video-2",
+          label: "Video 2",
+          aliases: ["video two", "second video"],
+          fileName: "second.mp4",
+          durationSeconds: 12,
+          width: 1920,
+          height: 1080,
+          alreadyInScene: false,
+        },
+      ],
+    );
+
+    expect(result.mode).toBe("scene");
+    expect(result.patch?.[0]).toEqual({ op: "setSceneMeta", duration: 510 });
+    expect(result.scene.nodes.map((node) => node.id)).toEqual([
+      "video-1-node",
+      "video-2-node",
+      "video-2-text",
+    ]);
+    expect(result.mediaPlan?.steps.map((step) => step.nodeId)).toEqual([
+      "video-1-node",
+      "video-2-node",
+      "video-2-text",
+    ]);
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
 });
