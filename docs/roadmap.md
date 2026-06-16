@@ -155,6 +155,7 @@ Decisions recorded 2026-06-12:
 - ✅ Compact timeline block retiming: drag a timeline block horizontally to preview and commit a patch-backed `retime` update.
 - ✅ Compact timeline duration handles: drag a block's right edge to preview and commit a patch-backed duration update.
 - ✅ Compact timeline split at playhead: split selected leaf layers into two adjacent patch-backed nodes.
+- ✅ Preview selection feedback: selecting a layer draws its canvas-space outline/label in the clip area, with hidden-at-playhead feedback when timing excludes the current frame.
 - Compact timeline editing: snap to neighboring blocks.
 - Selection-aware chat: selected node ids and selected time ranges are sent with follow-up prompts so chat can refine exactly what the user is looking at.
 - Deploy (Vercel or Pages), record the demo video + GIFs, write the launch post, ship it (HN/X). The eval number is the credibility line under the demo.

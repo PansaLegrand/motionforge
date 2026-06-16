@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (chat + edit slice 15: preview selection feedback)
+
+### Changed
+
+- Added a pure preview-selection helper that projects selected layer bounds from scene coordinates into the rendered canvas coordinate space.
+- Preview now draws a non-interactive outline and label for the selected layer directly in the clip area.
+- Layers outside the current playhead frame show a dashed outline and `hidden at playhead` label so the user understands why a selected layer is not visible in the preview.
+- Added an unbounded selection fallback for layers without explicit geometry.
+- Added a stable layer-row data hook for selection smoke tests and future editor interaction checks.
+- Updated the roadmap to mark preview selection feedback complete before the next clip-area manipulation slices.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Browser smoke test on `http://localhost:5187`: loaded **Animated Chart**, selected the title layer and confirmed a canvas-space outline/label, selected the later footnote layer and confirmed `hidden at playhead` feedback, and verified no browser console errors.
+
+### Notes
+
+- This is still selection feedback only. The next clip-area step should turn the selected outline into direct manipulation: drag to move, then handles to resize once the drag path is patch-backed and undoable.
+
 ## 2026-06-16 (chat + edit slice 14: split at playhead)
 
 ### Changed

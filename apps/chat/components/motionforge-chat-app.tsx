@@ -743,6 +743,7 @@ export function MotionforgeChatApp() {
               canvasRef={canvasRef}
               scene={scene}
               playerState={playerState}
+              selectedLayer={selectedLayer}
             />
 
             <TimelinePanel

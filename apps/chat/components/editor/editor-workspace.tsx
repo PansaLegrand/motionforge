@@ -13,6 +13,7 @@ import {
   type LucideIcon,
 } from "lucide-react";
 import {
+  useEffect,
   useRef,
   useState,
   type MouseEvent,
@@ -27,6 +28,10 @@ import {
 } from "@/lib/editor/capability-messages";
 import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
 import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
+import {
+  createPreviewSelectionOverlay,
+  type PreviewCanvasRect,
+} from "@/lib/editor/preview-selection";
 import {
   formatFrameTime,
   formatSeconds,
@@ -497,16 +502,66 @@ export function PreviewWorkspace({
   canvasRef,
   scene,
   playerState,
+  selectedLayer,
 }: {
   canvasRef: RefObject<HTMLCanvasElement>;
   scene: Scene | null;
-  playerState: Pick<PlayerUiState, "loading" | "error">;
+  playerState: Pick<PlayerUiState, "frame" | "loading" | "error">;
+  selectedLayer: EditorLayer | null;
 }) {
+  const stageRef = useRef<HTMLDivElement | null>(null);
+  const [canvasRect, setCanvasRect] = useState<
+    (PreviewCanvasRect & { left: number; top: number }) | null
+  >(null);
   const overlay = describePreviewOverlay({
     hasScene: Boolean(scene),
     previewLoading: playerState.loading,
     previewError: playerState.error,
   });
+  const selectionOverlay =
+    scene && canvasRect
+      ? createPreviewSelectionOverlay({
+          layer: selectedLayer,
+          sceneWidth: scene.width,
+          sceneHeight: scene.height,
+          canvasRect,
+          frame: playerState.frame,
+        })
+      : null;
+
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    const stage = stageRef.current;
+
+    if (!canvas || !stage) {
+      setCanvasRect(null);
+      return;
+    }
+
+    const measure = () => {
+      const canvasBounds = canvas.getBoundingClientRect();
+      const stageBounds = stage.getBoundingClientRect();
+      setCanvasRect({
+        left: canvasBounds.left - stageBounds.left,
+        top: canvasBounds.top - stageBounds.top,
+        width: canvasBounds.width,
+        height: canvasBounds.height,
+      });
+    };
+
+    measure();
+
+    if (typeof ResizeObserver === "undefined") {
+      window.addEventListener("resize", measure);
+      return () => window.removeEventListener("resize", measure);
+    }
+
+    const observer = new ResizeObserver(measure);
+    observer.observe(canvas);
+    observer.observe(stage);
+
+    return () => observer.disconnect();
+  }, [canvasRef, scene?.height, scene?.width]);
 
   return (
     <div
@@ -514,7 +569,10 @@ export function PreviewWorkspace({
       data-editor-workspace
     >
       <div className="absolute inset-3 flex items-center justify-center">
-        <div className="relative flex h-full max-h-full w-full items-center justify-center">
+        <div
+          ref={stageRef}
+          className="relative flex h-full max-h-full w-full items-center justify-center"
+        >
           <canvas
             ref={canvasRef}
             className="h-auto max-h-full w-auto max-w-full object-contain shadow-xl ring-1 ring-black/10"
@@ -523,6 +581,68 @@ export function PreviewWorkspace({
               background: "hsl(220 18% 12%)",
             }}
           />
+          {selectionOverlay?.kind === "bounds" ? (
+            <div
+              className="pointer-events-none absolute"
+              data-preview-selection-overlay
+              style={{
+                left: `${canvasRect?.left ?? 0}px`,
+                top: `${canvasRect?.top ?? 0}px`,
+                width: `${canvasRect?.width ?? 0}px`,
+                height: `${canvasRect?.height ?? 0}px`,
+              }}
+            >
+              <div
+                className={cn(
+                  "absolute rounded-sm px-1.5 py-0.5 text-[10px] font-semibold shadow-sm",
+                  selectionOverlay.visible
+                    ? "bg-primary text-primary-foreground"
+                    : "bg-amber-400 text-amber-950",
+                )}
+                style={{
+                  left: `${selectionOverlay.rect.left}px`,
+                  top: `${Math.max(0, selectionOverlay.rect.top - 22)}px`,
+                }}
+              >
+                {selectionOverlay.visible
+                  ? selectionOverlay.label
+                  : `${selectionOverlay.label} · hidden at playhead`}
+              </div>
+              <div
+                className={cn(
+                  "absolute border-2 shadow-[0_0_0_1px_rgba(0,0,0,.28)]",
+                  selectionOverlay.visible
+                    ? "border-[hsl(var(--primary))]"
+                    : "border-dashed border-amber-400",
+                )}
+                style={{
+                  left: `${selectionOverlay.rect.left}px`,
+                  top: `${selectionOverlay.rect.top}px`,
+                  width: `${selectionOverlay.rect.width}px`,
+                  height: `${selectionOverlay.rect.height}px`,
+                }}
+              />
+            </div>
+          ) : null}
+          {selectionOverlay?.kind === "unbounded" ? (
+            <div
+              className={cn(
+                "pointer-events-none absolute rounded-sm px-2 py-1 text-[11px] font-semibold shadow-sm",
+                selectionOverlay.visible
+                  ? "bg-primary text-primary-foreground"
+                  : "bg-amber-400 text-amber-950",
+              )}
+              data-preview-selection-overlay
+              style={{
+                left: `${(canvasRect?.left ?? 0) + 8}px`,
+                top: `${(canvasRect?.top ?? 0) + 8}px`,
+              }}
+            >
+              {selectionOverlay.visible
+                ? selectionOverlay.label
+                : `${selectionOverlay.label} · hidden at playhead`}
+            </div>
+          ) : null}
           {overlay?.kind === "empty" ? (
             <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-center">
               <div className="rounded-md bg-[hsl(220_18%_12%/.86)] px-5 py-4 text-white shadow-xl">
@@ -1117,6 +1237,7 @@ function LayerRow({
     <button
       type="button"
       onClick={onSelect}
+      data-editor-layer-row-id={layer.id}
       className={cn(
         "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border px-2 py-2 text-left transition",
         selected
