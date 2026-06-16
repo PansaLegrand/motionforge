@@ -7,6 +7,7 @@ import {
 import {
   applyInstructionLocally,
   createSceneFromInstruction,
+  normalizeModelOutput,
 } from "./local-agent";
 
 function nodeById(scene: Scene, id: string) {
@@ -177,6 +178,59 @@ describe("local motionforge agent", () => {
       "video-2-node",
       "video-2-text",
     ]);
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("repairs model media patches using the uploaded asset manifest", () => {
+    const result = normalizeModelOutput(
+      {
+        patch: [
+          {
+            op: "insertNode",
+            node: {
+              id: "model-clip",
+              type: "video",
+              assetId: "video-1",
+              from: 0,
+              duration: 90,
+              videoStartTime: 2,
+              style: { width: 1280, height: 720 },
+            },
+          },
+        ],
+        summary: "Added uploaded video.",
+      },
+      {
+        schemaVersion: 0,
+        width: 1280,
+        height: 720,
+        fps: 30,
+        duration: 90,
+        assets: {},
+        nodes: [],
+      },
+      [
+        {
+          id: "video-1",
+          sceneAssetId: "video_1",
+          type: "video",
+          src: "blob:video-1",
+          label: "Video 1",
+          aliases: ["video one", "first video"],
+          fileName: "first.mp4",
+          durationSeconds: 8,
+          width: 1280,
+          height: 720,
+          alreadyInScene: false,
+        },
+      ],
+    );
+
+    expect(result.patch).toMatchObject([
+      { op: "setAsset", asset: { id: "video_1", src: "blob:video-1" } },
+      { op: "insertNode", node: { id: "model-clip", assetId: "video_1" } },
+    ]);
+    expect(result.diagnostics.join("\n")).toContain("Repaired node assetId");
     expect(validateScene(result.scene)).toMatchObject({ ok: true });
   });
 });

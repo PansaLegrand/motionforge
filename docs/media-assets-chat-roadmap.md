@@ -388,7 +388,7 @@ Done when:
 - The assistant message explains the sequence and overlay.
 - Preview, timeline, layers, inspector, undo, JSON, and export all reflect the resulting scene.
 
-### Slice M6 - Model Path For Media Edits
+### Slice M6 - Model Path For Media Edits ✅
 
 **Goal:** The LLM path can perform the same operations as the local compiler, with repair.
 

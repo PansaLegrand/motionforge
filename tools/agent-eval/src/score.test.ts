@@ -105,4 +105,65 @@ describe("scoreReply — edit suite", () => {
     expect(tooMuch.pass).toBe(false);
     expect(tooMuch.failures.join("\n")).toContain("title was removed too");
   });
+
+  it("scores media sequence patches after manifest-based repair", () => {
+    const media = byId<EditCase>("media-two-video-sequence");
+    const patch = [
+      {
+        op: "insertNode",
+        node: {
+          id: "first",
+          type: "video",
+          assetId: "video-1",
+          from: 0,
+          duration: 150,
+          videoStartTime: 5,
+          style: { width: 1280, height: 720, objectFit: "cover" },
+        },
+      },
+      {
+        op: "insertNode",
+        node: {
+          id: "second",
+          type: "video",
+          assetId: "video-2",
+          from: 150,
+          duration: 360,
+          videoStartTime: 0,
+          style: { width: 1280, height: 720, objectFit: "cover" },
+        },
+      },
+      {
+        op: "insertNode",
+        node: {
+          id: "overlay",
+          type: "text",
+          text: "I love this",
+          from: 150,
+          duration: 360,
+          style: { position: "absolute", top: 60, color: "#ffffff" },
+        },
+      },
+    ];
+
+    const result = scoreReply(media, JSON.stringify(patch));
+    expect(result.failures).toEqual([]);
+    expect(result.pass).toBe(true);
+  });
+
+  it("fails media patches that reference unresolved uploaded assets", () => {
+    const media = byId<EditCase>("media-two-video-sequence");
+    const result = scoreReply(
+      media,
+      JSON.stringify([
+        {
+          op: "insertNode",
+          node: { id: "missing", type: "video", assetId: "video-99" },
+        },
+      ]),
+    );
+
+    expect(result.pass).toBe(false);
+    expect(result.failures.join("\n")).toContain("repairMediaPatch");
+  });
 });

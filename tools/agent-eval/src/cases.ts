@@ -1,5 +1,19 @@
 import type { Scene } from "@motionforge/schema";
 
+export type EvalMediaAsset = {
+  id: string;
+  sceneAssetId: string;
+  type: "image" | "video" | "audio";
+  src: string;
+  label: string;
+  aliases: string[];
+  fileName: string;
+  durationSeconds?: number;
+  width?: number;
+  height?: number;
+  alreadyInScene: boolean;
+};
+
 /**
  * Eval cases per RFC 0001. Scoring is mechanical: the validator/patch API is
  * the judge, plus per-case structural assertions. An assertion returns a
@@ -18,6 +32,7 @@ export type EditCase = {
   id: string;
   suite: "edit";
   scene: Scene;
+  mediaAssets?: EvalMediaAsset[];
   /** Edit instruction; the model must answer with a patch op list. */
   prompt: string;
   assert: (before: Scene, after: Scene) => string[];
@@ -28,7 +43,7 @@ export type EvalCase = GenerateCase | EditCase;
 // ---------------------------------------------------------------------------
 
 function findText(scene: Scene, includes: string) {
-  const all: Array<{ id: string; text?: string }> = [];
+  const all: Scene["nodes"] = [];
   const visit = (nodes: Scene["nodes"]) => {
     for (const node of nodes) {
       all.push(node);
@@ -96,6 +111,72 @@ const editBase: Scene = {
     },
   ],
 } as Scene;
+
+const mediaEditBase: Scene = {
+  schemaVersion: 0,
+  width: 1280,
+  height: 720,
+  fps: 30,
+  duration: 90,
+  assets: {},
+  nodes: [],
+};
+
+const mediaAssets: EvalMediaAsset[] = [
+  {
+    id: "video-1",
+    sceneAssetId: "video_1",
+    type: "video",
+    src: "https://example.test/video-1.mp4",
+    label: "Video 1",
+    aliases: ["video one", "first video"],
+    fileName: "first.mp4",
+    durationSeconds: 20,
+    width: 1280,
+    height: 720,
+    alreadyInScene: false,
+  },
+  {
+    id: "video-2",
+    sceneAssetId: "video_2",
+    type: "video",
+    src: "https://example.test/video-2.mp4",
+    label: "Video 2",
+    aliases: ["video two", "second video"],
+    fileName: "second.mp4",
+    durationSeconds: 12,
+    width: 1280,
+    height: 720,
+    alreadyInScene: false,
+  },
+  {
+    id: "image-1",
+    sceneAssetId: "image_1",
+    type: "image",
+    src: "https://example.test/logo.png",
+    label: "Image 1",
+    aliases: ["logo image", "logo"],
+    fileName: "logo.png",
+    width: 800,
+    height: 800,
+    alreadyInScene: false,
+  },
+  {
+    id: "audio-1",
+    sceneAssetId: "audio_1",
+    type: "audio",
+    src: "https://example.test/music.mp3",
+    label: "Audio 1",
+    aliases: ["music bed", "background music"],
+    fileName: "music.mp3",
+    durationSeconds: 30,
+    alreadyInScene: false,
+  },
+];
+
+function nodeById(scene: Scene, id: string) {
+  return scene.nodes.find((node) => node.id === id);
+}
 
 export const cases: EvalCase[] = [
   {
@@ -195,6 +276,146 @@ export const cases: EvalCase[] = [
       const failures: string[] = [];
       if (after.nodes.some((n) => n.id === "subtitle")) failures.push("subtitle still present");
       if (!after.nodes.some((n) => n.id === "title")) failures.push("title was removed too");
+      return failures;
+    },
+  },
+  {
+    id: "media-two-video-sequence",
+    suite: "edit",
+    scene: mediaEditBase,
+    mediaAssets,
+    prompt:
+      'Uploaded media is available. Put Video 1 first from source 5 to 10 seconds, then Video 2 full. Add text "I love this" at the top during Video 2.',
+    assert: (_before, after) => {
+      const failures: string[] = [];
+      const first = after.nodes.find(
+        (node) => node.type === "video" && node.assetId === "video_1",
+      );
+      const second = after.nodes.find(
+        (node) => node.type === "video" && node.assetId === "video_2",
+      );
+      const text = findText(after, "I love this");
+
+      if (!after.assets["video_1"]) failures.push("missing video_1 asset");
+      if (!after.assets["video_2"]) failures.push("missing video_2 asset");
+      if (!first) failures.push("missing Video 1 node");
+      if (!second) failures.push("missing Video 2 node");
+      if ((first?.videoStartTime ?? -1) !== 5) failures.push("Video 1 source start is not 5s");
+      if ((first?.duration ?? -1) !== 150) failures.push("Video 1 duration is not 150 frames");
+      if ((first?.from ?? -1) !== 0) failures.push("Video 1 does not start at frame 0");
+      if ((second?.from ?? -1) !== 150) failures.push("Video 2 does not start after Video 1");
+      if (!text) failures.push('missing text "I love this"');
+      if (text && (text.from ?? 0) < 150) failures.push("text does not start during Video 2");
+
+      return failures;
+    },
+  },
+  {
+    id: "media-image-background-text",
+    suite: "edit",
+    scene: mediaEditBase,
+    mediaAssets,
+    prompt:
+      'Use Image 1 as a full-frame background for 4 seconds and add centered text "Launch day".',
+    assert: (_before, after) => {
+      const failures: string[] = [];
+      const image = after.nodes.find(
+        (node) => node.type === "img" && node.assetId === "image_1",
+      );
+      const text = findText(after, "Launch day");
+
+      if (!after.assets["image_1"]) failures.push("missing image_1 asset");
+      if (!image) failures.push("missing image node");
+      if ((image?.duration ?? -1) !== 120) failures.push("image duration is not 120 frames");
+      if (image?.style?.objectFit !== "cover") failures.push("image is not full-frame cover");
+      if (!text) failures.push('missing text "Launch day"');
+
+      return failures;
+    },
+  },
+  {
+    id: "media-audio-bed",
+    suite: "edit",
+    scene: {
+      ...mediaEditBase,
+      duration: 180,
+      nodes: [
+        {
+          id: "title",
+          type: "text",
+          text: "Existing scene",
+          from: 0,
+          duration: 180,
+          style: { fontSize: 64, color: "#ffffff" },
+        },
+      ],
+    },
+    mediaAssets,
+    prompt:
+      "Add Audio 1 as quiet background music under the full 6-second scene at volume 0.35.",
+    assert: (_before, after) => {
+      const failures: string[] = [];
+      const audio = after.nodes.find(
+        (node) => node.type === "audio" && node.assetId === "audio_1",
+      );
+
+      if (!after.assets["audio_1"]) failures.push("missing audio_1 asset");
+      if (!audio) failures.push("missing audio node");
+      if ((audio?.from ?? -1) !== 0) failures.push("audio does not start at frame 0");
+      if ((audio?.duration ?? -1) !== 180) failures.push("audio does not span 180 frames");
+      if ((audio?.volume ?? -1) !== 0.35) failures.push("audio volume is not 0.35");
+      if (!nodeById(after, "title")) failures.push("existing title was removed");
+
+      return failures;
+    },
+  },
+  {
+    id: "media-ambiguous-logo-replacement",
+    suite: "edit",
+    scene: {
+      ...mediaEditBase,
+      assets: {
+        current_logo: {
+          id: "current_logo",
+          type: "image",
+          src: "https://example.test/old-logo.png",
+        },
+      },
+      nodes: [
+        {
+          id: "logo",
+          type: "img",
+          assetId: "current_logo",
+          from: 0,
+          duration: 90,
+          style: {
+            position: "absolute",
+            left: 440,
+            top: 160,
+            width: 400,
+            height: 400,
+            objectFit: "contain",
+          },
+        },
+      ],
+    },
+    mediaAssets,
+    prompt:
+      "Replace the logo with the uploaded logo image. Keep the same timing and placement.",
+    assert: (before, after) => {
+      const failures: string[] = [];
+      const beforeLogo = nodeById(before, "logo");
+      const logo = nodeById(after, "logo");
+
+      if (!after.assets["image_1"]) failures.push("missing image_1 asset");
+      if (!logo) failures.push("logo node was removed");
+      if (logo?.assetId !== "image_1") failures.push("logo was not repointed to image_1");
+      if ((logo?.from ?? -1) !== beforeLogo?.from) failures.push("logo timing changed");
+      if ((logo?.duration ?? -1) !== beforeLogo?.duration) failures.push("logo duration changed");
+      if (JSON.stringify(logo?.style) !== JSON.stringify(beforeLogo?.style)) {
+        failures.push("logo placement/style changed");
+      }
+
       return failures;
     },
   },

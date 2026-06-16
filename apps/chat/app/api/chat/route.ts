@@ -118,7 +118,7 @@ export async function POST(request: Request) {
 
     const payload = extractJsonFromText(result.text);
     debugLog("parsed model payload", payload);
-    const normalized = normalizeModelOutput(payload, currentScene);
+    const normalized = normalizeModelOutput(payload, currentScene, mediaAssets);
 
     return json({
       ok: true,

@@ -23,5 +23,6 @@ describe("buildMotionforgeSystemPrompt", () => {
     expect(prompt).toContain('"sceneAssetId": "video_1"');
     expect(prompt).toContain("Use videoStartTime in seconds");
     expect(prompt).toContain("setNodeProps");
+    expect(prompt).toContain('whose assetId is "video_1"');
   });
 });

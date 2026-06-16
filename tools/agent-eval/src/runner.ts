@@ -52,11 +52,11 @@ function buildMessages(evalCase: EvalCase) {
   return [
     {
       role: "system",
-      content: `${llmsTxt}\n\nYou edit scenes by answering with ONLY a JSON array of patch ops (see the patches API). No prose.`,
+      content: `${llmsTxt}\n\nYou edit scenes by answering with ONLY a JSON array of patch ops (see the patches API). No prose. For uploaded media, use only assets from the manifest and emit setAsset before insertNode when needed. Example media patch: [{"op":"setAsset","asset":{"id":"video_1","type":"video","src":"https://example.test/video.mp4"}},{"op":"insertNode","node":{"id":"video-1-node","type":"video","assetId":"video_1","from":0,"duration":90,"videoStartTime":0,"style":{"position":"absolute","left":0,"top":0,"width":1280,"height":720,"objectFit":"cover"}}}].`,
     },
     {
       role: "user",
-      content: `Current scene:\n\`\`\`json\n${JSON.stringify(evalCase.scene)}\n\`\`\`\n\nInstruction: ${evalCase.prompt}`,
+      content: `Current scene:\n\`\`\`json\n${JSON.stringify(evalCase.scene)}\n\`\`\`\n\nUploaded media manifest:\n\`\`\`json\n${JSON.stringify(evalCase.mediaAssets ?? [])}\n\`\`\`\n\nInstruction: ${evalCase.prompt}`,
     },
   ];
 }

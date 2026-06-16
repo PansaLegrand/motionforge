@@ -22,6 +22,7 @@ import {
 } from "@motionforge/presets";
 import type { ChatMediaAssetManifestItem } from "../media/assets";
 import { compileMediaInstruction } from "../media/instruction-compiler";
+import { repairMediaPatch } from "../media/patch-repair";
 import type { MediaOperationPlan } from "../media/plan";
 
 export type MotionforgeAgentResult = {
@@ -885,6 +886,7 @@ export function applyInstructionLocally(
 export function normalizeModelOutput(
   raw: unknown,
   currentScene: Scene | null,
+  mediaAssets: ChatMediaAssetManifestItem[] = [],
 ): Omit<MotionforgeAgentResult, "source"> {
   const payload = unwrapModelPayload(raw);
 
@@ -916,12 +918,12 @@ export function normalizeModelOutput(
     const patchInput = object.patch ?? object.ops;
 
     if (patchInput !== undefined) {
-      return applyPatchOutput(currentScene, patchInput, object.summary);
+      return applyPatchOutput(currentScene, patchInput, object.summary, mediaAssets);
     }
   }
 
   if (Array.isArray(payload)) {
-    return applyPatchOutput(currentScene, payload, undefined);
+    return applyPatchOutput(currentScene, payload, undefined, mediaAssets);
   }
 
   const sceneResult = validateScene(payload);
@@ -961,12 +963,23 @@ function applyPatchOutput(
   currentScene: Scene | null,
   patchInput: unknown,
   summary: unknown,
+  mediaAssets: ChatMediaAssetManifestItem[] = [],
 ): Omit<MotionforgeAgentResult, "source"> {
   if (!currentScene) {
     throw new Error("The model returned patch ops, but there is no scene yet.");
   }
 
-  const result = applyScenePatch(currentScene, patchInput);
+  const repairResult = repairMediaPatch({
+    scene: currentScene,
+    patchInput,
+    mediaAssets,
+  });
+
+  if (!repairResult.ok) {
+    throw new Error(repairResult.errors.join("\n"));
+  }
+
+  const result = applyScenePatch(currentScene, repairResult.patch);
 
   if (!result.ok) {
     throw new Error(result.errors.map((error) => error.message).join("\n"));
@@ -975,12 +988,12 @@ function applyPatchOutput(
   return {
     mode: "patch",
     scene: result.scene,
-    patch: patchInput as ScenePatch,
+    patch: repairResult.patch,
     summary:
       typeof summary === "string"
         ? summary
-        : `Applied ${(patchInput as unknown[]).length} patch ops.`,
-    diagnostics: [],
+        : `Applied ${repairResult.patch.length} patch ops.`,
+    diagnostics: repairResult.diagnostics,
   };
 }
 

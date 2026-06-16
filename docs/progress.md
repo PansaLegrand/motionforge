@@ -2,6 +2,36 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-16 (media assets + chat slice M6: model path for media edits)
+
+### Changed
+
+- Added media patch repair for model-authored patches before `applyScenePatch`, focused on manifest-backed mistakes:
+  - repairs chat asset ids, labels, aliases, and filenames to renderable `sceneAssetId`s
+  - inserts missing `setAsset` ops before `insertNode` and `setNodeProps` media references
+  - rejects unresolved uploaded-media references with readable diagnostics
+  - guards invalid visual/audio asset replacement through `setNodeProps`
+- Threaded uploaded media manifests into `normalizeModelOutput()` so the model path and local fallback use the same media context.
+- Added model-boundary tests proving media patches from the model path are repaired, applied, and returned with diagnostics.
+- Added media eval cases for two-video sequencing, image background plus text, audio bed under an existing scene, and ambiguous logo replacement.
+- Updated the eval scorer and runner so media evals receive manifests and are scored through manifest-aware repair before schema patch application.
+- Added a concrete media patch example to both the app prompt and eval runner prompt.
+- Updated the media roadmap to mark M6 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat test`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/agent-eval test`
+- `pnpm --filter @motionforge/agent-eval typecheck`
+- `pnpm --filter @motionforge/chat build`
+- Live `/api/chat` smoke on `http://127.0.0.1:5196` for the north-star two-video prompt, confirming the local fallback still returns a 3-step `mediaPlan` and 510-frame scene.
+
+### Notes
+
+- The repair layer is intentionally narrow: it repairs uploaded-media ids/source metadata from the manifest, but still lets `applyScenePatch` and scene validation reject structurally invalid patches.
+- In the live smoke, the model path failed and the local fallback handled the turn as designed; model repair behavior is covered by unit tests and eval scorer tests.
+
 ## 2026-06-16 (media assets + chat slice M3: media inspector controls)
 
 ### Changed

@@ -37,6 +37,7 @@ Uploaded media rules:
 - Use setNodeProps to edit existing node assetId, videoStartTime, audioStartTime, playbackRate, or volume.
 - Convert user timing in seconds to integer frames using scene.fps for node from/duration.
 - When sequencing clips, make node from/duration windows adjacent unless the user asks for overlap.
+- Example: to use Video 1, emit {"op":"setAsset","asset":{"id":"video_1","type":"video","src":"<manifest src>"}} before inserting a video node whose assetId is "video_1".
 
 Current scene exists: ${currentScene ? "yes" : "no"}.
 ${currentScene ? `Current node ids: ${listIds(currentScene).join(", ")}.` : ""}
