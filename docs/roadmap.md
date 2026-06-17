@@ -103,6 +103,8 @@ The next media-aware editor direction is recorded in [`docs/media-assets-chat-ro
 
 The next open-source developer experience direction is recorded in [`docs/dx-roadmap.md`](dx-roadmap.md): seconds-first authoring helpers, CLI validation/printing, a project starter, and a developer studio so programmers can write MotionForge videos with Remotion-level first-run clarity while keeping the data-first scene contract.
 
+The next preset/template direction is recorded in [`docs/preset-template-roadmap.md`](preset-template-roadmap.md): richer subtitle, text overlay, media-look, clip-layout, and transition presets so programmers and agents can express useful video style through stable names that compile to normal scene data.
+
 Decisions recorded 2026-06-12:
 
 - **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.

@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset/template roadmap)
+
+### Changed
+
+- Added `docs/preset-template-roadmap.md`, the next implementation theme after the DX milestone.
+- Scoped the preset system around pure compilers that emit normal scene nodes, styles, and animations.
+- Planned slices for text overlays, media/filter looks, clip layouts, transitions, and a visual preset gallery.
+- Linked the preset/template roadmap from the main roadmap.
+
+### Tested
+
+- Documentation-only slice.
+
+### Notes
+
+- The immediate implementation priority is text overlay templates, because subtitle templates already exist while non-subtitle text overlays are still too manual.
+
 ## 2026-06-17 (DX slice DX6: programmer docs path)
 
 ### Changed
