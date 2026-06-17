@@ -24,6 +24,25 @@
           <p id="scene-description"></p>
           <ul id="scene-proves"></ul>
         </section>
+        <details class="preset-explorer" open>
+          <summary>Preset explorer</summary>
+          <div
+            id="preset-family-tabs"
+            class="preset-family-tabs"
+            aria-label="Preset families"
+          ></div>
+          <div id="preset-list" class="preset-list"></div>
+          <div class="preset-snippet">
+            <div class="preset-snippet-header">
+              <strong id="preset-snippet-title">Snippet</strong>
+              <button id="preset-copy" type="button" class="secondary">
+                Copy
+              </button>
+            </div>
+            <pre id="preset-snippet"></pre>
+            <output id="preset-copy-status"></output>
+          </div>
+        </details>
         <label>
           Frame
           <input id="frame" type="range" min="0" max="119" value="0" />
@@ -36,8 +55,8 @@
           <summary>Agent console</summary>
           <p class="agent-hint">
             Paste a scene document or a patch (an array of ops like
-            <code>[{"op":"setText","id":"…","text":"…"}]</code>). The same
-            APIs an agent uses: <code>validateScene</code> /
+            <code>[{"op":"setText","id":"…","text":"…"}]</code>). The same APIs
+            an agent uses: <code>validateScene</code> /
             <code>applyScenePatch</code>.
           </p>
           <textarea

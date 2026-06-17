@@ -21,6 +21,8 @@ import {
   textOverlayTemplateEntries,
   textOverlayTemplates,
   tiktokCaptions,
+  transitionTemplateEntries,
+  transitionTemplates,
   transitionOverlay,
   type CaptionWord,
   type TextOverlayTemplateKey,
@@ -214,15 +216,20 @@ describe("clip layout presets", () => {
 });
 
 describe("transition overlays", () => {
-  it("generates schema-valid overlays for every transition", () => {
-    for (const template of [
+  it("exposes stable transition metadata", () => {
+    expect(transitionTemplateEntries.map(([key]) => key)).toEqual([
       "fade",
       "dipToBlack",
       "flash",
       "wipeLeft",
       "wipeRight",
       "zoom",
-    ] as const) {
+    ]);
+    expect(transitionTemplates.flash.category).toBe("energy");
+  });
+
+  it("generates schema-valid overlays for every transition", () => {
+    for (const [template] of transitionTemplateEntries) {
       const node = transitionOverlay(template, {
         id: `transition-${template}`,
         at: 45,
@@ -408,7 +415,10 @@ describe("caption template catalog", () => {
 });
 
 describe("text overlay template catalog", () => {
-  const examples: Record<TextOverlayTemplateKey, Parameters<typeof textOverlay>[0]> = {
+  const examples: Record<
+    TextOverlayTemplateKey,
+    Parameters<typeof textOverlay>[0]
+  > = {
     announcementBanner: {
       template: "announcementBanner",
       id: "sale-banner",

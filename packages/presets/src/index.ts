@@ -219,7 +219,8 @@ export const mediaLooks = {
     description: "Low-saturation blue-gray drama with strong contrast.",
     category: "cinematic",
     style: {
-      filter: "brightness(0.9) contrast(1.28) saturate(0.45) hue-rotate(190deg)",
+      filter:
+        "brightness(0.9) contrast(1.28) saturate(0.45) hue-rotate(190deg)",
     },
   },
   retroTape: {
@@ -232,7 +233,8 @@ export const mediaLooks = {
   },
   softPortrait: {
     name: "Soft Portrait",
-    description: "Gentle brightness and lower contrast for people-focused clips.",
+    description:
+      "Gentle brightness and lower contrast for people-focused clips.",
     category: "portrait",
     style: {
       filter: "brightness(1.08) contrast(0.94) saturate(1.08)",
@@ -240,7 +242,8 @@ export const mediaLooks = {
   },
   blurredBackdrop: {
     name: "Blurred Backdrop",
-    description: "Dimmed blurred media for background layers behind foreground text.",
+    description:
+      "Dimmed blurred media for background layers behind foreground text.",
     category: "backdrop",
     style: {
       filter: "brightness(0.72) contrast(1.05) saturate(0.9) blur(18px)",
@@ -434,6 +437,49 @@ export type TransitionTemplateKey =
   | "wipeRight"
   | "zoom";
 
+export type TransitionTemplate = {
+  name: string;
+  description: string;
+  category: "soft" | "section" | "graphic" | "energy";
+};
+
+export const transitionTemplates = {
+  fade: {
+    name: "Fade",
+    description: "General-purpose soft overlay transition.",
+    category: "soft",
+  },
+  dipToBlack: {
+    name: "Dip To Black",
+    description: "Full black section break between ideas or clips.",
+    category: "section",
+  },
+  flash: {
+    name: "Flash",
+    description: "Bright beat accent for fast edits and emphasis.",
+    category: "energy",
+  },
+  wipeLeft: {
+    name: "Wipe Left",
+    description: "Graphic wipe moving in from the right edge.",
+    category: "graphic",
+  },
+  wipeRight: {
+    name: "Wipe Right",
+    description: "Graphic wipe moving in from the left edge.",
+    category: "graphic",
+  },
+  zoom: {
+    name: "Zoom",
+    description: "Energetic opacity and scale pulse transition.",
+    category: "energy",
+  },
+} satisfies Record<TransitionTemplateKey, TransitionTemplate>;
+
+export const transitionTemplateEntries = Object.entries(
+  transitionTemplates,
+) as Array<[TransitionTemplateKey, TransitionTemplate]>;
+
 export type TransitionOverlayOptions = {
   id?: string;
   at?: number;
@@ -449,12 +495,14 @@ export function transitionOverlay(
   const id = options.id ?? `${template}-transition`;
   const duration = Math.max(1, options.duration ?? 18);
   const color =
-    options.color ??
-    (template === "flash" ? "#ffffff" : "rgba(0,0,0,1)");
+    options.color ?? (template === "flash" ? "#ffffff" : "rgba(0,0,0,1)");
   const zIndex = options.zIndex ?? 1000;
 
   if (template === "wipeLeft" || template === "wipeRight") {
-    const fromX = template === "wipeLeft" ? "translate(100%, 0px)" : "translate(-100%, 0px)";
+    const fromX =
+      template === "wipeLeft"
+        ? "translate(100%, 0px)"
+        : "translate(-100%, 0px)";
     const toX = "translate(0%, 0px)";
 
     return {
@@ -485,7 +533,11 @@ export function transitionOverlay(
       animations: [
         animation("opacity", [
           { frame: 0, value: 0 },
-          { frame: Math.max(1, Math.round(duration * 0.45)), value: 0.72, easing: "easeOut" },
+          {
+            frame: Math.max(1, Math.round(duration * 0.45)),
+            value: 0.72,
+            easing: "easeOut",
+          },
           { frame: duration - 1, value: 0, easing: "easeIn" },
         ]),
         animation("transform", [
@@ -496,8 +548,7 @@ export function transitionOverlay(
     };
   }
 
-  const peak =
-    template === "fade" ? 1 : template === "dipToBlack" ? 1 : 0.88;
+  const peak = template === "fade" ? 1 : template === "dipToBlack" ? 1 : 0.88;
 
   return {
     id,
@@ -547,7 +598,8 @@ export type TextOverlayTemplate = {
 export const textOverlayTemplates = {
   titleCard: {
     name: "Title Card",
-    description: "Centered editorial title stack for openings and section cards.",
+    description:
+      "Centered editorial title stack for openings and section cards.",
     category: "title",
     required: ["title"],
     optional: ["kicker", "subtitle"],
@@ -1039,7 +1091,9 @@ function overlayContainer(
       options.enter === false
         ? []
         : (options.enter ?? fadeUp({ durationInFrames: 10, distance: 28 })),
-    children: children.filter((child): child is SceneNode => child !== undefined),
+    children: children.filter(
+      (child): child is SceneNode => child !== undefined,
+    ),
   };
 }
 
@@ -1079,7 +1133,9 @@ function requiredSlot(
   const value = options[slot];
 
   if (typeof value !== "string" || value.trim() === "") {
-    throw new Error(`textOverlay(${options.template ?? "titleCard"}) requires ${slot}.`);
+    throw new Error(
+      `textOverlay(${options.template ?? "titleCard"}) requires ${slot}.`,
+    );
   }
 
   return value;

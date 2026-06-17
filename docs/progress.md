@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset explorer roadmap + playground PX1)
+
+### Changed
+
+- Added `docs/preset-explorer-roadmap.md` for the next preset discovery theme.
+- Added exported transition metadata through `transitionTemplates` and `transitionTemplateEntries`.
+- Added a playground Preset Explorer driven by `@motionforge/presets` metadata.
+- The explorer filters by preset family and shows key, category, description, and copyable TypeScript snippets.
+- Linked the preset explorer roadmap from the main roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/playground typecheck`
+- `pnpm --filter @motionforge/playground build`
+- Browser smoke at `http://localhost:5173/`: explorer rendered, transition family filter updated the list/snippet, copy fallback placed the snippet in the agent console, and console error logs were empty.
+
+### Notes
+
+- PX1 is a discovery/copy surface. Loading gallery scenes and applying preset-backed patches are intentionally scoped as later slices.
+
 ## 2026-06-17 (preset/template visual gallery)
 
 ### Changed

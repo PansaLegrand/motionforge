@@ -7,6 +7,12 @@ import {
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
 import { showcaseScenes, type ShowcaseScene } from "@motionforge/showcase";
+import {
+  presetCatalog,
+  presetFamilyLabels,
+  type PresetCatalogItem,
+  type PresetFamily,
+} from "./preset-catalog.js";
 import "./styles.css";
 
 function requiredElement<T extends Element>(selector: string): T {
@@ -22,10 +28,19 @@ function requiredElement<T extends Element>(selector: string): T {
 const canvas = requiredElement<HTMLCanvasElement>("#preview");
 const sceneSelect = requiredElement<HTMLSelectElement>("#scene");
 const sceneTitle = requiredElement<HTMLHeadingElement>("#scene-title");
-const sceneDescription = requiredElement<HTMLParagraphElement>(
-  "#scene-description",
-);
+const sceneDescription =
+  requiredElement<HTMLParagraphElement>("#scene-description");
 const sceneProves = requiredElement<HTMLUListElement>("#scene-proves");
+const presetFamilyTabs = requiredElement<HTMLDivElement>("#preset-family-tabs");
+const presetList = requiredElement<HTMLDivElement>("#preset-list");
+const presetSnippetTitle = requiredElement<HTMLElement>(
+  "#preset-snippet-title",
+);
+const presetSnippet = requiredElement<HTMLPreElement>("#preset-snippet");
+const presetCopy = requiredElement<HTMLButtonElement>("#preset-copy");
+const presetCopyStatus = requiredElement<HTMLOutputElement>(
+  "#preset-copy-status",
+);
 const slider = requiredElement<HTMLInputElement>("#frame");
 const readout = requiredElement<HTMLOutputElement>("#frame-readout");
 const playButton = requiredElement<HTMLButtonElement>("#play");
@@ -54,6 +69,8 @@ let currentDoc: unknown = current.scene;
 let assets: ResolvedAssets | undefined;
 let player: Player | undefined;
 let loadVersion = 0;
+let selectedPresetFamily: PresetFamily = "subtitles";
+let selectedPreset = presetCatalog[0] as PresetCatalogItem;
 
 capability.textContent = JSON.stringify(capabilityResult, null, 2);
 
@@ -63,6 +80,8 @@ for (const entry of showcaseScenes) {
   option.textContent = entry.title;
   sceneSelect.append(option);
 }
+
+renderPresetExplorer();
 
 function showFrame(frame: number): void {
   slider.value = String(frame);
@@ -297,7 +316,96 @@ agentCopy.addEventListener("click", () => {
     .then(() => agentReport(["✓ scene JSON copied to clipboard"], false))
     .catch(() => {
       agentInput.value = json;
-      agentReport(["Clipboard unavailable — scene JSON placed in the box."], true);
+      agentReport(
+        ["Clipboard unavailable — scene JSON placed in the box."],
+        true,
+      );
+    });
+});
+
+function renderPresetExplorer(): void {
+  renderPresetFamilyTabs();
+  renderPresetList();
+  renderPresetSnippet();
+}
+
+function renderPresetFamilyTabs(): void {
+  const familyEntries = Object.entries(presetFamilyLabels) as Array<
+    [PresetFamily, string]
+  >;
+
+  presetFamilyTabs.replaceChildren(
+    ...familyEntries.map(([family, label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "preset-family-tab";
+      button.textContent = label;
+      button.dataset.active =
+        selectedPresetFamily === family ? "true" : "false";
+      button.addEventListener("click", () => {
+        selectedPresetFamily = family as PresetFamily;
+        selectedPreset =
+          presetCatalog.find((item) => item.family === selectedPresetFamily) ??
+          selectedPreset;
+        renderPresetExplorer();
+      });
+      return button;
+    }),
+  );
+}
+
+function renderPresetList(): void {
+  const items = presetCatalog.filter(
+    (item) => item.family === selectedPresetFamily,
+  );
+
+  presetList.replaceChildren(
+    ...items.map((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "preset-card";
+      button.dataset.active =
+        item.key === selectedPreset.key ? "true" : "false";
+      button.addEventListener("click", () => {
+        selectedPreset = item;
+        renderPresetList();
+        renderPresetSnippet();
+      });
+
+      const heading = document.createElement("span");
+      heading.className = "preset-card-heading";
+      heading.textContent = item.name;
+
+      const meta = document.createElement("span");
+      meta.className = "preset-card-meta";
+      meta.textContent = `${item.key} · ${item.category}`;
+
+      const description = document.createElement("span");
+      description.className = "preset-card-description";
+      description.textContent = item.description;
+
+      button.append(heading, meta, description);
+      return button;
+    }),
+  );
+}
+
+function renderPresetSnippet(): void {
+  presetSnippetTitle.textContent = `${selectedPreset.name} snippet`;
+  presetSnippet.textContent = selectedPreset.snippet;
+  presetCopyStatus.value = "";
+}
+
+presetCopy.addEventListener("click", () => {
+  void navigator.clipboard
+    .writeText(selectedPreset.snippet)
+    .then(() => {
+      presetCopyStatus.value = `Copied ${selectedPreset.key}`;
+    })
+    .catch(() => {
+      agentInput.value = selectedPreset.snippet;
+      presetCopyStatus.value =
+        "Clipboard unavailable; snippet placed in the agent box.";
     });
 });
 
