@@ -11,4 +11,5 @@ examples/*.mp4
 tools/spike-editor-adapter/out/
 fixtures/goldens/__diffs__/
 examples/generated/*.mp4
+docs/assets/presets/*.mp4
 apps/chat/.env.local

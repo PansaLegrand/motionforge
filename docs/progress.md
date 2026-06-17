@@ -2,6 +2,31 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset/template visual gallery)
+
+### Changed
+
+- Added `examples/generate-preset-gallery.mjs` to generate schema-valid gallery scene JSON for preset docs.
+- Added `pnpm presets:generate` as the root shortcut for refreshing generated preset gallery scenes.
+- Generated docs thumbnails for subtitle templates, text overlay templates, media looks, clip layouts, and transition overlays under `docs/assets/presets`.
+- Embedded the thumbnails into `docs/guides/preset-catalog.md`.
+- Documented the thumbnail regeneration commands in `examples/README.md`.
+- Updated the preset/template roadmap to mark PT5 complete.
+
+### Tested
+
+- `pnpm presets:generate`
+- `pnpm --filter @motionforge/golden run example examples/generated/presets/preset-subtitles.json docs/assets/presets/preset-subtitles.mp4 45`
+- `pnpm --filter @motionforge/golden run example examples/generated/presets/preset-text-overlays.json docs/assets/presets/preset-text-overlays.mp4 45`
+- `pnpm --filter @motionforge/golden run example examples/generated/presets/preset-media-looks.json docs/assets/presets/preset-media-looks.mp4 45`
+- `pnpm --filter @motionforge/golden run example examples/generated/presets/preset-clip-layouts.json docs/assets/presets/preset-clip-layouts.mp4 45`
+- `pnpm --filter @motionforge/golden run example examples/generated/presets/preset-transitions.json docs/assets/presets/preset-transitions.mp4 30`
+
+### Notes
+
+- The committed assets are PNG stills; intermediate MP4 files stay ignored.
+- Studio or playground preset browsing remains a possible product UX layer, but the open-source docs now have visual preset selection.
+
 ## 2026-06-17 (preset/template docs catalog)
 
 ### Changed

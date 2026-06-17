@@ -21,6 +21,26 @@ pnpm showcase:generate
 
 Those scenes also power the playground scene picker, so docs, examples, and preview stay aligned.
 
+`examples/generated/presets/*.json` is produced from the preset gallery scene generator:
+
+```sh
+pnpm build
+pnpm presets:generate
+```
+
+Render the docs thumbnails with the browser golden harness:
+
+```sh
+mkdir -p docs/assets/presets
+pnpm --filter @motionforge/golden run example examples/generated/presets/preset-subtitles.json docs/assets/presets/preset-subtitles.mp4 45
+pnpm --filter @motionforge/golden run example examples/generated/presets/preset-text-overlays.json docs/assets/presets/preset-text-overlays.mp4 45
+pnpm --filter @motionforge/golden run example examples/generated/presets/preset-media-looks.json docs/assets/presets/preset-media-looks.mp4 45
+pnpm --filter @motionforge/golden run example examples/generated/presets/preset-clip-layouts.json docs/assets/presets/preset-clip-layouts.mp4 45
+pnpm --filter @motionforge/golden run example examples/generated/presets/preset-transitions.json docs/assets/presets/preset-transitions.mp4 30
+```
+
+The PNG frames are committed for docs. The intermediate MP4 files are ignored.
+
 ## Prompt-style examples
 
 The generated showcase now includes two use-case demos aimed at agent and editor workflows:

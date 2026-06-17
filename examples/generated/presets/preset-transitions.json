@@ -1,0 +1,582 @@
+{
+  "schemaVersion": 0,
+  "width": 1600,
+  "height": 900,
+  "fps": 30,
+  "duration": 120,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "background",
+      "type": "div",
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(135deg, #171717 0%, #222426 52%, #1f1b18 100%)"
+      }
+    },
+    {
+      "id": "gallery-title",
+      "type": "text",
+      "text": "Transition Overlays",
+      "style": {
+        "position": "absolute",
+        "left": 64,
+        "top": 42,
+        "width": 760,
+        "height": 54,
+        "fontFamily": "Inter, system-ui, Arial, sans-serif",
+        "fontSize": 38,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "left"
+      }
+    },
+    {
+      "id": "card-fade",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 102,
+        "top": 170,
+        "width": 410,
+        "height": 220,
+        "backgroundColor": "rgba(255,255,255,0.08)",
+        "border": "1px solid rgba(255,255,255,0.14)",
+        "borderRadius": 8,
+        "boxShadow": "0px 18px 48px rgba(0,0,0,0.24)",
+        "overflow": "hidden"
+      },
+      "children": [
+        {
+          "id": "transition-fade-base",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 22,
+            "top": 54,
+            "width": 366,
+            "height": 124,
+            "borderRadius": 8,
+            "background": "linear-gradient(135deg, #22d3ee 0%, #2563eb 46%, #111827 100%)",
+            "overflow": "hidden"
+          },
+          "children": [
+            {
+              "id": "transition-fade",
+              "type": "div",
+              "from": 0,
+              "duration": 60,
+              "style": {
+                "position": "absolute",
+                "left": 0,
+                "top": 0,
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "rgba(15,23,42,0.72)",
+                "opacity": 0,
+                "zIndex": 1000,
+                "borderRadius": 8
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 30,
+                      "value": 1,
+                      "easing": "easeInOut"
+                    },
+                    {
+                      "frame": 59,
+                      "value": 0,
+                      "easing": "easeIn"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-fade",
+          "type": "text",
+          "text": "fade",
+          "style": {
+            "position": "absolute",
+            "left": 24,
+            "top": 18,
+            "width": "80%",
+            "height": 28,
+            "fontFamily": "Inter, system-ui, Arial, sans-serif",
+            "fontSize": 19,
+            "fontWeight": 900,
+            "color": "#e2e8f0",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "card-dipToBlack",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 596,
+        "top": 170,
+        "width": 410,
+        "height": 220,
+        "backgroundColor": "rgba(255,255,255,0.08)",
+        "border": "1px solid rgba(255,255,255,0.14)",
+        "borderRadius": 8,
+        "boxShadow": "0px 18px 48px rgba(0,0,0,0.24)",
+        "overflow": "hidden"
+      },
+      "children": [
+        {
+          "id": "transition-dipToBlack-base",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 22,
+            "top": 54,
+            "width": 366,
+            "height": 124,
+            "borderRadius": 8,
+            "background": "linear-gradient(135deg, #fb7185 0%, #f59e0b 48%, #312e81 100%)",
+            "overflow": "hidden"
+          },
+          "children": [
+            {
+              "id": "transition-dipToBlack",
+              "type": "div",
+              "from": 0,
+              "duration": 60,
+              "style": {
+                "position": "absolute",
+                "left": 0,
+                "top": 0,
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "rgba(0,0,0,1)",
+                "opacity": 0,
+                "zIndex": 1000,
+                "borderRadius": 8
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 30,
+                      "value": 1,
+                      "easing": "easeInOut"
+                    },
+                    {
+                      "frame": 59,
+                      "value": 0,
+                      "easing": "easeIn"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-dipToBlack",
+          "type": "text",
+          "text": "dipToBlack",
+          "style": {
+            "position": "absolute",
+            "left": 24,
+            "top": 18,
+            "width": "80%",
+            "height": 28,
+            "fontFamily": "Inter, system-ui, Arial, sans-serif",
+            "fontSize": 19,
+            "fontWeight": 900,
+            "color": "#e2e8f0",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "card-flash",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 1090,
+        "top": 170,
+        "width": 410,
+        "height": 220,
+        "backgroundColor": "rgba(255,255,255,0.08)",
+        "border": "1px solid rgba(255,255,255,0.14)",
+        "borderRadius": 8,
+        "boxShadow": "0px 18px 48px rgba(0,0,0,0.24)",
+        "overflow": "hidden"
+      },
+      "children": [
+        {
+          "id": "transition-flash-base",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 22,
+            "top": 54,
+            "width": 366,
+            "height": 124,
+            "borderRadius": 8,
+            "background": "linear-gradient(135deg, #34d399 0%, #0f766e 50%, #0f172a 100%)",
+            "overflow": "hidden"
+          },
+          "children": [
+            {
+              "id": "transition-flash",
+              "type": "div",
+              "from": 0,
+              "duration": 60,
+              "style": {
+                "position": "absolute",
+                "left": 0,
+                "top": 0,
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "rgba(255,255,255,0.92)",
+                "opacity": 0,
+                "zIndex": 1000,
+                "borderRadius": 8
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 30,
+                      "value": 0.88,
+                      "easing": "easeOut"
+                    },
+                    {
+                      "frame": 59,
+                      "value": 0,
+                      "easing": "easeIn"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-flash",
+          "type": "text",
+          "text": "flash",
+          "style": {
+            "position": "absolute",
+            "left": 24,
+            "top": 18,
+            "width": "80%",
+            "height": 28,
+            "fontFamily": "Inter, system-ui, Arial, sans-serif",
+            "fontSize": 19,
+            "fontWeight": 900,
+            "color": "#e2e8f0",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "card-wipeLeft",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 102,
+        "top": 462,
+        "width": 410,
+        "height": 220,
+        "backgroundColor": "rgba(255,255,255,0.08)",
+        "border": "1px solid rgba(255,255,255,0.14)",
+        "borderRadius": 8,
+        "boxShadow": "0px 18px 48px rgba(0,0,0,0.24)",
+        "overflow": "hidden"
+      },
+      "children": [
+        {
+          "id": "transition-wipeLeft-base",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 22,
+            "top": 54,
+            "width": 366,
+            "height": 124,
+            "borderRadius": 8,
+            "background": "linear-gradient(135deg, #f472b6 0%, #7c3aed 52%, #020617 100%)",
+            "overflow": "hidden"
+          },
+          "children": [
+            {
+              "id": "transition-wipeLeft",
+              "type": "div",
+              "from": 0,
+              "duration": 60,
+              "style": {
+                "position": "absolute",
+                "left": 0,
+                "top": 0,
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "rgba(168,85,247,0.94)",
+                "opacity": 0,
+                "zIndex": 1000,
+                "borderRadius": 8
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "translate(100%, 0px)"
+                    },
+                    {
+                      "frame": 59,
+                      "value": "translate(0%, 0px)",
+                      "easing": "easeInOut"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-wipeLeft",
+          "type": "text",
+          "text": "wipeLeft",
+          "style": {
+            "position": "absolute",
+            "left": 24,
+            "top": 18,
+            "width": "80%",
+            "height": 28,
+            "fontFamily": "Inter, system-ui, Arial, sans-serif",
+            "fontSize": 19,
+            "fontWeight": 900,
+            "color": "#e2e8f0",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "card-wipeRight",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 596,
+        "top": 462,
+        "width": 410,
+        "height": 220,
+        "backgroundColor": "rgba(255,255,255,0.08)",
+        "border": "1px solid rgba(255,255,255,0.14)",
+        "borderRadius": 8,
+        "boxShadow": "0px 18px 48px rgba(0,0,0,0.24)",
+        "overflow": "hidden"
+      },
+      "children": [
+        {
+          "id": "transition-wipeRight-base",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 22,
+            "top": 54,
+            "width": 366,
+            "height": 124,
+            "borderRadius": 8,
+            "background": "linear-gradient(135deg, #22d3ee 0%, #2563eb 46%, #111827 100%)",
+            "overflow": "hidden"
+          },
+          "children": [
+            {
+              "id": "transition-wipeRight",
+              "type": "div",
+              "from": 0,
+              "duration": 60,
+              "style": {
+                "position": "absolute",
+                "left": 0,
+                "top": 0,
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "rgba(14,165,233,0.94)",
+                "opacity": 0,
+                "zIndex": 1000,
+                "borderRadius": 8
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "translate(-100%, 0px)"
+                    },
+                    {
+                      "frame": 59,
+                      "value": "translate(0%, 0px)",
+                      "easing": "easeInOut"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-wipeRight",
+          "type": "text",
+          "text": "wipeRight",
+          "style": {
+            "position": "absolute",
+            "left": 24,
+            "top": 18,
+            "width": "80%",
+            "height": 28,
+            "fontFamily": "Inter, system-ui, Arial, sans-serif",
+            "fontSize": 19,
+            "fontWeight": 900,
+            "color": "#e2e8f0",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    },
+    {
+      "id": "card-zoom",
+      "type": "div",
+      "style": {
+        "position": "absolute",
+        "left": 1090,
+        "top": 462,
+        "width": 410,
+        "height": 220,
+        "backgroundColor": "rgba(255,255,255,0.08)",
+        "border": "1px solid rgba(255,255,255,0.14)",
+        "borderRadius": 8,
+        "boxShadow": "0px 18px 48px rgba(0,0,0,0.24)",
+        "overflow": "hidden"
+      },
+      "children": [
+        {
+          "id": "transition-zoom-base",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 22,
+            "top": 54,
+            "width": 366,
+            "height": 124,
+            "borderRadius": 8,
+            "background": "linear-gradient(135deg, #fb7185 0%, #f59e0b 48%, #312e81 100%)",
+            "overflow": "hidden"
+          },
+          "children": [
+            {
+              "id": "transition-zoom",
+              "type": "div",
+              "from": 0,
+              "duration": 60,
+              "style": {
+                "position": "absolute",
+                "left": 0,
+                "top": 0,
+                "width": "100%",
+                "height": "100%",
+                "backgroundColor": "rgba(245,158,11,0.72)",
+                "opacity": 0,
+                "zIndex": 1000,
+                "transformOrigin": "center center",
+                "borderRadius": 8
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 27,
+                      "value": 0.72,
+                      "easing": "easeOut"
+                    },
+                    {
+                      "frame": 59,
+                      "value": 0,
+                      "easing": "easeIn"
+                    }
+                  ]
+                },
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": "scale(0.92)"
+                    },
+                    {
+                      "frame": 59,
+                      "value": "scale(1.08)",
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "label-zoom",
+          "type": "text",
+          "text": "zoom",
+          "style": {
+            "position": "absolute",
+            "left": 24,
+            "top": 18,
+            "width": "80%",
+            "height": 28,
+            "fontFamily": "Inter, system-ui, Arial, sans-serif",
+            "fontSize": 19,
+            "fontWeight": 900,
+            "color": "#e2e8f0",
+            "letterSpacing": 0
+          }
+        }
+      ]
+    }
+  ]
+}

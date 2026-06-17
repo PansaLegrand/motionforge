@@ -177,28 +177,24 @@ Done when:
 - transitions emit schema-valid nodes
 - transitions can be composed between clips without special renderer behavior
 
-## Slice PT5 - Preset Gallery
+## Slice PT5 - Preset Gallery ✅
 
 **Goal:** Programmers can see presets before choosing names.
 
 Targets:
 
-- docs page with generated PNG previews, or
-- Studio/preset gallery panel, or
-- playground catalog scene group
+- docs page with generated PNG previews
+- generated gallery scene group under `examples/generated/presets`
 
-Done when:
+Done:
 
-- each subtitle/text/media-look/layout template has a visual preview
-- the docs list template keys, intent, and one code example
+- subtitle, text overlay, media-look, clip-layout, and transition families have generated PNG gallery sheets
+- the docs list template keys, intent, and code examples
+- generated preview scenes pass `validateScene`
 
-Initial docs catalog:
+Docs catalog:
 
 - [`docs/guides/preset-catalog.md`](guides/preset-catalog.md) lists stable preset names, intent, and usage examples.
-
-Remaining visual follow-up:
-
-- Generate PNG previews for each preset family or expose them in Studio/playground.
 
 ## Acceptance Criteria
 

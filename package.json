@@ -13,6 +13,7 @@
     "dev:playground": "pnpm --filter @motionforge/playground dev",
     "golden:test": "pnpm --filter @motionforge/golden run golden:test",
     "golden:update": "pnpm --filter @motionforge/golden run update",
+    "presets:generate": "node examples/generate-preset-gallery.mjs",
     "showcase:generate": "node examples/generate-showcase.mjs",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
