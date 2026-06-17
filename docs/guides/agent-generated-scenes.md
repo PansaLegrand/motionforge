@@ -20,6 +20,7 @@ Read:
 
 - [`llms.txt`](../../llms.txt) for the compact agent contract
 - [Scene Format](../scene-format.md) for the full schema and style matrix
+- [Preset Catalog](preset-catalog.md) for stable style names
 - [RFC 0001 Scene Patch Ops](../rfcs/0001-scene-patch-ops.md) for edit operations
 
 ## CLI Loop
@@ -86,6 +87,7 @@ Do not invent files. Only reference files the user placed in `public/assets` or 
 ## Practical Prompting Rules
 
 - Use `@motionforge/authoring` for new programmer-facing scene modules.
+- Prefer stable preset names from the preset catalog over raw style invention.
 - Prefer `seconds()` in source, but remember emitted scene JSON uses integer frames.
 - Keep ids semantic and stable: `headline`, `clip-main`, `music-bed`.
 - Use `publicAsset()` for local files and absolute URLs for remote files.

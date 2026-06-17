@@ -221,6 +221,7 @@ The CLI accepts `.json`, `.js`, `.mjs`, `.cjs`, `.ts`, `.mts`, and `.cts` scene 
 - [Animation Guide](docs/guides/animation.md)
 - [Media Guide](docs/guides/media.md)
 - [Preview And Export](docs/guides/preview-export.md)
+- [Preset Catalog](docs/guides/preset-catalog.md)
 - [MotionForge vs Remotion](docs/guides/motionforge-vs-remotion.md)
 - [Agent-Generated Scenes](docs/guides/agent-generated-scenes.md)
 

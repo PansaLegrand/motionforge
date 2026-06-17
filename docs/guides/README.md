@@ -7,5 +7,6 @@ Start here if you want to use MotionForge as an open-source programmatic video l
 - [Animation Guide](animation.md): presets, raw keyframes, easing, and timeline choreography.
 - [Media Guide](media.md): local assets, images, video, audio, fonts, Lottie, and current limits.
 - [Preview And Export](preview-export.md): CLI Studio, player API, export API, and direct rendering.
+- [Preset Catalog](preset-catalog.md): stable subtitle, overlay, media-look, layout, and transition names.
 - [MotionForge vs Remotion](motionforge-vs-remotion.md): where MotionForge intentionally differs.
 - [Agent-Generated Scenes](agent-generated-scenes.md): validation and patching loops for LLMs and coding agents.

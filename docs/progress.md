@@ -2,6 +2,22 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset/template docs catalog)
+
+### Changed
+
+- Added `docs/guides/preset-catalog.md` as a stable lookup table for subtitle templates, text overlays, media looks, clip layouts, and transition overlays.
+- Linked the preset catalog from the programmer guide index, root README, and agent-generated scenes guide.
+- Updated the preset/template roadmap with the docs catalog status and the remaining visual-preview follow-up.
+
+### Tested
+
+- Markdown link/path sanity review with `rg`.
+
+### Notes
+
+- This is a docs catalog, not the full visual gallery. PNG/Studio previews remain useful follow-up work.
+
 ## 2026-06-17 (preset/template slices PT3-PT4: clip layouts and transitions)
 
 ### Changed

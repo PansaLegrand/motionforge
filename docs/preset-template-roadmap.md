@@ -192,6 +192,14 @@ Done when:
 - each subtitle/text/media-look/layout template has a visual preview
 - the docs list template keys, intent, and one code example
 
+Initial docs catalog:
+
+- [`docs/guides/preset-catalog.md`](guides/preset-catalog.md) lists stable preset names, intent, and usage examples.
+
+Remaining visual follow-up:
+
+- Generate PNG previews for each preset family or expose them in Studio/playground.
+
 ## Acceptance Criteria
 
 - A new user can build a styled short video mostly from named presets.
