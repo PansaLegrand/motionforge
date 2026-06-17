@@ -15,7 +15,7 @@ The explorer must stay data-first:
 - keep snippets valid imports that compile into ordinary scene data
 - avoid editor-only hidden state or runtime-only preset behavior
 
-## Slice PX1 - Playground Preset Explorer
+## Slice PX1 - Playground Preset Explorer ✅
 
 **Goal:** A programmer can browse all preset families in the playground and copy the right code snippet.
 
@@ -25,26 +25,26 @@ Targets:
 - `packages/presets`
 - `docs/progress.md`
 
-Done when:
+Done:
 
 - the playground exposes a Preset Explorer panel
 - users can filter by preset family
 - each preset displays key, name, category, description, and a copyable snippet
 - transition overlays have exported metadata like the other preset families
 
-## Slice PX2 - Preview And Load Preset Gallery Scenes
+## Slice PX2 - Preview And Load Preset Gallery Scenes ✅
 
 **Goal:** The explorer can load generated gallery scenes into the playground preview.
 
 Targets:
 
-- reuse `examples/generated/presets/*.json`
-- add lightweight gallery scene entries or importable preset gallery package data
+- reuse the preset gallery scene source behind `examples/generated/presets/*.json`
+- add importable preset gallery package data
 
-Done when:
+Done:
 
 - each preset family can be previewed from the explorer
-- docs gallery and playground gallery share the same generated scene source
+- docs gallery and playground gallery share the same generated scene source through `@motionforge/showcase`
 
 ## Slice PX3 - Insert-Or-Patch Snippets
 

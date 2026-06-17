@@ -6,7 +6,11 @@ import {
   resolveAssets,
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
-import { showcaseScenes, type ShowcaseScene } from "@motionforge/showcase";
+import {
+  findPresetGalleryScene,
+  showcaseScenes,
+  type ShowcaseScene,
+} from "@motionforge/showcase";
 import {
   presetCatalog,
   presetFamilyLabels,
@@ -37,6 +41,7 @@ const presetSnippetTitle = requiredElement<HTMLElement>(
   "#preset-snippet-title",
 );
 const presetSnippet = requiredElement<HTMLPreElement>("#preset-snippet");
+const presetPreview = requiredElement<HTMLButtonElement>("#preset-preview");
 const presetCopy = requiredElement<HTMLButtonElement>("#preset-copy");
 const presetCopyStatus = requiredElement<HTMLOutputElement>(
   "#preset-copy-status",
@@ -394,7 +399,40 @@ function renderPresetSnippet(): void {
   presetSnippetTitle.textContent = `${selectedPreset.name} snippet`;
   presetSnippet.textContent = selectedPreset.snippet;
   presetCopyStatus.value = "";
+  presetPreview.disabled =
+    findPresetGalleryScene(selectedPresetFamily) === undefined;
 }
+
+presetPreview.addEventListener("click", () => {
+  const gallery = findPresetGalleryScene(selectedPresetFamily);
+
+  if (!gallery) {
+    presetCopyStatus.value =
+      "No gallery scene available for this preset family.";
+    return;
+  }
+
+  currentDoc = gallery.scene;
+  current = {
+    id: gallery.id,
+    title: gallery.title,
+    description: gallery.description,
+    proves: gallery.proves,
+    scene: gallery.scene,
+    posterFrame: gallery.posterFrame,
+  };
+  sceneTitle.textContent = gallery.title;
+  sceneDescription.textContent = gallery.description;
+  sceneProves.replaceChildren(
+    ...gallery.proves.map((item) => {
+      const li = document.createElement("li");
+      li.textContent = item;
+      return li;
+    }),
+  );
+  presetCopyStatus.value = `Previewing ${presetFamilyLabels[selectedPresetFamily]}`;
+  void loadSceneDoc(gallery.scene, gallery.posterFrame);
+});
 
 presetCopy.addEventListener("click", () => {
   void navigator.clipboard

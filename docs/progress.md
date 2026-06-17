@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset explorer PX2: gallery preview loading)
+
+### Changed
+
+- Moved preset gallery scene construction into `@motionforge/showcase` as `presetGalleryScenes` plus `findPresetGalleryScene()`.
+- Slimmed `examples/generate-preset-gallery.mjs` so docs JSON is serialized from the shared showcase gallery source.
+- Added playground Preset Explorer "Preview gallery" action that loads the selected preset family's gallery scene into the canvas.
+- Marked PX1 and PX2 complete in the preset explorer roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/showcase test`
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm presets:generate`
+- `pnpm --filter @motionforge/playground typecheck`
+- `pnpm --filter @motionforge/playground build`
+- Browser smoke at `http://localhost:5173/`: selected Text in the explorer, clicked Preview gallery, confirmed the canvas switched to the 1600x900 text overlay gallery at frame 45, scene metadata updated, and console error logs were empty.
+
+### Notes
+
+- PX2 keeps generated docs JSON and playground preview aligned without making the playground import files from `examples/`.
+
 ## 2026-06-17 (preset explorer roadmap + playground PX1)
 
 ### Changed

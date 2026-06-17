@@ -5,6 +5,11 @@ import {
   type CaptionWord,
 } from "@motionforge/presets";
 import { parseScene, type Scene, type SceneNode } from "@motionforge/schema";
+export {
+  findPresetGalleryScene,
+  presetGalleryScenes,
+  type PresetGalleryScene,
+} from "./preset-gallery.js";
 
 export type ShowcaseScene = {
   id: string;

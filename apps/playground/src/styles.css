@@ -217,6 +217,14 @@ h2 {
   font-size: 13px;
 }
 
+.preset-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+#preset-preview,
 #preset-copy {
   min-height: 32px;
   padding: 0 12px;

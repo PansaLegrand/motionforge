@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { validateScene } from "@motionforge/schema";
-import { showcaseScenes } from "./index.js";
+import { presetGalleryScenes, showcaseScenes } from "./index.js";
 
 describe("showcase scenes", () => {
   it("are schema-valid with stable ids", () => {
@@ -64,5 +64,30 @@ describe("showcase scenes", () => {
     expect(bottomText?.style?.bottom).toBe(92);
     expect(bottomText?.style?.textAlign).toBe("right");
     expect(bottomText?.style?.color).toBe("#ffe45c");
+  });
+});
+
+describe("preset gallery scenes", () => {
+  it("are schema-valid with stable families", () => {
+    expect(
+      presetGalleryScenes.map((entry) => [
+        entry.id,
+        entry.family,
+        entry.posterFrame,
+      ]),
+    ).toEqual([
+      ["preset-subtitles", "subtitles", 45],
+      ["preset-text-overlays", "text", 45],
+      ["preset-media-looks", "media", 45],
+      ["preset-clip-layouts", "layout", 45],
+      ["preset-transitions", "transition", 30],
+    ]);
+
+    for (const entry of presetGalleryScenes) {
+      const result = validateScene(entry.scene);
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+      expect(entry.posterFrame).toBeGreaterThanOrEqual(0);
+      expect(entry.posterFrame).toBeLessThan(entry.scene.duration);
+    }
   });
 });
