@@ -45,7 +45,7 @@ Missing:
 - transition templates
 - visual preset gallery
 
-## Slice PT1 - Text Overlay Templates
+## Slice PT1 - Text Overlay Templates ✅
 
 **Goal:** A programmer can add production-shaped text overlays without hand-writing layout and style.
 

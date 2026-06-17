@@ -105,3 +105,24 @@ Attach the compiled animation arrays to nodes with matching ids, or use `compile
 - Keep `transformOrigin` explicit when scaling or rotating cards.
 - Prefer transform and opacity animation over changing layout properties every frame.
 - Validate early with `motionforge validate src/video.ts`; validation errors are designed to be read by humans and agents.
+
+## Text Overlay Templates
+
+Use `@motionforge/presets` for production-shaped text overlays that are not subtitles:
+
+```ts
+import { textOverlay } from "@motionforge/presets";
+
+scene.nodes.push(
+  textOverlay({
+    template: "quoteCard",
+    id: "quote",
+    body: "The scene is data, not a screenshot.",
+    attribution: "MotionForge",
+    from: 30,
+    duration: 120,
+  }),
+);
+```
+
+Available templates: `titleCard`, `lowerThird`, `quoteCard`, `statCallout`, `announcementBanner`, `socialHook`, and `chapterTitle`.

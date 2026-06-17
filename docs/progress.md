@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset/template slice PT1: text overlays)
+
+### Changed
+
+- Added `textOverlay()` to `@motionforge/presets`.
+- Added stable text overlay catalog metadata through `textOverlayTemplates` and `textOverlayTemplateEntries`.
+- Shipped seven overlay templates that compile to ordinary scene nodes:
+  - `titleCard`
+  - `lowerThird`
+  - `quoteCard`
+  - `statCallout`
+  - `announcementBanner`
+  - `socialHook`
+  - `chapterTitle`
+- Added per-template required slot validation and override support for timing, container style, per-slot style, accent color, and entrance animations.
+- Documented overlay templates in the presets README and animation guide.
+- Updated the preset/template roadmap to mark PT1 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets typecheck`
+
+### Notes
+
+- The templates intentionally emit normal nested `div`/`text` nodes with stable ids. Apps and agents can patch generated children directly.
+
 ## 2026-06-17 (preset/template roadmap)
 
 ### Changed

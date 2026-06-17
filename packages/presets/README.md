@@ -64,6 +64,35 @@ console.log(Object.keys(captionTemplates));
 
 Available templates: `classic`, `minimalBar`, `handwritten`, `retro`, `cinematic`, `storyteller`, `hustle`, `spotlight`, `karaoke`, `neon`, `future`, `terminal`, and `colorShift`. They compile to plain motionforge scene nodes; there is no Remotion, DOM, or adapter dependency.
 
+## Text overlay templates
+
+Common non-subtitle overlays are also compiled to ordinary scene nodes:
+
+```ts
+import {
+  textOverlay,
+  textOverlayTemplates,
+} from "@motionforge/presets";
+
+scene.nodes.push(
+  textOverlay({
+    template: "lowerThird",
+    id: "speaker",
+    title: "Ada Lovelace",
+    subtitle: "Programmer",
+    kicker: "Interview",
+    from: 30,
+    duration: 120,
+  }),
+);
+
+console.log(Object.keys(textOverlayTemplates));
+```
+
+Available templates: `titleCard`, `lowerThird`, `quoteCard`, `statCallout`, `announcementBanner`, `socialHook`, and `chapterTitle`.
+
+All templates accept `id`, `from`, `duration`, `accentColor`, container `style`, per-slot style overrides such as `titleStyle`, and `enter` animations. Pass `enter: false` for a static overlay.
+
 ## Timeline choreography
 
 Sequencing several nodes means deriving frame offsets from other durations — the arithmetic both humans and LLMs get wrong. `timeline()` owns it:

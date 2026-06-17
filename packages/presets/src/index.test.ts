@@ -11,8 +11,12 @@ import {
   styledCaptions,
   styledSubtitles,
   subtitleTemplates,
+  textOverlay,
+  textOverlayTemplateEntries,
+  textOverlayTemplates,
   tiktokCaptions,
   type CaptionWord,
+  type TextOverlayTemplateKey,
 } from "./index.js";
 
 function sceneWith(...nodes: SceneNode[]): Scene {
@@ -242,5 +246,121 @@ describe("caption template catalog", () => {
     expect(
       firstText?.animations?.some((entry) => entry.property === "transform"),
     ).toBe(true);
+  });
+});
+
+describe("text overlay template catalog", () => {
+  const examples: Record<TextOverlayTemplateKey, Parameters<typeof textOverlay>[0]> = {
+    announcementBanner: {
+      template: "announcementBanner",
+      id: "sale-banner",
+      title: "New Drop",
+      subtitle: "Available Friday",
+      kicker: "Limited",
+      from: 12,
+      duration: 90,
+    },
+    chapterTitle: {
+      template: "chapterTitle",
+      id: "chapter",
+      title: "Act Two",
+      subtitle: "The build begins",
+      kicker: "02",
+    },
+    lowerThird: {
+      template: "lowerThird",
+      id: "speaker",
+      title: "Ada Lovelace",
+      subtitle: "Programmer",
+      kicker: "Interview",
+    },
+    quoteCard: {
+      template: "quoteCard",
+      id: "quote",
+      body: "The engine is data, not a screenshot.",
+      attribution: "MotionForge",
+    },
+    socialHook: {
+      template: "socialHook",
+      id: "hook",
+      title: "Stop hand-editing captions",
+      subtitle: "Use scene data instead.",
+    },
+    statCallout: {
+      template: "statCallout",
+      id: "stat",
+      value: "4.8x",
+      label: "faster exports",
+      subtitle: "Browser-native pipeline",
+    },
+    titleCard: {
+      template: "titleCard",
+      id: "intro",
+      title: "MotionForge",
+      subtitle: "Programmatic video as scene data",
+      kicker: "Open source",
+    },
+  };
+
+  it("exposes stable text overlay metadata", () => {
+    expect(textOverlayTemplateEntries.map(([key]) => key)).toEqual([
+      "titleCard",
+      "lowerThird",
+      "quoteCard",
+      "statCallout",
+      "announcementBanner",
+      "socialHook",
+      "chapterTitle",
+    ]);
+    expect(textOverlayTemplates.lowerThird.required).toEqual(["title"]);
+  });
+
+  it("generates schema-valid overlays for every template", () => {
+    for (const [key] of textOverlayTemplateEntries) {
+      const overlay = textOverlay(examples[key]);
+      const result = validateScene(sceneWith(overlay));
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+    }
+  });
+
+  it("applies timing, container style, slot style, and entrance overrides", () => {
+    const overlay = textOverlay({
+      template: "lowerThird",
+      id: "custom-lower-third",
+      title: "Grace Hopper",
+      subtitle: "Compiler pioneer",
+      from: 30,
+      duration: 75,
+      accentColor: "#22c55e",
+      enter: false,
+      style: { left: 120, bottom: 180, width: 700 },
+      titleStyle: { fontSize: 64, color: "#f8fafc" },
+    });
+
+    expect(validateScene(sceneWith(overlay))).toMatchObject({ ok: true });
+    expect(overlay).toMatchObject({
+      id: "custom-lower-third",
+      from: 30,
+      duration: 75,
+      animations: [],
+      style: {
+        left: 120,
+        bottom: 180,
+        width: 700,
+        border: "2px solid #22c55e",
+      },
+    });
+    expect(overlay.children?.[0]?.id).toBe("custom-lower-third-title");
+    expect(overlay.children?.[0]?.style).toMatchObject({
+      fontSize: 64,
+      color: "#f8fafc",
+    });
+  });
+
+  it("rejects missing required text slots", () => {
+    expect(() => textOverlay({ template: "quoteCard" })).toThrow(
+      "requires body",
+    );
   });
 });

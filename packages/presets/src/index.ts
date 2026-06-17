@@ -1,4 +1,8 @@
-import type { SceneAnimation, SceneNode } from "@motionforge/schema";
+import type {
+  SceneAnimation,
+  SceneNode,
+  SceneStyle,
+} from "@motionforge/schema";
 
 export type MotionPresetOptions = {
   /** Length of the motion in frames (default 10). */
@@ -168,6 +172,584 @@ export function pulse(
       ),
     ),
   ];
+}
+
+export type TextOverlayCategory =
+  | "title"
+  | "lower-third"
+  | "quote"
+  | "stat"
+  | "banner"
+  | "social";
+
+export type TextOverlaySlot =
+  | "kicker"
+  | "title"
+  | "subtitle"
+  | "body"
+  | "value"
+  | "label"
+  | "attribution";
+
+export type TextOverlayTemplate = {
+  name: string;
+  description: string;
+  category: TextOverlayCategory;
+  required: TextOverlaySlot[];
+  optional?: TextOverlaySlot[];
+};
+
+export const textOverlayTemplates = {
+  titleCard: {
+    name: "Title Card",
+    description: "Centered editorial title stack for openings and section cards.",
+    category: "title",
+    required: ["title"],
+    optional: ["kicker", "subtitle"],
+  },
+  lowerThird: {
+    name: "Lower Third",
+    description: "Speaker or subject label anchored near the bottom edge.",
+    category: "lower-third",
+    required: ["title"],
+    optional: ["subtitle", "kicker"],
+  },
+  quoteCard: {
+    name: "Quote Card",
+    description: "Large pull quote with optional attribution.",
+    category: "quote",
+    required: ["body"],
+    optional: ["attribution", "kicker"],
+  },
+  statCallout: {
+    name: "Stat Callout",
+    description: "Metric card with a large value and supporting label.",
+    category: "stat",
+    required: ["value"],
+    optional: ["label", "subtitle"],
+  },
+  announcementBanner: {
+    name: "Announcement Banner",
+    description: "High-contrast horizontal announcement strip.",
+    category: "banner",
+    required: ["title"],
+    optional: ["subtitle", "kicker"],
+  },
+  socialHook: {
+    name: "Social Hook",
+    description: "Short-form hook text with a fitted highlight backing.",
+    category: "social",
+    required: ["title"],
+    optional: ["subtitle"],
+  },
+  chapterTitle: {
+    name: "Chapter Title",
+    description: "Minimal section title with a short accent rule.",
+    category: "title",
+    required: ["title"],
+    optional: ["kicker", "subtitle"],
+  },
+} satisfies Record<string, TextOverlayTemplate>;
+
+export type TextOverlayTemplateKey = keyof typeof textOverlayTemplates;
+
+export const textOverlayTemplateEntries = Object.entries(
+  textOverlayTemplates,
+) as Array<[TextOverlayTemplateKey, TextOverlayTemplate]>;
+
+export type TextOverlayOptions = {
+  template?: TextOverlayTemplateKey;
+  id?: string;
+  from?: number;
+  duration?: number;
+  kicker?: string;
+  title?: string;
+  subtitle?: string;
+  body?: string;
+  value?: string;
+  label?: string;
+  attribution?: string;
+  accentColor?: string;
+  style?: SceneStyle;
+  kickerStyle?: SceneStyle;
+  titleStyle?: SceneStyle;
+  subtitleStyle?: SceneStyle;
+  bodyStyle?: SceneStyle;
+  valueStyle?: SceneStyle;
+  labelStyle?: SceneStyle;
+  attributionStyle?: SceneStyle;
+  enter?: SceneAnimation[] | false;
+};
+
+/**
+ * Production-shaped text overlays compiled to ordinary scene nodes. Template
+ * ids are stable so apps and agents can patch generated children directly.
+ */
+export function textOverlay(options: TextOverlayOptions): SceneNode {
+  const template = options.template ?? "titleCard";
+
+  switch (template) {
+    case "titleCard":
+      return titleCardOverlay(options);
+    case "lowerThird":
+      return lowerThirdOverlay(options);
+    case "quoteCard":
+      return quoteCardOverlay(options);
+    case "statCallout":
+      return statCalloutOverlay(options);
+    case "announcementBanner":
+      return announcementBannerOverlay(options);
+    case "socialHook":
+      return socialHookOverlay(options);
+    case "chapterTitle":
+      return chapterTitleOverlay(options);
+  }
+}
+
+function titleCardOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "title-card");
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      left: 96,
+      right: 96,
+      top: 560,
+      height: 560,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 24,
+    },
+    [
+      maybeTextNode(id, "kicker", options.kicker, {
+        ...eyebrowStyle(options.accentColor ?? "#38bdf8"),
+        ...options.kickerStyle,
+      }),
+      textNode(id, "title", requiredSlot(options, "title"), {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 108,
+        fontWeight: 900,
+        lineHeight: 0.95,
+        color: "#ffffff",
+        textAlign: "center",
+        textShadow: "0px 12px 42px rgba(0,0,0,0.48)",
+        ...options.titleStyle,
+      }),
+      maybeTextNode(id, "subtitle", options.subtitle, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 42,
+        fontWeight: 700,
+        lineHeight: 1.18,
+        color: "rgba(226,232,240,0.88)",
+        textAlign: "center",
+        ...options.subtitleStyle,
+      }),
+    ],
+  );
+}
+
+function lowerThirdOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "lower-third");
+  const accent = options.accentColor ?? "#f59e0b";
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      left: 72,
+      bottom: 132,
+      width: 820,
+      minHeight: 190,
+      padding: 28,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      gap: 10,
+      backgroundColor: "rgba(15,23,42,0.78)",
+      borderRadius: 18,
+      border: `2px solid ${accent}`,
+      boxShadow: "0px 18px 48px rgba(0,0,0,0.32)",
+    },
+    [
+      maybeTextNode(id, "kicker", options.kicker, {
+        ...eyebrowStyle(accent),
+        ...options.kickerStyle,
+      }),
+      textNode(id, "title", requiredSlot(options, "title"), {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 58,
+        fontWeight: 900,
+        lineHeight: 1,
+        color: "#ffffff",
+        ...options.titleStyle,
+      }),
+      maybeTextNode(id, "subtitle", options.subtitle, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 31,
+        fontWeight: 700,
+        lineHeight: 1.16,
+        color: "#cbd5e1",
+        ...options.subtitleStyle,
+      }),
+    ],
+  );
+}
+
+function quoteCardOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "quote-card");
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      left: 90,
+      top: 610,
+      width: 900,
+      minHeight: 520,
+      padding: 54,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      gap: 28,
+      backgroundColor: "rgba(248,250,252,0.92)",
+      borderRadius: 28,
+      boxShadow: "0px 28px 70px rgba(15,23,42,0.28)",
+    },
+    [
+      maybeTextNode(id, "kicker", options.kicker, {
+        ...eyebrowStyle(options.accentColor ?? "#2563eb"),
+        ...options.kickerStyle,
+      }),
+      textNode(id, "body", requiredSlot(options, "body"), {
+        width: "100%",
+        fontFamily: "Georgia, Times New Roman, serif",
+        fontSize: 64,
+        fontWeight: 700,
+        lineHeight: 1.12,
+        color: "#0f172a",
+        textAlign: "center",
+        ...options.bodyStyle,
+      }),
+      maybeTextNode(id, "attribution", options.attribution, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 30,
+        fontWeight: 800,
+        color: "#475569",
+        textAlign: "center",
+        ...options.attributionStyle,
+      }),
+    ],
+  );
+}
+
+function statCalloutOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "stat-callout");
+  const accent = options.accentColor ?? "#14b8a6";
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      right: 72,
+      top: 1030,
+      width: 430,
+      minHeight: 320,
+      padding: 34,
+      display: "flex",
+      flexDirection: "column",
+      justifyContent: "center",
+      gap: 12,
+      backgroundColor: "rgba(2,6,23,0.84)",
+      borderRadius: 24,
+      border: `2px solid ${accent}`,
+      boxShadow: "0px 22px 60px rgba(0,0,0,0.34)",
+    },
+    [
+      textNode(id, "value", requiredSlot(options, "value"), {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 96,
+        fontWeight: 950,
+        lineHeight: 0.92,
+        color: accent,
+        textAlign: "left",
+        ...options.valueStyle,
+      }),
+      maybeTextNode(id, "label", options.label, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 34,
+        fontWeight: 900,
+        color: "#ffffff",
+        lineHeight: 1.05,
+        ...options.labelStyle,
+      }),
+      maybeTextNode(id, "subtitle", options.subtitle, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 25,
+        fontWeight: 700,
+        color: "#94a3b8",
+        lineHeight: 1.18,
+        ...options.subtitleStyle,
+      }),
+    ],
+  );
+}
+
+function announcementBannerOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "announcement-banner");
+  const accent = options.accentColor ?? "#ef4444";
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      left: 0,
+      top: 220,
+      width: "100%",
+      minHeight: 190,
+      padding: 36,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 10,
+      backgroundColor: accent,
+      boxShadow: "0px 20px 50px rgba(0,0,0,0.28)",
+    },
+    [
+      maybeTextNode(id, "kicker", options.kicker, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 28,
+        fontWeight: 900,
+        letterSpacing: 3,
+        color: "rgba(255,255,255,0.82)",
+        textAlign: "center",
+        ...options.kickerStyle,
+      }),
+      textNode(id, "title", requiredSlot(options, "title"), {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 72,
+        fontWeight: 950,
+        lineHeight: 0.95,
+        color: "#ffffff",
+        textAlign: "center",
+        textStroke: "3px rgba(0,0,0,0.18)",
+        ...options.titleStyle,
+      }),
+      maybeTextNode(id, "subtitle", options.subtitle, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 30,
+        fontWeight: 800,
+        color: "rgba(255,255,255,0.88)",
+        textAlign: "center",
+        ...options.subtitleStyle,
+      }),
+    ],
+  );
+}
+
+function socialHookOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "social-hook");
+  const accent = options.accentColor ?? "#facc15";
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      left: 72,
+      right: 72,
+      top: 500,
+      minHeight: 520,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 22,
+    },
+    [
+      textNode(id, "title", requiredSlot(options, "title"), {
+        width: "100%",
+        fontFamily: "Poppins, Inter, system-ui, sans-serif",
+        fontSize: 98,
+        fontWeight: 950,
+        lineHeight: 0.95,
+        color: "#0f172a",
+        textAlign: "center",
+        textBackgroundColor: accent,
+        textBackgroundPaddingX: 34,
+        textBackgroundPaddingY: 16,
+        textBackgroundRadius: 22,
+        textShadow: "0px 6px 0px rgba(255,255,255,0.22)",
+        textStroke: "4px rgba(255,255,255,0.95)",
+        ...options.titleStyle,
+      }),
+      maybeTextNode(id, "subtitle", options.subtitle, {
+        width: "92%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 38,
+        fontWeight: 800,
+        lineHeight: 1.14,
+        color: "#ffffff",
+        textAlign: "center",
+        textStroke: "4px rgba(0,0,0,0.72)",
+        ...options.subtitleStyle,
+      }),
+    ],
+  );
+}
+
+function chapterTitleOverlay(options: TextOverlayOptions): SceneNode {
+  const id = overlayId(options, "chapter-title");
+  const accent = options.accentColor ?? "#a78bfa";
+
+  return overlayContainer(
+    id,
+    options,
+    {
+      position: "absolute",
+      left: 96,
+      right: 96,
+      top: 720,
+      minHeight: 340,
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      gap: 24,
+    },
+    [
+      {
+        id: `${id}-rule`,
+        type: "div",
+        style: {
+          width: 180,
+          height: 8,
+          backgroundColor: accent,
+          borderRadius: 999,
+        },
+      },
+      maybeTextNode(id, "kicker", options.kicker, {
+        ...eyebrowStyle(accent),
+        ...options.kickerStyle,
+      }),
+      textNode(id, "title", requiredSlot(options, "title"), {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 82,
+        fontWeight: 900,
+        lineHeight: 0.98,
+        color: "#ffffff",
+        textAlign: "center",
+        textShadow: "0px 10px 28px rgba(0,0,0,0.42)",
+        ...options.titleStyle,
+      }),
+      maybeTextNode(id, "subtitle", options.subtitle, {
+        width: "100%",
+        fontFamily: "Inter, system-ui, Arial, sans-serif",
+        fontSize: 32,
+        fontWeight: 700,
+        color: "#cbd5e1",
+        textAlign: "center",
+        ...options.subtitleStyle,
+      }),
+    ],
+  );
+}
+
+function overlayContainer(
+  id: string,
+  options: TextOverlayOptions,
+  style: SceneStyle,
+  children: Array<SceneNode | undefined>,
+): SceneNode {
+  return {
+    id,
+    type: "div",
+    from: options.from,
+    duration: options.duration,
+    style: {
+      ...style,
+      ...options.style,
+    },
+    animations:
+      options.enter === false
+        ? []
+        : (options.enter ?? fadeUp({ durationInFrames: 10, distance: 28 })),
+    children: children.filter((child): child is SceneNode => child !== undefined),
+  };
+}
+
+function textNode(
+  overlayId: string,
+  slot: TextOverlaySlot,
+  value: string,
+  style: SceneStyle,
+): SceneNode {
+  return {
+    id: `${overlayId}-${slot}`,
+    type: "text",
+    text: value,
+    style,
+  };
+}
+
+function maybeTextNode(
+  overlayId: string,
+  slot: TextOverlaySlot,
+  value: string | undefined,
+  style: SceneStyle,
+): SceneNode | undefined {
+  return value === undefined || value.trim() === ""
+    ? undefined
+    : textNode(overlayId, slot, value, style);
+}
+
+function overlayId(options: TextOverlayOptions, fallback: string): string {
+  return options.id ?? fallback;
+}
+
+function requiredSlot(
+  options: TextOverlayOptions,
+  slot: TextOverlaySlot,
+): string {
+  const value = options[slot];
+
+  if (typeof value !== "string" || value.trim() === "") {
+    throw new Error(`textOverlay(${options.template ?? "titleCard"}) requires ${slot}.`);
+  }
+
+  return value;
+}
+
+function eyebrowStyle(color: string): SceneStyle {
+  return {
+    width: "100%",
+    fontFamily: "Inter, system-ui, Arial, sans-serif",
+    fontSize: 26,
+    fontWeight: 900,
+    letterSpacing: 3,
+    color,
+    textAlign: "center",
+  };
 }
 
 /** One spoken word with millisecond timestamps (ASR output shape). */
