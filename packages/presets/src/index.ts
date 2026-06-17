@@ -174,6 +174,96 @@ export function pulse(
   ];
 }
 
+export type MediaLookCategory =
+  | "natural"
+  | "social"
+  | "cinematic"
+  | "retro"
+  | "portrait"
+  | "backdrop";
+
+export type MediaLookPreset = {
+  name: string;
+  description: string;
+  category: MediaLookCategory;
+  style: SceneStyle;
+};
+
+export const mediaLooks = {
+  cleanProduct: {
+    name: "Clean Product",
+    description: "Neutral contrast lift for product shots and UI footage.",
+    category: "natural",
+    style: {
+      filter: "brightness(1.04) contrast(1.08) saturate(1.04)",
+    },
+  },
+  punchySocial: {
+    name: "Punchy Social",
+    description: "High-energy saturation and contrast for short-form edits.",
+    category: "social",
+    style: {
+      filter: "brightness(1.08) contrast(1.22) saturate(1.35)",
+    },
+  },
+  cinematicWarm: {
+    name: "Cinematic Warm",
+    description: "Warm, slightly muted grade for narrative clips.",
+    category: "cinematic",
+    style: {
+      filter: "brightness(0.98) contrast(1.14) saturate(0.92) sepia(0.18)",
+    },
+  },
+  coolNoir: {
+    name: "Cool Noir",
+    description: "Low-saturation blue-gray drama with strong contrast.",
+    category: "cinematic",
+    style: {
+      filter: "brightness(0.9) contrast(1.28) saturate(0.45) hue-rotate(190deg)",
+    },
+  },
+  retroTape: {
+    name: "Retro Tape",
+    description: "Soft analog warmth with faded contrast.",
+    category: "retro",
+    style: {
+      filter: "brightness(1.02) contrast(0.92) saturate(1.22) sepia(0.28)",
+    },
+  },
+  softPortrait: {
+    name: "Soft Portrait",
+    description: "Gentle brightness and lower contrast for people-focused clips.",
+    category: "portrait",
+    style: {
+      filter: "brightness(1.08) contrast(0.94) saturate(1.08)",
+    },
+  },
+  blurredBackdrop: {
+    name: "Blurred Backdrop",
+    description: "Dimmed blurred media for background layers behind foreground text.",
+    category: "backdrop",
+    style: {
+      filter: "brightness(0.72) contrast(1.05) saturate(0.9) blur(18px)",
+    },
+  },
+} satisfies Record<string, MediaLookPreset>;
+
+export type MediaLookKey = keyof typeof mediaLooks;
+
+export const mediaLookEntries = Object.entries(mediaLooks) as Array<
+  [MediaLookKey, MediaLookPreset]
+>;
+
+export function mediaLook(
+  key: MediaLookKey,
+  overrides: SceneStyle = {},
+): SceneStyle {
+  return {
+    ...mediaLooks[key].style,
+    ...overrides,
+  };
+}
+
 export type TextOverlayCategory =
   | "title"
   | "lower-third"

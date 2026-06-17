@@ -90,7 +90,7 @@ Done when:
 - catalog metadata is stable and test-covered
 - docs show common overlays
 
-## Slice PT2 - Media Look / Filter Presets
+## Slice PT2 - Media Look / Filter Presets ✅
 
 **Goal:** Programmers and agents can apply named looks to image/video nodes instead of hand-writing `style.filter`.
 

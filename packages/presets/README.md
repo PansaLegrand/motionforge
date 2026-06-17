@@ -93,6 +93,28 @@ Available templates: `titleCard`, `lowerThird`, `quoteCard`, `statCallout`, `ann
 
 All templates accept `id`, `from`, `duration`, `accentColor`, container `style`, per-slot style overrides such as `titleStyle`, and `enter` animations. Pass `enter: false` for a static overlay.
 
+## Media look presets
+
+Named looks return plain `SceneStyle` fragments, so they compose with image/video helpers and layout presets:
+
+```ts
+import { mediaLook, mediaLooks } from "@motionforge/presets";
+
+videoClip(clip, {
+  style: {
+    width: "100%",
+    height: "100%",
+    ...mediaLook("cinematicWarm"),
+  },
+});
+
+console.log(Object.keys(mediaLooks));
+```
+
+Available looks: `cleanProduct`, `punchySocial`, `cinematicWarm`, `coolNoir`, `retroTape`, `softPortrait`, and `blurredBackdrop`.
+
+The styles use MotionForge's supported `filter` subset. Safari may preview filters differently or ignore them; exported support follows the browser Canvas2D implementation.
+
 ## Timeline choreography
 
 Sequencing several nodes means deriving frame offsets from other durations — the arithmetic both humans and LLMs get wrong. `timeline()` owns it:

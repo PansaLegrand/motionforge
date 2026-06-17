@@ -5,6 +5,9 @@ import {
   captionTemplateEntries,
   captionTemplates,
   karaokeCaptions,
+  mediaLook,
+  mediaLookEntries,
+  mediaLooks,
   popIn,
   pulse,
   slideIn,
@@ -86,6 +89,62 @@ describe("motion presets", () => {
       frame: 8,
       value: "scale(1)",
       easing: "spring(0.3)",
+    });
+  });
+});
+
+describe("media look presets", () => {
+  it("exposes stable media look metadata", () => {
+    expect(mediaLookEntries.map(([key]) => key)).toEqual([
+      "cleanProduct",
+      "punchySocial",
+      "cinematicWarm",
+      "coolNoir",
+      "retroTape",
+      "softPortrait",
+      "blurredBackdrop",
+    ]);
+    expect(mediaLooks.cinematicWarm.category).toBe("cinematic");
+  });
+
+  it("returns schema-valid styles for image and video nodes", () => {
+    for (const [key] of mediaLookEntries) {
+      const result = validateScene({
+        schemaVersion: 0,
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 90,
+        assets: {
+          media: { id: "media", type: "image", src: "data:image/png;base64,x" },
+        },
+        nodes: [
+          {
+            id: `media-${key}`,
+            type: "img",
+            assetId: "media",
+            style: {
+              width: "100%",
+              height: "100%",
+              ...mediaLook(key),
+            },
+          },
+        ],
+      });
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+    }
+  });
+
+  it("allows style overrides after the named look", () => {
+    expect(
+      mediaLook("blurredBackdrop", {
+        opacity: 0.82,
+        filter: "brightness(0.8) blur(12px)",
+      }),
+    ).toEqual({
+      filter: "brightness(0.8) blur(12px)",
+      opacity: 0.82,
     });
   });
 });

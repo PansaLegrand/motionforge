@@ -2,6 +2,32 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset/template slice PT2: media looks)
+
+### Changed
+
+- Added `mediaLook()` to `@motionforge/presets`.
+- Added stable media look catalog metadata through `mediaLooks` and `mediaLookEntries`.
+- Shipped seven named filter/style presets:
+  - `cleanProduct`
+  - `punchySocial`
+  - `cinematicWarm`
+  - `coolNoir`
+  - `retroTape`
+  - `softPortrait`
+  - `blurredBackdrop`
+- Documented media looks in the presets README and media guide.
+- Updated the preset/template roadmap to mark PT2 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets typecheck`
+
+### Notes
+
+- Media looks return `SceneStyle` fragments, not nodes, so they compose with authoring media helpers, future clip layouts, and direct scene JSON.
+
 ## 2026-06-17 (preset/template slice PT1: text overlays)
 
 ### Changed

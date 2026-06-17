@@ -41,6 +41,7 @@ const clip = videoAsset("clip", "https://cdn.example.com/clip.mp4");
 
 ```ts
 import { image, seconds } from "@motionforge/authoring";
+import { mediaLook } from "@motionforge/presets";
 
 image(poster, {
   duration: seconds(5),
@@ -50,6 +51,7 @@ image(poster, {
     top: 0,
     width: 1920,
     height: 1080,
+    ...mediaLook("cleanProduct"),
   },
 });
 ```
@@ -122,3 +124,18 @@ Lottie assets must be self-contained vector JSON. Expressions and external image
 - Streaming sources are deferred until real projects force the complexity.
 - A failed fetch or decode rejects; MotionForge does not silently render placeholders.
 - Rendering a media node without resolved assets throws with the missing asset id and fix.
+
+## Named Looks
+
+`@motionforge/presets` ships named media looks that compile to plain style fragments:
+
+```ts
+mediaLook("punchySocial")
+mediaLook("cinematicWarm")
+mediaLook("coolNoir")
+mediaLook("retroTape")
+mediaLook("softPortrait")
+mediaLook("blurredBackdrop")
+```
+
+These use the supported Canvas2D `filter` subset. Safari may ignore some filters during preview/export.
