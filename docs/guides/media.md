@@ -139,3 +139,20 @@ mediaLook("blurredBackdrop")
 ```
 
 These use the supported Canvas2D `filter` subset. Safari may ignore some filters during preview/export.
+
+## Clip Layouts
+
+Clip layouts are named style fragments for common media placement:
+
+```ts
+import { clipLayout, mediaLook } from "@motionforge/presets";
+
+videoClip(clip, {
+  style: {
+    ...clipLayout("pictureInPicture"),
+    ...mediaLook("cleanProduct"),
+  },
+});
+```
+
+Useful layout keys include `fullscreen`, `containCenter`, `pictureInPicture`, `splitLeft`, `splitRight`, the four `grid...` cells, `blurredBackground`, and `phoneSafeVertical`.

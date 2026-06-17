@@ -126,3 +126,22 @@ scene.nodes.push(
 ```
 
 Available templates: `titleCard`, `lowerThird`, `quoteCard`, `statCallout`, `announcementBanner`, `socialHook`, and `chapterTitle`.
+
+## Transition Overlays
+
+Transitions are full-frame nodes that sit above clips:
+
+```ts
+import { transitionOverlay } from "@motionforge/presets";
+
+scene.nodes.push(
+  transitionOverlay("flash", {
+    id: "flash-cut",
+    at: 90,
+    duration: 10,
+    color: "rgba(255,255,255,0.9)",
+  }),
+);
+```
+
+Available transitions: `fade`, `dipToBlack`, `flash`, `wipeLeft`, `wipeRight`, and `zoom`.

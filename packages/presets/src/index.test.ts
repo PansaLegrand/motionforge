@@ -2,6 +2,9 @@ import { describe, expect, it } from "vitest";
 import { validateScene, type Scene, type SceneNode } from "@motionforge/schema";
 import {
   fadeUp,
+  clipLayout,
+  clipLayoutEntries,
+  clipLayouts,
   captionTemplateEntries,
   captionTemplates,
   karaokeCaptions,
@@ -18,6 +21,7 @@ import {
   textOverlayTemplateEntries,
   textOverlayTemplates,
   tiktokCaptions,
+  transitionOverlay,
   type CaptionWord,
   type TextOverlayTemplateKey,
 } from "./index.js";
@@ -145,6 +149,101 @@ describe("media look presets", () => {
     ).toEqual({
       filter: "brightness(0.8) blur(12px)",
       opacity: 0.82,
+    });
+  });
+});
+
+describe("clip layout presets", () => {
+  it("exposes stable clip layout metadata", () => {
+    expect(clipLayoutEntries.map(([key]) => key)).toEqual([
+      "fullscreen",
+      "containCenter",
+      "pictureInPicture",
+      "splitLeft",
+      "splitRight",
+      "gridTopLeft",
+      "gridTopRight",
+      "gridBottomLeft",
+      "gridBottomRight",
+      "blurredBackground",
+      "phoneSafeVertical",
+    ]);
+    expect(clipLayouts.pictureInPicture.category).toBe("pip");
+  });
+
+  it("returns schema-valid styles for media nodes", () => {
+    for (const [key] of clipLayoutEntries) {
+      const result = validateScene({
+        schemaVersion: 0,
+        width: 1080,
+        height: 1920,
+        fps: 30,
+        duration: 90,
+        assets: {
+          clip: { id: "clip", type: "video", src: "clip.mp4" },
+        },
+        nodes: [
+          {
+            id: `clip-${key}`,
+            type: "video",
+            assetId: "clip",
+            style: clipLayout(key),
+          },
+        ],
+      });
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+    }
+  });
+
+  it("allows style overrides after the named layout", () => {
+    expect(
+      clipLayout("pictureInPicture", {
+        right: 72,
+        bottom: 96,
+        width: 420,
+      }),
+    ).toMatchObject({
+      right: 72,
+      bottom: 96,
+      width: 420,
+      height: 640,
+      zIndex: 20,
+    });
+  });
+});
+
+describe("transition overlays", () => {
+  it("generates schema-valid overlays for every transition", () => {
+    for (const template of [
+      "fade",
+      "dipToBlack",
+      "flash",
+      "wipeLeft",
+      "wipeRight",
+      "zoom",
+    ] as const) {
+      const node = transitionOverlay(template, {
+        id: `transition-${template}`,
+        at: 45,
+        duration: 18,
+      });
+      const result = validateScene(sceneWith(node));
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+      expect(node).toMatchObject({ from: 45, duration: 18 });
+    }
+  });
+
+  it("supports color and z-index overrides", () => {
+    const node = transitionOverlay("flash", {
+      color: "rgba(255,255,255,0.92)",
+      zIndex: 2000,
+    });
+
+    expect(node.style).toMatchObject({
+      backgroundColor: "rgba(255,255,255,0.92)",
+      zIndex: 2000,
     });
   });
 });

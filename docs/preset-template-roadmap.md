@@ -122,7 +122,7 @@ Done when:
 - docs explain Safari filter caveats from the scene-format matrix
 - starter or guide shows one applied look
 
-## Slice PT3 - Clip Layout Presets
+## Slice PT3 - Clip Layout Presets ✅
 
 **Goal:** Common media layouts become one function call.
 
@@ -151,7 +151,7 @@ Done when:
 - layout presets return plain `SceneStyle`
 - docs show how to combine layouts with media looks and text overlays
 
-## Slice PT4 - Transition Presets
+## Slice PT4 - Transition Presets ✅
 
 **Goal:** Scene sections can transition through normal nodes/keyframes.
 

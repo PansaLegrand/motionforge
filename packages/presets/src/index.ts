@@ -264,6 +264,261 @@ export function mediaLook(
   };
 }
 
+export type ClipLayoutCategory =
+  | "single"
+  | "pip"
+  | "split"
+  | "grid"
+  | "backdrop"
+  | "safe-area";
+
+export type ClipLayoutPreset = {
+  name: string;
+  description: string;
+  category: ClipLayoutCategory;
+  style: SceneStyle;
+};
+
+export const clipLayouts = {
+  fullscreen: {
+    name: "Fullscreen",
+    description: "Fill the whole composition with cropped media.",
+    category: "single",
+    style: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  containCenter: {
+    name: "Contain Center",
+    description: "Show the full source inside the composition bounds.",
+    category: "single",
+    style: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "contain",
+      objectPosition: "center center",
+    },
+  },
+  pictureInPicture: {
+    name: "Picture In Picture",
+    description: "Small floating media card in the bottom-right corner.",
+    category: "pip",
+    style: {
+      position: "absolute",
+      right: 48,
+      bottom: 48,
+      width: 360,
+      height: 640,
+      objectFit: "cover",
+      objectPosition: "center center",
+      borderRadius: 24,
+      border: "3px solid rgba(255,255,255,0.88)",
+      boxShadow: "0px 20px 52px rgba(0,0,0,0.36)",
+      overflow: "hidden",
+      zIndex: 20,
+    },
+  },
+  splitLeft: {
+    name: "Split Left",
+    description: "Left half of a two-up split screen.",
+    category: "split",
+    style: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      width: "50%",
+      height: "100%",
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  splitRight: {
+    name: "Split Right",
+    description: "Right half of a two-up split screen.",
+    category: "split",
+    style: {
+      position: "absolute",
+      right: 0,
+      top: 0,
+      width: "50%",
+      height: "100%",
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  gridTopLeft: {
+    name: "Grid Top Left",
+    description: "Top-left cell of a 2x2 grid.",
+    category: "grid",
+    style: gridCellStyle(0, 0),
+  },
+  gridTopRight: {
+    name: "Grid Top Right",
+    description: "Top-right cell of a 2x2 grid.",
+    category: "grid",
+    style: gridCellStyle(1, 0),
+  },
+  gridBottomLeft: {
+    name: "Grid Bottom Left",
+    description: "Bottom-left cell of a 2x2 grid.",
+    category: "grid",
+    style: gridCellStyle(0, 1),
+  },
+  gridBottomRight: {
+    name: "Grid Bottom Right",
+    description: "Bottom-right cell of a 2x2 grid.",
+    category: "grid",
+    style: gridCellStyle(1, 1),
+  },
+  blurredBackground: {
+    name: "Blurred Background",
+    description: "Full-frame blurred media behind foreground content.",
+    category: "backdrop",
+    style: {
+      position: "absolute",
+      left: "-8%",
+      top: "-8%",
+      width: "116%",
+      height: "116%",
+      objectFit: "cover",
+      objectPosition: "center center",
+      filter: "brightness(0.68) saturate(0.9) blur(22px)",
+    },
+  },
+  phoneSafeVertical: {
+    name: "Phone Safe Vertical",
+    description: "Vertical full-frame crop with safe center emphasis.",
+    category: "safe-area",
+    style: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      width: "100%",
+      height: "100%",
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+} satisfies Record<string, ClipLayoutPreset>;
+
+export type ClipLayoutKey = keyof typeof clipLayouts;
+
+export const clipLayoutEntries = Object.entries(clipLayouts) as Array<
+  [ClipLayoutKey, ClipLayoutPreset]
+>;
+
+export function clipLayout(
+  key: ClipLayoutKey,
+  overrides: SceneStyle = {},
+): SceneStyle {
+  return {
+    ...clipLayouts[key].style,
+    ...overrides,
+  };
+}
+
+export type TransitionTemplateKey =
+  | "fade"
+  | "dipToBlack"
+  | "flash"
+  | "wipeLeft"
+  | "wipeRight"
+  | "zoom";
+
+export type TransitionOverlayOptions = {
+  id?: string;
+  at?: number;
+  duration?: number;
+  color?: string;
+  zIndex?: number;
+};
+
+export function transitionOverlay(
+  template: TransitionTemplateKey,
+  options: TransitionOverlayOptions = {},
+): SceneNode {
+  const id = options.id ?? `${template}-transition`;
+  const duration = Math.max(1, options.duration ?? 18);
+  const color =
+    options.color ??
+    (template === "flash" ? "#ffffff" : "rgba(0,0,0,1)");
+  const zIndex = options.zIndex ?? 1000;
+
+  if (template === "wipeLeft" || template === "wipeRight") {
+    const fromX = template === "wipeLeft" ? "translate(100%, 0px)" : "translate(-100%, 0px)";
+    const toX = "translate(0%, 0px)";
+
+    return {
+      id,
+      type: "div",
+      from: options.at,
+      duration,
+      style: fullFrameTransitionStyle(color, zIndex),
+      animations: [
+        animation("transform", [
+          { frame: 0, value: fromX },
+          { frame: duration - 1, value: toX, easing: "easeInOut" },
+        ]),
+      ],
+    };
+  }
+
+  if (template === "zoom") {
+    return {
+      id,
+      type: "div",
+      from: options.at,
+      duration,
+      style: {
+        ...fullFrameTransitionStyle(color, zIndex),
+        transformOrigin: "center center",
+      },
+      animations: [
+        animation("opacity", [
+          { frame: 0, value: 0 },
+          { frame: Math.max(1, Math.round(duration * 0.45)), value: 0.72, easing: "easeOut" },
+          { frame: duration - 1, value: 0, easing: "easeIn" },
+        ]),
+        animation("transform", [
+          { frame: 0, value: "scale(0.92)" },
+          { frame: duration - 1, value: "scale(1.08)", easing: "easeOut" },
+        ]),
+      ],
+    };
+  }
+
+  const peak =
+    template === "fade" ? 1 : template === "dipToBlack" ? 1 : 0.88;
+
+  return {
+    id,
+    type: "div",
+    from: options.at,
+    duration,
+    style: fullFrameTransitionStyle(color, zIndex),
+    animations: [
+      animation("opacity", [
+        { frame: 0, value: 0 },
+        {
+          frame: Math.max(1, Math.round(duration / 2)),
+          value: peak,
+          easing: template === "flash" ? "easeOut" : "easeInOut",
+        },
+        { frame: duration - 1, value: 0, easing: "easeIn" },
+      ]),
+    ],
+  };
+}
+
 export type TextOverlayCategory =
   | "title"
   | "lower-third"
@@ -839,6 +1094,32 @@ function eyebrowStyle(color: string): SceneStyle {
     letterSpacing: 3,
     color,
     textAlign: "center",
+  };
+}
+
+function gridCellStyle(column: 0 | 1, row: 0 | 1): SceneStyle {
+  return {
+    position: "absolute",
+    left: column === 0 ? 0 : "50%",
+    top: row === 0 ? 0 : "50%",
+    width: "50%",
+    height: "50%",
+    objectFit: "cover",
+    objectPosition: "center center",
+    overflow: "hidden",
+  };
+}
+
+function fullFrameTransitionStyle(color: string, zIndex: number): SceneStyle {
+  return {
+    position: "absolute",
+    left: 0,
+    top: 0,
+    width: "100%",
+    height: "100%",
+    backgroundColor: color,
+    opacity: 0,
+    zIndex,
   };
 }
 

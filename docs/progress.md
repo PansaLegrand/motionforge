@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-17 (preset/template slices PT3-PT4: clip layouts and transitions)
+
+### Changed
+
+- Added `clipLayout()` to `@motionforge/presets`.
+- Added stable clip layout catalog metadata through `clipLayouts` and `clipLayoutEntries`.
+- Shipped eleven layout presets: fullscreen, contain, picture-in-picture, split screen, 2x2 grid cells, blurred background, and phone-safe vertical.
+- Added `transitionOverlay()` for full-frame transition nodes.
+- Shipped six transition templates: `fade`, `dipToBlack`, `flash`, `wipeLeft`, `wipeRight`, and `zoom`.
+- Documented layouts and transitions in the presets README and programmer guides.
+- Updated the preset/template roadmap to mark PT3 and PT4 complete.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets typecheck`
+
+### Notes
+
+- Clip layouts return `SceneStyle` fragments. Transitions emit ordinary `div` nodes with opacity/transform keyframes, so no renderer special cases were introduced.
+
 ## 2026-06-17 (preset/template slice PT2: media looks)
 
 ### Changed

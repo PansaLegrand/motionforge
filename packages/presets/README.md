@@ -115,6 +115,41 @@ Available looks: `cleanProduct`, `punchySocial`, `cinematicWarm`, `coolNoir`, `r
 
 The styles use MotionForge's supported `filter` subset. Safari may preview filters differently or ignore them; exported support follows the browser Canvas2D implementation.
 
+## Clip layout presets
+
+Clip layouts return `SceneStyle` fragments for common media placements:
+
+```ts
+import { clipLayout, mediaLook } from "@motionforge/presets";
+
+videoClip(clip, {
+  style: {
+    ...clipLayout("pictureInPicture"),
+    ...mediaLook("cleanProduct"),
+  },
+});
+```
+
+Available layouts: `fullscreen`, `containCenter`, `pictureInPicture`, `splitLeft`, `splitRight`, `gridTopLeft`, `gridTopRight`, `gridBottomLeft`, `gridBottomRight`, `blurredBackground`, and `phoneSafeVertical`.
+
+## Transition overlays
+
+Transitions are normal full-frame overlay nodes with keyframed opacity or transform:
+
+```ts
+import { transitionOverlay } from "@motionforge/presets";
+
+scene.nodes.push(
+  transitionOverlay("dipToBlack", {
+    id: "cut-1",
+    at: 90,
+    duration: 18,
+  }),
+);
+```
+
+Available transitions: `fade`, `dipToBlack`, `flash`, `wipeLeft`, `wipeRight`, and `zoom`.
+
 ## Timeline choreography
 
 Sequencing several nodes means deriving frame offsets from other durations — the arithmetic both humans and LLMs get wrong. `timeline()` owns it:
