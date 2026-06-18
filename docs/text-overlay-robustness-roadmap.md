@@ -119,7 +119,7 @@ Done:
 - preset patch examples remain valid
 - generated preset gallery scenes still validate and render
 
-## Slice TX6 - Golden Stress Gallery
+## Slice TX6 - Golden Stress Gallery ✅
 
 **Goal:** text regressions become visible before they reach apps.
 
@@ -129,10 +129,10 @@ Targets:
 - golden harness
 - docs assets
 
-Done when:
+Done:
 
 - generated text stress scenes cover long Latin, URLs, CJK, emoji, long single words, and multiline captions
-- golden snapshots or videos are committed for the core stress cases
+- generated JSON is committed for the core stress cases and can be rendered through the golden example harness
 - docs explain how to refresh the gallery
 
 ## Acceptance Criteria

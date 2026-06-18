@@ -1,0 +1,520 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 90,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "stress-background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #101820 0%, #1e293b 48%, #172554 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "stress-title",
+      "type": "text",
+      "text": "Text Stress Gallery",
+      "from": 0,
+      "style": {
+        "height": 86,
+        "position": "absolute",
+        "left": 72,
+        "right": 72,
+        "top": 82,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 62,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 14 38 rgba(0,0,0,0.45)",
+        "maxLines": 1,
+        "minFontSize": 34,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "stress-subtitle",
+      "type": "text",
+      "text": "Long Latin, URLs, CJK, emoji, single-token overflow, and multiline captions in one validated scene.",
+      "from": 0,
+      "style": {
+        "height": 78,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 174,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 28,
+        "fontWeight": 700,
+        "color": "#cbd5e1",
+        "lineHeight": 1.2,
+        "textAlign": "center",
+        "maxLines": 2,
+        "minFontSize": 18,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "stress-long-latin",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 12,
+        "width": 444,
+        "height": 292,
+        "padding": 24,
+        "position": "absolute",
+        "left": 72,
+        "top": 300,
+        "backgroundColor": "rgba(15,23,42,0.82)",
+        "border": "2px solid #38bdf8",
+        "borderRadius": 22,
+        "boxShadow": "0 22 54 rgba(0,0,0,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "stress-long-latin-label",
+          "type": "text",
+          "text": "LONG LATIN",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#38bdf8",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "stress-long-latin-value",
+          "type": "text",
+          "text": "This paragraph is intentionally verbose so unknown user copy can wrap, shrink, and clamp without bleeding into adjacent overlays or resizing the card.",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 202,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 820,
+            "color": "#f8fafc",
+            "lineHeight": 1.12,
+            "textAlign": "left",
+            "maxLines": 4,
+            "minFontSize": 18,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "stress-url",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 12,
+        "width": 444,
+        "height": 292,
+        "padding": 24,
+        "position": "absolute",
+        "left": 564,
+        "top": 300,
+        "backgroundColor": "rgba(15,23,42,0.82)",
+        "border": "2px solid #facc15",
+        "borderRadius": 22,
+        "boxShadow": "0 22 54 rgba(0,0,0,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "stress-url-label",
+          "type": "text",
+          "text": "URL / PATH",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#facc15",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "stress-url-value",
+          "type": "text",
+          "text": "https://example.com/products/motionforge/releases/2026/very-long-share-link?utm_source=chat_instruction&clip=final_render",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 202,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 820,
+            "color": "#f8fafc",
+            "lineHeight": 1.12,
+            "textAlign": "left",
+            "maxLines": 3,
+            "minFontSize": 18,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "stress-cjk",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 12,
+        "width": 444,
+        "height": 292,
+        "padding": 24,
+        "position": "absolute",
+        "left": 72,
+        "top": 630,
+        "backgroundColor": "rgba(15,23,42,0.82)",
+        "border": "2px solid #34d399",
+        "borderRadius": 22,
+        "boxShadow": "0 22 54 rgba(0,0,0,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "stress-cjk-label",
+          "type": "text",
+          "text": "CJK",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#34d399",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "stress-cjk-value",
+          "type": "text",
+          "text": "这是一段很长的中文说明文字，用来确认没有空格的句子也可以稳定换行、缩小并保持在安全区域内。",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 202,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 820,
+            "color": "#f8fafc",
+            "lineHeight": 1.12,
+            "textAlign": "left",
+            "maxLines": 4,
+            "minFontSize": 18,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "stress-emoji",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 12,
+        "width": 444,
+        "height": 292,
+        "padding": 24,
+        "position": "absolute",
+        "left": 564,
+        "top": 630,
+        "backgroundColor": "rgba(15,23,42,0.82)",
+        "border": "2px solid #fb7185",
+        "borderRadius": 22,
+        "boxShadow": "0 22 54 rgba(0,0,0,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "stress-emoji-label",
+          "type": "text",
+          "text": "EMOJI",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#fb7185",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "stress-emoji-value",
+          "type": "text",
+          "text": "Launch day is live 🚀✨🎬 — keep the headline readable even with emoji clusters, flags 🇫🇷🇯🇵, and expressive punctuation!!!",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 202,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 820,
+            "color": "#f8fafc",
+            "lineHeight": 1.12,
+            "textAlign": "left",
+            "maxLines": 4,
+            "minFontSize": 18,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "stress-long-token",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 12,
+        "width": 444,
+        "height": 292,
+        "padding": 24,
+        "position": "absolute",
+        "left": 72,
+        "top": 960,
+        "backgroundColor": "rgba(15,23,42,0.82)",
+        "border": "2px solid #a78bfa",
+        "borderRadius": 22,
+        "boxShadow": "0 22 54 rgba(0,0,0,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "stress-long-token-label",
+          "type": "text",
+          "text": "LONG SINGLE TOKEN",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#a78bfa",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "stress-long-token-value",
+          "type": "text",
+          "text": "SupercalifragilisticexpialidociousPneumonoultramicroscopicsilicovolcanoconiosisWithoutSpaces",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 202,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 820,
+            "color": "#f8fafc",
+            "lineHeight": 1.12,
+            "textAlign": "left",
+            "maxLines": 3,
+            "minFontSize": 18,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "stress-multiline",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 12,
+        "width": 444,
+        "height": 292,
+        "padding": 24,
+        "position": "absolute",
+        "left": 564,
+        "top": 960,
+        "backgroundColor": "rgba(15,23,42,0.82)",
+        "border": "2px solid #f97316",
+        "borderRadius": 22,
+        "boxShadow": "0 22 54 rgba(0,0,0,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "stress-multiline-label",
+          "type": "text",
+          "text": "MULTILINE CAPTION",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#f97316",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "stress-multiline-value",
+          "type": "text",
+          "text": "Line one keeps its explicit break.\nLine two is longer and should shrink without overlap.\nLine three is clamped if space runs out.",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 202,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 820,
+            "color": "#f8fafc",
+            "lineHeight": 1.12,
+            "textAlign": "left",
+            "maxLines": 3,
+            "minFontSize": 18,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "stress-footer",
+      "type": "text",
+      "text": "Refresh: pnpm showcase:generate then render examples/generated/text-stress-gallery.json with @motionforge/golden.",
+      "from": 0,
+      "style": {
+        "height": 82,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 1328,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 25,
+        "fontWeight": 740,
+        "color": "#dbeafe",
+        "lineHeight": 1.22,
+        "textAlign": "center",
+        "maxLines": 2,
+        "minFontSize": 16,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    }
+  ]
+}

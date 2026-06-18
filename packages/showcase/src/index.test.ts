@@ -10,6 +10,7 @@ describe("showcase scenes", () => {
       "karaoke-captions",
       "launch-info-display",
       "timed-text-overlay",
+      "text-stress-gallery",
       "audio-sync-pulse",
       "lottie-sticker",
     ]);
@@ -64,6 +65,30 @@ describe("showcase scenes", () => {
     expect(bottomText?.style?.bottom).toBe(92);
     expect(bottomText?.style?.textAlign).toBe("right");
     expect(bottomText?.style?.color).toBe("#ffe45c");
+  });
+
+  it("includes text stress coverage cases", () => {
+    const entry = showcaseScenes.find(
+      (scene) => scene.id === "text-stress-gallery",
+    );
+
+    expect(entry).toBeDefined();
+    expect(validateScene(entry!.scene)).toMatchObject({ ok: true });
+    expect(entry!.scene.nodes.map((node) => node.id)).toEqual(
+      expect.arrayContaining([
+        "stress-long-latin",
+        "stress-url",
+        "stress-cjk",
+        "stress-emoji",
+        "stress-long-token",
+        "stress-multiline",
+      ]),
+    );
+    expect(JSON.stringify(entry!.scene)).toContain(
+      "Supercalifragilisticexpialidocious",
+    );
+    expect(JSON.stringify(entry!.scene)).toContain("这是一段很长的中文说明文字");
+    expect(JSON.stringify(entry!.scene)).toContain("🚀");
   });
 });
 

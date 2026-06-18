@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text robustness TX6: stress gallery)
+
+### Changed
+
+- Added `textStressGalleryScene()` to `@motionforge/showcase`.
+- Covered long Latin, long URLs/paths, CJK text, emoji clusters, long single-token text, and multiline captions in bounded overlay cards.
+- Added the generated scene JSON at `examples/generated/text-stress-gallery.json`.
+- Added a docs poster at `docs/assets/showcase/text-stress-gallery.png`.
+- Documented the refresh/render command in `examples/README.md` and listed the scene in `docs/showcase.md`.
+- Marked TX6 complete in the text overlay robustness roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase test`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm showcase:generate`
+- `pnpm --filter @motionforge/golden run example examples/generated/text-stress-gallery.json /tmp/text-stress-gallery.mp4 30`
+
+### Notes
+
+- The golden render wrote `/tmp/text-stress-gallery-f30.png`; that verified frame was committed as the docs poster.
+
 ## 2026-06-18 (text robustness TX5: robust preset upgrade)
 
 ### Changed
