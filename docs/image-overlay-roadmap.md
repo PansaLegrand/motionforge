@@ -104,7 +104,7 @@ Done:
 - Playground/Studio can preview image overlay examples as ordinary scene data
 - tests cover image overlay prompt examples or patch compilation paths
 
-## Slice IX5 - Image Overlay Stress Gallery
+## Slice IX5 - Image Overlay Stress Gallery ✅
 
 **Goal:** image overlay regressions become visible before they reach app users.
 
@@ -115,7 +115,7 @@ Targets:
 - golden harness
 - docs assets
 
-Done when:
+Done:
 
 - generated stress scene covers square logo, wide product image, tall portrait image, transparent sticker, watermark opacity, rounded crop, and oversized source assets
 - generated JSON and poster image are committed

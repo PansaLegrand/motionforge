@@ -1,5 +1,6 @@
 import { sampleScene } from "@motionforge/core";
 import {
+  imageOverlay,
   karaokeCaptions,
   parseSrt,
   parseVtt,
@@ -1335,6 +1336,420 @@ https://motionforge.dev/docs/examples/generated/subtitle-stress-gallery.json?sou
   });
 }
 
+function svgDataUrl(svg: string): string {
+  return `data:image/svg+xml,${encodeURIComponent(svg)}`;
+}
+
+function imageOverlayAssetSvg(kind: string): string {
+  if (kind === "logo") {
+    return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="112" fill="#07111f"/>
+  <path d="M130 348V164h56l70 88 70-88h56v184h-62V258l-50 64h-28l-50-64v90z" fill="#66f5d7"/>
+  <circle cx="392" cy="128" r="42" fill="#ffd166"/>
+</svg>`);
+  }
+
+  if (kind === "watermark") {
+    return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="960" height="300" viewBox="0 0 960 300">
+  <rect width="960" height="300" rx="96" fill="rgba(255,255,255,0.92)"/>
+  <circle cx="138" cy="150" r="76" fill="#111827"/>
+  <path d="M94 178l44-92 44 92h-36l-8-20h-38l-8 20z" fill="#66f5d7"/>
+  <text x="250" y="172" font-family="Inter, Arial, sans-serif" font-size="86" font-weight="900" fill="#111827">MOTIONFORGE</text>
+</svg>`);
+  }
+
+  if (kind === "sticker") {
+    return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="460" viewBox="0 0 640 460">
+  <path d="M122 132c24-70 110-98 188-62 94-58 228-8 238 103 90 38 68 170-24 194-24 74-137 80-201 38-77 54-194 18-206-66-92-21-89-158 5-207z" fill="#fff7ed"/>
+  <path d="M134 136c22-58 100-80 172-42 86-59 207-10 217 91 84 33 60 146-22 163-20 64-123 68-178 27-67 50-173 14-182-61-76-18-80-134-7-178z" fill="#fb7185"/>
+  <text x="113" y="248" font-family="Inter, Arial, sans-serif" font-size="92" font-weight="900" fill="#ffffff" transform="rotate(-7 320 230)">SHIP IT</text>
+  <circle cx="474" cy="126" r="26" fill="#ffd166"/>
+</svg>`);
+  }
+
+  if (kind === "product") {
+    return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="960" viewBox="0 0 1600 960">
+  <defs>
+    <linearGradient id="screen" x1="0" x2="1" y1="0" y2="1">
+      <stop offset="0" stop-color="#f8fafc"/>
+      <stop offset="0.52" stop-color="#dbeafe"/>
+      <stop offset="1" stop-color="#ccfbf1"/>
+    </linearGradient>
+  </defs>
+  <rect width="1600" height="960" rx="72" fill="#0f172a"/>
+  <rect x="70" y="70" width="1460" height="820" rx="46" fill="url(#screen)"/>
+  <rect x="146" y="150" width="440" height="86" rx="24" fill="#111827"/>
+  <rect x="146" y="292" width="1020" height="48" rx="24" fill="#38bdf8"/>
+  <rect x="146" y="386" width="840" height="48" rx="24" fill="#34d399"/>
+  <rect x="146" y="480" width="1120" height="48" rx="24" fill="#fb7185"/>
+  <rect x="146" y="634" width="1308" height="166" rx="36" fill="rgba(15,23,42,0.12)"/>
+  <circle cx="1340" cy="198" r="78" fill="#ffd166"/>
+</svg>`);
+  }
+
+  if (kind === "portrait") {
+    return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="960" viewBox="0 0 640 960">
+  <rect width="640" height="960" fill="#102a43"/>
+  <circle cx="320" cy="292" r="132" fill="#fde68a"/>
+  <path d="M166 846c18-198 96-298 154-298s136 100 154 298z" fill="#66f5d7"/>
+  <path d="M184 282c22-122 84-178 136-178s114 56 136 178c-68-42-204-42-272 0z" fill="#111827"/>
+  <rect x="126" y="664" width="388" height="88" rx="44" fill="#ffffff" opacity="0.26"/>
+</svg>`);
+  }
+
+  return svgDataUrl(`<svg xmlns="http://www.w3.org/2000/svg" width="720" height="360" viewBox="0 0 720 360">
+  <rect width="720" height="360" rx="180" fill="#ffd166"/>
+  <rect x="54" y="54" width="612" height="252" rx="126" fill="#111827"/>
+  <text x="360" y="214" text-anchor="middle" font-family="Inter, Arial, sans-serif" font-size="88" font-weight="900" fill="#ffd166">BETA</text>
+</svg>`);
+}
+
+function imageStressProofCard(
+  id: string,
+  label: string,
+  detail: string,
+  left: number,
+  top: number,
+  accent: string,
+): SceneNode {
+  return {
+    id,
+    type: "div",
+    style: {
+      position: "absolute",
+      left,
+      top,
+      width: 448,
+      height: 154,
+      padding: 22,
+      display: "flex",
+      flexDirection: "column",
+      gap: 10,
+      backgroundColor: "rgba(15,23,42,0.76)",
+      border: `2px solid ${accent}`,
+      borderRadius: 22,
+      boxShadow: "0 18px 46px rgba(2,6,23,0.28)",
+      overflow: "hidden",
+    },
+    children: [
+      {
+        id: `${id}-label`,
+        type: "text",
+        text: label,
+        style: {
+          width: "100%",
+          height: 30,
+          fontFamily: "system-ui, Arial, sans-serif",
+          fontSize: 20,
+          fontWeight: 900,
+          letterSpacing: 2,
+          color: accent,
+          textAlign: "left",
+          overflow: "hidden",
+          textFit: "truncate",
+          textOverflow: "ellipsis",
+          maxLines: 1,
+          minFontSize: 14,
+        },
+      },
+      {
+        id: `${id}-detail`,
+        type: "text",
+        text: detail,
+        style: {
+          width: "100%",
+          height: 70,
+          fontFamily: "system-ui, Arial, sans-serif",
+          fontSize: 27,
+          fontWeight: 780,
+          lineHeight: 1.1,
+          color: "#f8fafc",
+          textAlign: "left",
+          overflow: "hidden",
+          textFit: "shrink",
+          textOverflow: "ellipsis",
+          maxLines: 2,
+          minFontSize: 17,
+        },
+      },
+    ],
+  };
+}
+
+export function imageOverlayStressGalleryScene(): Scene {
+  const width = 1080;
+  const height = 1920;
+  const fps = 30;
+  const duration = 120;
+
+  return parseScene({
+    schemaVersion: 0,
+    width,
+    height,
+    fps,
+    duration,
+    assets: {
+      "image-logo-square": {
+        id: "image-logo-square",
+        type: "image",
+        src: imageOverlayAssetSvg("logo"),
+      },
+      "image-watermark-wide": {
+        id: "image-watermark-wide",
+        type: "image",
+        src: imageOverlayAssetSvg("watermark"),
+      },
+      "image-sticker-transparent": {
+        id: "image-sticker-transparent",
+        type: "image",
+        src: imageOverlayAssetSvg("sticker"),
+      },
+      "image-product-wide": {
+        id: "image-product-wide",
+        type: "image",
+        src: imageOverlayAssetSvg("product"),
+      },
+      "image-portrait-tall": {
+        id: "image-portrait-tall",
+        type: "image",
+        src: imageOverlayAssetSvg("portrait"),
+      },
+      "image-badge-oversized": {
+        id: "image-badge-oversized",
+        type: "image",
+        src: imageOverlayAssetSvg("badge"),
+      },
+    },
+    nodes: [
+      {
+        id: "image-stress-background",
+        type: "div",
+        style: {
+          width: "100%",
+          height: "100%",
+          background:
+            "linear-gradient(180deg, #08111f 0%, #102a43 45%, #172033 100%)",
+        },
+      },
+      {
+        id: "image-stress-stage",
+        type: "div",
+        style: {
+          position: "absolute",
+          left: 72,
+          top: 296,
+          width: 936,
+          height: 960,
+          border: "2px solid rgba(125,211,252,0.32)",
+          borderRadius: 32,
+          background:
+            "linear-gradient(160deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)",
+          boxShadow: "0 30px 80px rgba(2,6,23,0.38)",
+          overflow: "hidden",
+        },
+      },
+      {
+        id: "image-stress-title",
+        type: "text",
+        text: "Image Overlay Stress Gallery",
+        style: {
+          position: "absolute",
+          left: 72,
+          right: 72,
+          top: 76,
+          height: 86,
+          fontFamily: "system-ui, Arial, sans-serif",
+          fontSize: 58,
+          fontWeight: 900,
+          color: "#ffffff",
+          textAlign: "center",
+          textShadow: "0 14px 38px rgba(0,0,0,0.45)",
+          overflow: "hidden",
+          textFit: "shrink",
+          textOverflow: "ellipsis",
+          maxLines: 1,
+          minFontSize: 34,
+        },
+      },
+      {
+        id: "image-stress-subtitle",
+        type: "text",
+        text: "Safe-area logos, watermarks, transparent stickers, product shots, circular avatars, and oversized badges as ordinary image nodes.",
+        style: {
+          position: "absolute",
+          left: 96,
+          right: 96,
+          top: 168,
+          height: 88,
+          fontFamily: "system-ui, Arial, sans-serif",
+          fontSize: 28,
+          fontWeight: 720,
+          lineHeight: 1.18,
+          color: "#bae6fd",
+          textAlign: "center",
+          overflow: "hidden",
+          textFit: "shrink",
+          textOverflow: "ellipsis",
+          maxLines: 2,
+          minFontSize: 18,
+        },
+      },
+      imageStressProofCard(
+        "image-stress-card-logo",
+        "LOGO BUG",
+        "square asset, safe-area top-right",
+        96,
+        1328,
+        "#66f5d7",
+      ),
+      imageStressProofCard(
+        "image-stress-card-product",
+        "PRODUCT SHOT",
+        "wide source, contained center crop",
+        536,
+        1328,
+        "#ffd166",
+      ),
+      imageStressProofCard(
+        "image-stress-card-avatar",
+        "AVATAR + BADGE",
+        "tall portrait and oversized pill crop",
+        96,
+        1510,
+        "#fb7185",
+      ),
+      imageStressProofCard(
+        "image-stress-card-sticker",
+        "TRANSPARENT STICKER",
+        "SVG alpha, opacity, object-fit rules",
+        536,
+        1510,
+        "#a78bfa",
+      ),
+      {
+        id: "image-stress-footer",
+        type: "text",
+        text: "Refresh: pnpm showcase:generate then render examples/generated/image-overlay-stress-gallery.json with @motionforge/golden.",
+        style: {
+          position: "absolute",
+          left: 96,
+          right: 96,
+          top: 1704,
+          height: 70,
+          fontFamily: "system-ui, Arial, sans-serif",
+          fontSize: 24,
+          fontWeight: 720,
+          lineHeight: 1.18,
+          color: "#dbeafe",
+          textAlign: "center",
+          overflow: "hidden",
+          textFit: "shrink",
+          textOverflow: "ellipsis",
+          maxLines: 2,
+          minFontSize: 16,
+        },
+      },
+      imageOverlay({
+        id: "image-stress-logo-bug",
+        template: "logoBug",
+        assetId: "image-logo-square",
+        composition: { width, height },
+        from: 0,
+        duration,
+        enter: false,
+        style: {
+          left: 782,
+          top: 336,
+          width: 150,
+          height: 150,
+        },
+      }),
+      imageOverlay({
+        id: "image-stress-watermark",
+        template: "watermark",
+        assetId: "image-watermark-wide",
+        composition: { width, height },
+        from: 0,
+        duration,
+        enter: false,
+        style: {
+          left: 736,
+          top: 1142,
+          width: 224,
+          height: 84,
+        },
+      }),
+      imageOverlay({
+        id: "image-stress-sticker",
+        template: "sticker",
+        assetId: "image-sticker-transparent",
+        composition: { width, height },
+        placement: "topLeft",
+        from: 0,
+        duration,
+        enter: false,
+        style: {
+          left: 112,
+          top: 340,
+          width: 210,
+          height: 150,
+        },
+      }),
+      imageOverlay({
+        id: "image-stress-product-shot",
+        template: "productShot",
+        assetId: "image-product-wide",
+        composition: { width, height },
+        from: 0,
+        duration,
+        enter: false,
+        style: {
+          left: 236,
+          top: 566,
+          width: 608,
+          height: 372,
+        },
+      }),
+      imageOverlay({
+        id: "image-stress-avatar-badge",
+        template: "avatarBadge",
+        assetId: "image-portrait-tall",
+        composition: { width, height },
+        placement: "lowerThird",
+        from: 0,
+        duration,
+        enter: false,
+        style: {
+          left: 128,
+          top: 1050,
+          width: 180,
+          height: 180,
+        },
+      }),
+      imageOverlay({
+        id: "image-stress-corner-badge",
+        template: "cornerBadge",
+        assetId: "image-badge-oversized",
+        composition: { width, height },
+        placement: "bottomLeft",
+        from: 0,
+        duration,
+        enter: false,
+        style: {
+          left: 122,
+          top: 1136,
+          width: 236,
+          height: 112,
+        },
+        imageStyle: {
+          objectFit: "cover",
+          objectPosition: "center center",
+        },
+      }),
+    ],
+  });
+}
+
 /**
  * Synthesizes the audio-sync demo track as a WAV data URL: four beeps on a
  * 120 BPM grid (the last a fifth higher), 8 kHz mono 16-bit. Pure — the same
@@ -1817,6 +2232,20 @@ export const showcaseScenes: ShowcaseScene[] = [
     ],
     scene: subtitleStressGalleryScene(),
     posterFrame: 90,
+  },
+  {
+    id: "image-overlay-stress-gallery",
+    title: "Image Overlay Stress Gallery",
+    description:
+      "A self-contained image overlay scene covering logos, watermarks, transparent stickers, product shots, avatars, and oversized badges.",
+    proves: [
+      "image overlay presets",
+      "safe-area placement",
+      "object fit and crop",
+      "SVG image assets",
+    ],
+    scene: imageOverlayStressGalleryScene(),
+    posterFrame: 45,
   },
   {
     id: "audio-sync-pulse",

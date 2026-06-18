@@ -12,6 +12,7 @@ describe("showcase scenes", () => {
       "timed-text-overlay",
       "text-stress-gallery",
       "subtitle-stress-gallery",
+      "image-overlay-stress-gallery",
       "audio-sync-pulse",
       "lottie-sticker",
     ]);
@@ -128,6 +129,47 @@ describe("showcase scenes", () => {
     expect(serialized).toContain("这是一段没有空格的中文字幕");
     expect(serialized).toContain("🚀");
     expect(serialized).toContain("FAST 3");
+  });
+
+  it("includes image overlay stress coverage cases", () => {
+    const entry = showcaseScenes.find(
+      (scene) => scene.id === "image-overlay-stress-gallery",
+    );
+    const ids = entry!.scene.nodes.map((node) => node.id);
+    const imageOverlayNodes = entry!.scene.nodes.filter(
+      (node) =>
+        node.type === "div" &&
+        node.children?.some((child) => child.type === "img"),
+    );
+
+    expect(entry).toBeDefined();
+    expect(validateScene(entry!.scene)).toMatchObject({ ok: true });
+    expect(Object.values(entry!.scene.assets).map((asset) => asset.type)).toEqual([
+      "image",
+      "image",
+      "image",
+      "image",
+      "image",
+      "image",
+    ]);
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        "image-stress-logo-bug",
+        "image-stress-watermark",
+        "image-stress-sticker",
+        "image-stress-product-shot",
+        "image-stress-avatar-badge",
+        "image-stress-corner-badge",
+      ]),
+    );
+    expect(imageOverlayNodes).toHaveLength(6);
+    expect(entry!.scene.assets["image-sticker-transparent"]?.src).toContain(
+      "data:image/svg+xml",
+    );
+    expect(
+      entry!.scene.nodes.find((node) => node.id === "image-stress-watermark")
+        ?.style?.opacity,
+    ).toBe(0.42);
   });
 });
 

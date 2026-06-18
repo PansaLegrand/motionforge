@@ -1,0 +1,626 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 120,
+  "assets": {
+    "image-logo-square": {
+      "id": "image-logo-square",
+      "type": "image",
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22512%22%20height%3D%22512%22%20viewBox%3D%220%200%20512%20512%22%3E%0A%20%20%3Crect%20width%3D%22512%22%20height%3D%22512%22%20rx%3D%22112%22%20fill%3D%22%2307111f%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M130%20348V164h56l70%2088%2070-88h56v184h-62V258l-50%2064h-28l-50-64v90z%22%20fill%3D%22%2366f5d7%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22392%22%20cy%3D%22128%22%20r%3D%2242%22%20fill%3D%22%23ffd166%22%2F%3E%0A%3C%2Fsvg%3E"
+    },
+    "image-watermark-wide": {
+      "id": "image-watermark-wide",
+      "type": "image",
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22960%22%20height%3D%22300%22%20viewBox%3D%220%200%20960%20300%22%3E%0A%20%20%3Crect%20width%3D%22960%22%20height%3D%22300%22%20rx%3D%2296%22%20fill%3D%22rgba(255%2C255%2C255%2C0.92)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22138%22%20cy%3D%22150%22%20r%3D%2276%22%20fill%3D%22%23111827%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M94%20178l44-92%2044%2092h-36l-8-20h-38l-8%2020z%22%20fill%3D%22%2366f5d7%22%2F%3E%0A%20%20%3Ctext%20x%3D%22250%22%20y%3D%22172%22%20font-family%3D%22Inter%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2286%22%20font-weight%3D%22900%22%20fill%3D%22%23111827%22%3EMOTIONFORGE%3C%2Ftext%3E%0A%3C%2Fsvg%3E"
+    },
+    "image-sticker-transparent": {
+      "id": "image-sticker-transparent",
+      "type": "image",
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22460%22%20viewBox%3D%220%200%20640%20460%22%3E%0A%20%20%3Cpath%20d%3D%22M122%20132c24-70%20110-98%20188-62%2094-58%20228-8%20238%20103%2090%2038%2068%20170-24%20194-24%2074-137%2080-201%2038-77%2054-194%2018-206-66-92-21-89-158%205-207z%22%20fill%3D%22%23fff7ed%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M134%20136c22-58%20100-80%20172-42%2086-59%20207-10%20217%2091%2084%2033%2060%20146-22%20163-20%2064-123%2068-178%2027-67%2050-173%2014-182-61-76-18-80-134-7-178z%22%20fill%3D%22%23fb7185%22%2F%3E%0A%20%20%3Ctext%20x%3D%22113%22%20y%3D%22248%22%20font-family%3D%22Inter%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2292%22%20font-weight%3D%22900%22%20fill%3D%22%23ffffff%22%20transform%3D%22rotate(-7%20320%20230)%22%3ESHIP%20IT%3C%2Ftext%3E%0A%20%20%3Ccircle%20cx%3D%22474%22%20cy%3D%22126%22%20r%3D%2226%22%20fill%3D%22%23ffd166%22%2F%3E%0A%3C%2Fsvg%3E"
+    },
+    "image-product-wide": {
+      "id": "image-product-wide",
+      "type": "image",
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%221600%22%20height%3D%22960%22%20viewBox%3D%220%200%201600%20960%22%3E%0A%20%20%3Cdefs%3E%0A%20%20%20%20%3ClinearGradient%20id%3D%22screen%22%20x1%3D%220%22%20x2%3D%221%22%20y1%3D%220%22%20y2%3D%221%22%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%220%22%20stop-color%3D%22%23f8fafc%22%2F%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%220.52%22%20stop-color%3D%22%23dbeafe%22%2F%3E%0A%20%20%20%20%20%20%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23ccfbf1%22%2F%3E%0A%20%20%20%20%3C%2FlinearGradient%3E%0A%20%20%3C%2Fdefs%3E%0A%20%20%3Crect%20width%3D%221600%22%20height%3D%22960%22%20rx%3D%2272%22%20fill%3D%22%230f172a%22%2F%3E%0A%20%20%3Crect%20x%3D%2270%22%20y%3D%2270%22%20width%3D%221460%22%20height%3D%22820%22%20rx%3D%2246%22%20fill%3D%22url(%23screen)%22%2F%3E%0A%20%20%3Crect%20x%3D%22146%22%20y%3D%22150%22%20width%3D%22440%22%20height%3D%2286%22%20rx%3D%2224%22%20fill%3D%22%23111827%22%2F%3E%0A%20%20%3Crect%20x%3D%22146%22%20y%3D%22292%22%20width%3D%221020%22%20height%3D%2248%22%20rx%3D%2224%22%20fill%3D%22%2338bdf8%22%2F%3E%0A%20%20%3Crect%20x%3D%22146%22%20y%3D%22386%22%20width%3D%22840%22%20height%3D%2248%22%20rx%3D%2224%22%20fill%3D%22%2334d399%22%2F%3E%0A%20%20%3Crect%20x%3D%22146%22%20y%3D%22480%22%20width%3D%221120%22%20height%3D%2248%22%20rx%3D%2224%22%20fill%3D%22%23fb7185%22%2F%3E%0A%20%20%3Crect%20x%3D%22146%22%20y%3D%22634%22%20width%3D%221308%22%20height%3D%22166%22%20rx%3D%2236%22%20fill%3D%22rgba(15%2C23%2C42%2C0.12)%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%221340%22%20cy%3D%22198%22%20r%3D%2278%22%20fill%3D%22%23ffd166%22%2F%3E%0A%3C%2Fsvg%3E"
+    },
+    "image-portrait-tall": {
+      "id": "image-portrait-tall",
+      "type": "image",
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22640%22%20height%3D%22960%22%20viewBox%3D%220%200%20640%20960%22%3E%0A%20%20%3Crect%20width%3D%22640%22%20height%3D%22960%22%20fill%3D%22%23102a43%22%2F%3E%0A%20%20%3Ccircle%20cx%3D%22320%22%20cy%3D%22292%22%20r%3D%22132%22%20fill%3D%22%23fde68a%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M166%20846c18-198%2096-298%20154-298s136%20100%20154%20298z%22%20fill%3D%22%2366f5d7%22%2F%3E%0A%20%20%3Cpath%20d%3D%22M184%20282c22-122%2084-178%20136-178s114%2056%20136%20178c-68-42-204-42-272%200z%22%20fill%3D%22%23111827%22%2F%3E%0A%20%20%3Crect%20x%3D%22126%22%20y%3D%22664%22%20width%3D%22388%22%20height%3D%2288%22%20rx%3D%2244%22%20fill%3D%22%23ffffff%22%20opacity%3D%220.26%22%2F%3E%0A%3C%2Fsvg%3E"
+    },
+    "image-badge-oversized": {
+      "id": "image-badge-oversized",
+      "type": "image",
+      "src": "data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%22720%22%20height%3D%22360%22%20viewBox%3D%220%200%20720%20360%22%3E%0A%20%20%3Crect%20width%3D%22720%22%20height%3D%22360%22%20rx%3D%22180%22%20fill%3D%22%23ffd166%22%2F%3E%0A%20%20%3Crect%20x%3D%2254%22%20y%3D%2254%22%20width%3D%22612%22%20height%3D%22252%22%20rx%3D%22126%22%20fill%3D%22%23111827%22%2F%3E%0A%20%20%3Ctext%20x%3D%22360%22%20y%3D%22214%22%20text-anchor%3D%22middle%22%20font-family%3D%22Inter%2C%20Arial%2C%20sans-serif%22%20font-size%3D%2288%22%20font-weight%3D%22900%22%20fill%3D%22%23ffd166%22%3EBETA%3C%2Ftext%3E%0A%3C%2Fsvg%3E"
+    }
+  },
+  "nodes": [
+    {
+      "id": "image-stress-background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #08111f 0%, #102a43 45%, #172033 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "image-stress-stage",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 936,
+        "height": 960,
+        "position": "absolute",
+        "left": 72,
+        "top": 296,
+        "background": "linear-gradient(160deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)",
+        "border": "2px solid rgba(125,211,252,0.32)",
+        "borderRadius": 32,
+        "boxShadow": "0 30px 80px rgba(2,6,23,0.38)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "image-stress-title",
+      "type": "text",
+      "text": "Image Overlay Stress Gallery",
+      "from": 0,
+      "style": {
+        "height": 86,
+        "position": "absolute",
+        "left": 72,
+        "right": 72,
+        "top": 76,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 58,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 14px 38px rgba(0,0,0,0.45)",
+        "maxLines": 1,
+        "minFontSize": 34,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "image-stress-subtitle",
+      "type": "text",
+      "text": "Safe-area logos, watermarks, transparent stickers, product shots, circular avatars, and oversized badges as ordinary image nodes.",
+      "from": 0,
+      "style": {
+        "height": 88,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 168,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 28,
+        "fontWeight": 720,
+        "color": "#bae6fd",
+        "lineHeight": 1.18,
+        "textAlign": "center",
+        "maxLines": 2,
+        "minFontSize": 18,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "image-stress-card-logo",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 10,
+        "width": 448,
+        "height": 154,
+        "padding": 22,
+        "position": "absolute",
+        "left": 96,
+        "top": 1328,
+        "backgroundColor": "rgba(15,23,42,0.76)",
+        "border": "2px solid #66f5d7",
+        "borderRadius": 22,
+        "boxShadow": "0 18px 46px rgba(2,6,23,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-card-logo-label",
+          "type": "text",
+          "text": "LOGO BUG",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#66f5d7",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "image-stress-card-logo-detail",
+          "type": "text",
+          "text": "square asset, safe-area top-right",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 70,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 27,
+            "fontWeight": 780,
+            "color": "#f8fafc",
+            "lineHeight": 1.1,
+            "textAlign": "left",
+            "maxLines": 2,
+            "minFontSize": 17,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-card-product",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 10,
+        "width": 448,
+        "height": 154,
+        "padding": 22,
+        "position": "absolute",
+        "left": 536,
+        "top": 1328,
+        "backgroundColor": "rgba(15,23,42,0.76)",
+        "border": "2px solid #ffd166",
+        "borderRadius": 22,
+        "boxShadow": "0 18px 46px rgba(2,6,23,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-card-product-label",
+          "type": "text",
+          "text": "PRODUCT SHOT",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#ffd166",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "image-stress-card-product-detail",
+          "type": "text",
+          "text": "wide source, contained center crop",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 70,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 27,
+            "fontWeight": 780,
+            "color": "#f8fafc",
+            "lineHeight": 1.1,
+            "textAlign": "left",
+            "maxLines": 2,
+            "minFontSize": 17,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-card-avatar",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 10,
+        "width": 448,
+        "height": 154,
+        "padding": 22,
+        "position": "absolute",
+        "left": 96,
+        "top": 1510,
+        "backgroundColor": "rgba(15,23,42,0.76)",
+        "border": "2px solid #fb7185",
+        "borderRadius": 22,
+        "boxShadow": "0 18px 46px rgba(2,6,23,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-card-avatar-label",
+          "type": "text",
+          "text": "AVATAR + BADGE",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#fb7185",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "image-stress-card-avatar-detail",
+          "type": "text",
+          "text": "tall portrait and oversized pill crop",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 70,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 27,
+            "fontWeight": 780,
+            "color": "#f8fafc",
+            "lineHeight": 1.1,
+            "textAlign": "left",
+            "maxLines": 2,
+            "minFontSize": 17,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-card-sticker",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 10,
+        "width": 448,
+        "height": 154,
+        "padding": 22,
+        "position": "absolute",
+        "left": 536,
+        "top": 1510,
+        "backgroundColor": "rgba(15,23,42,0.76)",
+        "border": "2px solid #a78bfa",
+        "borderRadius": 22,
+        "boxShadow": "0 18px 46px rgba(2,6,23,0.28)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-card-sticker-label",
+          "type": "text",
+          "text": "TRANSPARENT STICKER",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 30,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 20,
+            "fontWeight": 900,
+            "color": "#a78bfa",
+            "letterSpacing": 2,
+            "textAlign": "left",
+            "maxLines": 1,
+            "minFontSize": 14,
+            "textFit": "truncate",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        },
+        {
+          "id": "image-stress-card-sticker-detail",
+          "type": "text",
+          "text": "SVG alpha, opacity, object-fit rules",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": 70,
+            "overflow": "hidden",
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 27,
+            "fontWeight": 780,
+            "color": "#f8fafc",
+            "lineHeight": 1.1,
+            "textAlign": "left",
+            "maxLines": 2,
+            "minFontSize": 17,
+            "textFit": "shrink",
+            "textOverflow": "ellipsis"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-footer",
+      "type": "text",
+      "text": "Refresh: pnpm showcase:generate then render examples/generated/image-overlay-stress-gallery.json with @motionforge/golden.",
+      "from": 0,
+      "style": {
+        "height": 70,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 1704,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 24,
+        "fontWeight": 720,
+        "color": "#dbeafe",
+        "lineHeight": 1.18,
+        "textAlign": "center",
+        "maxLines": 2,
+        "minFontSize": 16,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "image-stress-logo-bug",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 150,
+        "height": 150,
+        "position": "absolute",
+        "left": 782,
+        "top": 336,
+        "overflow": "visible",
+        "opacity": 0.92
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-logo-bug-image",
+          "type": "img",
+          "assetId": "image-logo-square",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "contain",
+            "objectPosition": "center center"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-watermark",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 224,
+        "height": 84,
+        "position": "absolute",
+        "left": 736,
+        "top": 1142,
+        "overflow": "visible",
+        "opacity": 0.42
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-watermark-image",
+          "type": "img",
+          "assetId": "image-watermark-wide",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "contain",
+            "objectPosition": "center center"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-sticker",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 210,
+        "height": 150,
+        "position": "absolute",
+        "left": 112,
+        "top": 340,
+        "overflow": "visible"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-sticker-image",
+          "type": "img",
+          "assetId": "image-sticker-transparent",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "contain",
+            "objectPosition": "center center"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-product-shot",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 608,
+        "height": 372,
+        "position": "absolute",
+        "left": 236,
+        "top": 566,
+        "borderRadius": 28,
+        "boxShadow": "0px 28px 76px rgba(2,6,23,0.38)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-product-shot-image",
+          "type": "img",
+          "assetId": "image-product-wide",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "backgroundColor": "rgba(15,23,42,0.18)",
+            "objectFit": "contain",
+            "objectPosition": "center center"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-avatar-badge",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 180,
+        "height": 180,
+        "position": "absolute",
+        "left": 128,
+        "top": 1050,
+        "border": "4px solid rgba(255,255,255,0.9)",
+        "borderRadius": 999,
+        "boxShadow": "0px 16px 44px rgba(2,6,23,0.34)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-avatar-badge-image",
+          "type": "img",
+          "assetId": "image-portrait-tall",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "cover",
+            "objectPosition": "center center"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "image-stress-corner-badge",
+      "type": "div",
+      "from": 0,
+      "duration": 120,
+      "style": {
+        "width": 236,
+        "height": 112,
+        "position": "absolute",
+        "left": 122,
+        "top": 1136,
+        "borderRadius": 999,
+        "boxShadow": "0px 16px 42px rgba(2,6,23,0.3)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "image-stress-corner-badge-image",
+          "type": "img",
+          "assetId": "image-badge-oversized",
+          "from": 0,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "objectFit": "cover",
+            "objectPosition": "center center"
+          },
+          "animations": [],
+          "children": []
+        }
+      ]
+    }
+  ]
+}

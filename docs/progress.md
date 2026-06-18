@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (image overlay IX5: stress gallery)
+
+### Changed
+
+- Added a self-contained image overlay stress gallery to `@motionforge/showcase`.
+- Covered square logo bugs, wide watermarks, transparent stickers, wide product shots, tall portraits, and oversized badge assets through shared `imageOverlay()` presets.
+- Added showcase tests for stable scene id, six image assets, six overlay nodes, SVG data URLs, and watermark opacity.
+- Documented the generated image overlay stress example and render command.
+- Marked IX5 complete in the image overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase test`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm showcase:generate`
+- `pnpm --filter @motionforge/golden run example examples/generated/image-overlay-stress-gallery.json docs/assets/showcase/image-overlay-stress-gallery.mp4 45`
+
+### Notes
+
+- The gallery uses deterministic SVG data URLs so contributors can refresh the JSON and poster without managing external asset files.
+- The generated poster was visually checked after rendering and the gallery coordinates were adjusted to keep overlays clear of the proof cards.
+
 ## 2026-06-18 (image overlay IX4: chat/app refresh)
 
 ### Changed
