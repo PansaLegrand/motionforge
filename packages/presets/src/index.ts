@@ -2043,6 +2043,226 @@ function bottomFallbackBox(
   return { ...common, left: "42%", bottom: 132 };
 }
 
+export type VideoOverlayCategory =
+  | "pip"
+  | "reaction"
+  | "demo"
+  | "background"
+  | "editorial";
+
+export type VideoOverlayPlacement = ImageOverlayPlacement;
+
+export type VideoOverlayTemplate = {
+  name: string;
+  description: string;
+  category: VideoOverlayCategory;
+  placement: VideoOverlayPlacement;
+  box: SafeAreaBoxOptions;
+  muted?: boolean;
+  containerStyle?: SceneStyle;
+  videoStyle?: SceneStyle;
+};
+
+export const videoOverlayTemplates = {
+  pictureInPicture: {
+    name: "Picture In Picture",
+    description: "Small inset video for demos, speaker clips, or references.",
+    category: "pip",
+    placement: "topRight",
+    box: { widthRatio: 0.32, heightRatio: 0.18 },
+    muted: true,
+    containerStyle: {
+      borderRadius: 24,
+      boxShadow: "0px 18px 48px rgba(2,6,23,0.34)",
+      overflow: "hidden",
+    },
+    videoStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  reactionCam: {
+    name: "Reaction Cam",
+    description: "Rounded talking-head overlay anchored near the lower third.",
+    category: "reaction",
+    placement: "bottomRight",
+    box: { widthRatio: 0.28, heightRatio: 0.2 },
+    muted: false,
+    containerStyle: {
+      borderRadius: 999,
+      border: "4px solid rgba(255,255,255,0.9)",
+      boxShadow: "0px 18px 54px rgba(2,6,23,0.36)",
+      overflow: "hidden",
+    },
+    videoStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  screenDemo: {
+    name: "Screen Demo",
+    description: "Large contained app or product walkthrough video.",
+    category: "demo",
+    placement: "center",
+    box: { widthRatio: 0.74, heightRatio: 0.46 },
+    muted: true,
+    containerStyle: {
+      borderRadius: 30,
+      boxShadow: "0px 30px 78px rgba(2,6,23,0.4)",
+      overflow: "hidden",
+    },
+    videoStyle: {
+      objectFit: "contain",
+      objectPosition: "center center",
+      backgroundColor: "rgba(15,23,42,0.28)",
+    },
+  },
+  backgroundLoop: {
+    name: "Background Loop",
+    description: "Muted full-frame looping-style background clip.",
+    category: "background",
+    placement: "center",
+    box: { safeArea: false, widthRatio: 1, heightRatio: 1 },
+    muted: true,
+    containerStyle: {
+      opacity: 0.72,
+    },
+    videoStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  brollStrip: {
+    name: "B-roll Strip",
+    description: "Wide editorial strip for supplemental footage.",
+    category: "editorial",
+    placement: "bottom",
+    box: { widthRatio: 0.86, heightRatio: 0.16 },
+    muted: true,
+    containerStyle: {
+      borderRadius: 22,
+      boxShadow: "0px 16px 42px rgba(2,6,23,0.28)",
+      overflow: "hidden",
+    },
+    videoStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  videoBadge: {
+    name: "Video Badge",
+    description: "Compact rounded video label for proof, avatars, or live marks.",
+    category: "editorial",
+    placement: "topLeft",
+    box: { widthRatio: 0.24, heightRatio: 0.14 },
+    muted: true,
+    containerStyle: {
+      borderRadius: 999,
+      boxShadow: "0px 14px 38px rgba(2,6,23,0.32)",
+      overflow: "hidden",
+    },
+    videoStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+} satisfies Record<string, VideoOverlayTemplate>;
+
+export type VideoOverlayTemplateKey = keyof typeof videoOverlayTemplates;
+
+export const videoOverlayTemplateEntries = Object.entries(
+  videoOverlayTemplates,
+) as Array<[VideoOverlayTemplateKey, VideoOverlayTemplate]>;
+
+export type VideoOverlayOptions = {
+  template?: VideoOverlayTemplateKey;
+  id?: string;
+  assetId: string;
+  from?: number;
+  duration?: number;
+  trimStart?: number;
+  playbackRate?: number;
+  volume?: number;
+  muted?: boolean;
+  composition?: CompositionSize;
+  safeArea?: SafeAreaInput;
+  placement?: VideoOverlayPlacement;
+  style?: SceneStyle;
+  videoStyle?: SceneStyle;
+  objectFit?: NonNullable<SceneStyle["objectFit"]>;
+  objectPosition?: SceneStyle["objectPosition"];
+  opacity?: number;
+  borderRadius?: SceneStyle["borderRadius"];
+  shadow?: SceneStyle["boxShadow"];
+  enter?: SceneAnimation[] | false;
+};
+
+export function videoOverlay(options: VideoOverlayOptions): SceneNode {
+  const key = options.template ?? "pictureInPicture";
+  const template = videoOverlayTemplates[key];
+  const id = options.id ?? `${key}-video-overlay`;
+
+  if (options.assetId.trim() === "") {
+    throw new Error("videoOverlay() requires a non-empty assetId.");
+  }
+
+  return {
+    id,
+    type: "video",
+    assetId: options.assetId,
+    from: options.from,
+    duration: options.duration,
+    videoStartTime: options.trimStart,
+    playbackRate: options.playbackRate,
+    volume:
+      options.volume ??
+      ((options.muted ?? template.muted ?? true) ? 0 : undefined),
+    style: videoOverlayStyle(options, template),
+    animations:
+      options.enter === false
+        ? []
+        : (options.enter ?? fadeUp({ durationInFrames: 10, distance: 18 })),
+  };
+}
+
+function videoOverlayStyle(
+  options: VideoOverlayOptions,
+  template: VideoOverlayTemplate,
+): SceneStyle {
+  const placementDefaults = imageOverlayPlacementDefaults(
+    options.placement ?? template.placement,
+  );
+  const box = options.composition
+    ? safeAreaBox(options.composition, placementDefaults.anchor, {
+        ...template.box,
+        align: template.box.align ?? placementDefaults.align,
+        safeArea: template.box.safeArea ?? options.safeArea,
+      })
+    : imageOverlayFallbackBox(
+        placementDefaults.anchor,
+        placementDefaults.align,
+      );
+
+  return {
+    ...box,
+    overflow: "hidden",
+    ...template.containerStyle,
+    ...template.videoStyle,
+    objectFit: options.objectFit ?? template.videoStyle?.objectFit ?? "cover",
+    objectPosition:
+      options.objectPosition ??
+      template.videoStyle?.objectPosition ??
+      "center center",
+    ...(options.opacity === undefined ? {} : { opacity: options.opacity }),
+    ...(options.borderRadius === undefined
+      ? {}
+      : { borderRadius: options.borderRadius }),
+    ...(options.shadow === undefined ? {} : { boxShadow: options.shadow }),
+    ...options.videoStyle,
+    ...options.style,
+  };
+}
+
 /** One spoken word with millisecond timestamps (ASR output shape). */
 export type CaptionWord = {
   word: string;

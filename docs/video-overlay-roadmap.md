@@ -39,7 +39,7 @@ Known gaps:
 - chat does not distinguish "overlay this clip" from "sequence this clip"
 - no visual stress gallery for trim, muted overlay audio, rounded crop, object-fit, safe-area placement, and looping-style background video nodes
 
-## Slice VX1 - Video Overlay Preset Helper
+## Slice VX1 - Video Overlay Preset Helper ✅
 
 **Goal:** programmers can create common video overlays from a stable helper instead of hand-writing absolute video styles.
 
@@ -48,7 +48,7 @@ Targets:
 - `@motionforge/presets`
 - docs/tests
 
-Done when:
+Done:
 
 - `videoOverlay()` emits schema-valid `video` nodes from an asset id
 - templates cover `pictureInPicture`, `reactionCam`, `screenDemo`, `backgroundLoop`, `brollStrip`, and `videoBadge`

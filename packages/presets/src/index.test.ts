@@ -33,6 +33,9 @@ import {
   transitionTemplateEntries,
   transitionTemplates,
   transitionOverlay,
+  videoOverlay,
+  videoOverlayTemplateEntries,
+  videoOverlayTemplates,
   type CaptionWord,
   type TextOverlayTemplateKey,
 } from "./index.js";
@@ -1017,5 +1020,141 @@ describe("image overlay template catalog", () => {
 
   it("rejects empty image overlay asset ids", () => {
     expect(() => imageOverlay({ assetId: " " })).toThrow("assetId");
+  });
+});
+
+describe("video overlay template catalog", () => {
+  it("exposes stable video overlay metadata", () => {
+    expect(videoOverlayTemplateEntries.map(([key]) => key)).toEqual([
+      "pictureInPicture",
+      "reactionCam",
+      "screenDemo",
+      "backgroundLoop",
+      "brollStrip",
+      "videoBadge",
+    ]);
+    expect(videoOverlayTemplates.screenDemo.category).toBe("demo");
+    expect(videoOverlayTemplates.pictureInPicture.muted).toBe(true);
+  });
+
+  it("generates schema-valid video overlays for every template", () => {
+    for (const [template] of videoOverlayTemplateEntries) {
+      const overlay = videoOverlay({
+        template,
+        assetId: "clip",
+        composition: { width: 1080, height: 1920 },
+      });
+      const result = validateScene({
+        ...sceneWith(overlay),
+        assets: {
+          clip: {
+            id: "clip",
+            type: "video",
+            src: "clip.mp4",
+          },
+        },
+      });
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+      expect(overlay).toMatchObject({
+        type: "video",
+        assetId: "clip",
+        style: {
+          position: "absolute",
+          objectPosition: "center center",
+        },
+      });
+    }
+  });
+
+  it("places video overlays with composition safe areas and muted defaults", () => {
+    const overlay = videoOverlay({
+      template: "pictureInPicture",
+      id: "demo-pip",
+      assetId: "clip",
+      composition: { width: 1080, height: 1920 },
+    });
+
+    expect(overlay).toMatchObject({
+      id: "demo-pip",
+      type: "video",
+      assetId: "clip",
+      volume: 0,
+      style: {
+        position: "absolute",
+        left: 708,
+        top: 144,
+        width: 300,
+        height: 290,
+        borderRadius: 24,
+        objectFit: "cover",
+      },
+    });
+  });
+
+  it("keeps reaction cam audio on unless the caller mutes it", () => {
+    const overlay = videoOverlay({
+      template: "reactionCam",
+      assetId: "camera",
+      composition: { width: 1080, height: 1920 },
+    });
+    const muted = videoOverlay({
+      template: "reactionCam",
+      assetId: "camera",
+      muted: true,
+      composition: { width: 1080, height: 1920 },
+    });
+
+    expect(overlay.volume).toBeUndefined();
+    expect(muted.volume).toBe(0);
+  });
+
+  it("lets video overlay timing, source, and style overrides win", () => {
+    const overlay = videoOverlay({
+      template: "screenDemo",
+      id: "manual-demo",
+      assetId: "screen",
+      from: 12,
+      duration: 96,
+      trimStart: 4.5,
+      playbackRate: 1.25,
+      volume: 0.35,
+      placement: "bottomLeft",
+      composition: { width: 1920, height: 1080 },
+      opacity: 0.86,
+      borderRadius: 18,
+      shadow: "0px 8px 24px rgba(0,0,0,0.24)",
+      objectFit: "cover",
+      objectPosition: "top center",
+      enter: false,
+      style: { left: 128, top: 220, width: 640, height: 420 },
+      videoStyle: { backgroundColor: "#111827" },
+    });
+
+    expect(overlay).toMatchObject({
+      id: "manual-demo",
+      from: 12,
+      duration: 96,
+      videoStartTime: 4.5,
+      playbackRate: 1.25,
+      volume: 0.35,
+      animations: [],
+      style: {
+        left: 128,
+        top: 220,
+        width: 640,
+        height: 420,
+        opacity: 0.86,
+        borderRadius: 18,
+        boxShadow: "0px 8px 24px rgba(0,0,0,0.24)",
+        objectFit: "cover",
+        objectPosition: "top center",
+        backgroundColor: "#111827",
+      },
+    });
+  });
+
+  it("rejects empty video overlay asset ids", () => {
+    expect(() => videoOverlay({ assetId: " " })).toThrow("assetId");
   });
 });

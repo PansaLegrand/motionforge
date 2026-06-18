@@ -107,6 +107,33 @@ scene.nodes.push(
 
 Templates use shared safe-area placement and set conservative `objectFit` defaults. Pass `placement`, `style`, `imageStyle`, `objectFit`, `objectPosition`, `opacity`, `borderRadius`, `shadow`, or `enter` when a project needs stricter control.
 
+## Video Overlay Templates
+
+Use with `videoOverlay({ assetId, template })`. Video overlays emit ordinary `video` nodes, so apps and agents can patch placement, timing, source trim, playback rate, volume, object fit, opacity, shadows, and crop styles by id.
+
+| Key                | Best For                                  |
+| ------------------ | ----------------------------------------- |
+| `pictureInPicture` | Small inset video clips                   |
+| `reactionCam`      | Talking-head or reaction camera overlays  |
+| `screenDemo`       | Large contained app/product walkthroughs  |
+| `backgroundLoop`   | Muted full-frame looping-style backgrounds |
+| `brollStrip`       | Wide editorial supplemental footage       |
+| `videoBadge`       | Compact rounded live/proof video badges   |
+
+```ts
+scene.nodes.push(
+  videoOverlay({
+    assetId: "clip",
+    template: "pictureInPicture",
+    composition: { width: scene.width, height: scene.height },
+    trimStart: 4,
+    duration: 120,
+  }),
+);
+```
+
+Decorative templates default to muted output (`volume: 0`); `reactionCam` keeps clip audio unless muted. Pass `volume`, `muted`, `trimStart`, `playbackRate`, `placement`, `style`, `videoStyle`, `objectFit`, `objectPosition`, `opacity`, `borderRadius`, `shadow`, or `enter` for stricter control.
+
 ## Media Looks
 
 Use with `mediaLook(key)` inside an image or video style.

@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (video overlay VX1: preset helper)
+
+### Changed
+
+- Added `videoOverlay()` to `@motionforge/presets`.
+- Added video overlay template metadata for `pictureInPicture`, `reactionCam`, `screenDemo`, `backgroundLoop`, `brollStrip`, and `videoBadge`.
+- Added options for composition-aware safe-area placement, object fit, object position, opacity, border radius, shadows, source trim, playback rate, volume, muted defaults, timing, and entrance motion.
+- Documented video overlay templates in the preset catalog guide.
+- Marked VX1 complete in the video overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+
+### Notes
+
+- `videoOverlay()` emits ordinary `video` nodes, not wrappers. That keeps trim, playback rate, volume, object fit, opacity, rounded crop, and shadows patchable on one node.
+
 ## 2026-06-18 (video overlay roadmap)
 
 ### Changed
