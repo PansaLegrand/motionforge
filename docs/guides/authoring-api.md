@@ -65,6 +65,53 @@ box({
 
 Every helper accepts `id`, `at`, `duration`, and most visual helpers accept `style` and `enter`.
 
+## Robust Text Overlays
+
+Use `textBox()` when copy may come from users, chat instructions, CSV rows, or any other source where the final length is not known ahead of time. It emits ordinary text nodes with bounded dimensions, `textFit`, `maxLines`, `minFontSize`, and ellipsis behavior already set.
+
+```ts
+import { bg, makeScene, seconds, textBox } from "@motionforge/authoring";
+
+export default makeScene({
+  size: "portrait",
+  duration: seconds(6),
+  children: [
+    bg("#111827"),
+    textBox("Launch Week: every update in under one minute", {
+      id: "headline",
+      placement: "title",
+      maxLines: 2,
+    }),
+    textBox("I love this", {
+      id: "subtitle",
+      placement: "subtitle",
+      fit: "shrink",
+      minFontSize: 24,
+    }),
+    textBox("Ada Chen\nProduct Lead", {
+      id: "speaker",
+      placement: "lowerThird",
+      safeArea: { x: 96, y: 120 },
+    }),
+    textBox("42%", {
+      id: "stat",
+      placement: "statCallout",
+      maxLines: 1,
+      style: { color: "#fde68a" },
+    }),
+  ],
+});
+```
+
+`placement` accepts `"center"`, `"top"`, `"bottom"`, `"title"`, `"subtitle"`, `"lowerThird"`, and `"statCallout"`. `safeArea` defaults to scene-relative insets; pass a number for equal padding, `{ x, y }` for axis padding, edge-specific values, or `false` for full-frame placement.
+
+The defaults are intentionally production-safe:
+
+- `fit: "shrink"` keeps long text inside the box.
+- `textOverflow: "ellipsis"` preserves a visible ending when text is clamped.
+- `overflow: "hidden"` prevents accidental bleed into neighboring overlays.
+- `style` remains an escape hatch and overrides all generated defaults.
+
 ## Media Nodes
 
 ```ts

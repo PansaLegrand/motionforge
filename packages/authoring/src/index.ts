@@ -61,6 +61,35 @@ export type BoxOptions = VisualOptions & {
 
 export type TextOptions = VisualOptions;
 
+export type TextBoxPlacement =
+  | "center"
+  | "top"
+  | "bottom"
+  | "title"
+  | "subtitle"
+  | "lowerThird"
+  | "statCallout";
+
+export type TextBoxSafeArea =
+  | boolean
+  | number
+  | {
+      x?: number;
+      y?: number;
+      top?: number;
+      right?: number;
+      bottom?: number;
+      left?: number;
+    };
+
+export type TextBoxOptions = TextOptions & {
+  placement?: TextBoxPlacement;
+  safeArea?: TextBoxSafeArea;
+  fit?: SceneStyle["textFit"];
+  maxLines?: number;
+  minFontSize?: number;
+};
+
 export type MediaOptions = VisualOptions & {
   objectFit?: SceneStyle["objectFit"];
   objectPosition?: SceneStyle["objectPosition"];
@@ -280,6 +309,20 @@ export function textBlock(value: string, options: TextOptions = {}): AuthorNode 
   };
 }
 
+export function textBox(value: string, options: TextBoxOptions = {}): AuthorNode {
+  return {
+    toNode(fps, scene) {
+      return textNode(value, {
+        ...options,
+        style: {
+          ...textBoxStyle(scene, options),
+          ...options.style,
+        },
+      }).toNode(fps, scene);
+    },
+  };
+}
+
 export function textNode(value: string, options: TextOptions = {}): AuthorNode {
   return {
     toNode(fps) {
@@ -435,6 +478,213 @@ function centeredTextStyle(scene: ResolvedSceneOptions): SceneStyle {
     right: inset,
     color: "#ffffff",
     textAlign: "center",
+  };
+}
+
+type ResolvedSafeArea = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+type TextBoxPlacementDefaults = {
+  box: Required<Pick<SceneStyle, "left" | "top" | "width" | "height">>;
+  textAlign: NonNullable<SceneStyle["textAlign"]>;
+  fontSize: number;
+  fontWeight: NonNullable<SceneStyle["fontWeight"]>;
+  lineHeight: NonNullable<SceneStyle["lineHeight"]>;
+  maxLines: number;
+};
+
+function textBoxStyle(
+  scene: ResolvedSceneOptions,
+  options: TextBoxOptions,
+): SceneStyle {
+  const placement = options.placement ?? "center";
+  const placementDefaults = textBoxPlacementDefaults(
+    scene,
+    placement,
+    resolveTextBoxSafeArea(scene, options.safeArea),
+  );
+  const fontSize = placementDefaults.fontSize;
+
+  return {
+    position: "absolute",
+    color: "#ffffff",
+    overflow: "hidden",
+    textFit: options.fit ?? "shrink",
+    textOverflow: "ellipsis",
+    minFontSize: options.minFontSize ?? Math.max(14, Math.round(fontSize * 0.55)),
+    maxLines: options.maxLines ?? placementDefaults.maxLines,
+    ...placementDefaults.box,
+    textAlign: placementDefaults.textAlign,
+    fontSize,
+    fontWeight: placementDefaults.fontWeight,
+    lineHeight: placementDefaults.lineHeight,
+  };
+}
+
+function textBoxPlacementDefaults(
+  scene: ResolvedSceneOptions,
+  placement: TextBoxPlacement,
+  safeArea: ResolvedSafeArea,
+): TextBoxPlacementDefaults {
+  const availableWidth = Math.max(1, scene.width - safeArea.left - safeArea.right);
+  const availableHeight = Math.max(
+    1,
+    scene.height - safeArea.top - safeArea.bottom,
+  );
+  const centerHeight = Math.round(scene.height * 0.2);
+  const titleHeight = Math.round(scene.height * 0.18);
+  const captionHeight = Math.round(scene.height * 0.12);
+  const lowerThirdHeight = Math.round(scene.height * 0.15);
+  const statHeight = Math.round(scene.height * 0.18);
+
+  switch (placement) {
+    case "title":
+      return {
+        box: {
+          left: safeArea.left,
+          top: safeArea.top + Math.round(scene.height * 0.05),
+          width: availableWidth,
+          height: titleHeight,
+        },
+        textAlign: "center",
+        fontSize: Math.max(36, Math.round(scene.height * 0.052)),
+        fontWeight: 900,
+        lineHeight: 1.06,
+        maxLines: 2,
+      };
+    case "subtitle":
+      return {
+        box: {
+          left: safeArea.left,
+          top:
+            scene.height -
+            safeArea.bottom -
+            Math.round(scene.height * 0.11) -
+            captionHeight,
+          width: availableWidth,
+          height: captionHeight,
+        },
+        textAlign: "center",
+        fontSize: Math.max(24, Math.round(scene.height * 0.028)),
+        fontWeight: 700,
+        lineHeight: 1.18,
+        maxLines: 2,
+      };
+    case "lowerThird":
+      return {
+        box: {
+          left: safeArea.left,
+          top:
+            scene.height -
+            safeArea.bottom -
+            Math.round(scene.height * 0.12) -
+            lowerThirdHeight,
+          width: Math.max(1, Math.round(availableWidth * 0.74)),
+          height: lowerThirdHeight,
+        },
+        textAlign: "left",
+        fontSize: Math.max(28, Math.round(scene.height * 0.036)),
+        fontWeight: 800,
+        lineHeight: 1.12,
+        maxLines: 2,
+      };
+    case "statCallout":
+      return {
+        box: {
+          left: safeArea.left,
+          top: safeArea.top + Math.round(scene.height * 0.24),
+          width: Math.max(1, Math.round(availableWidth * 0.5)),
+          height: statHeight,
+        },
+        textAlign: "left",
+        fontSize: Math.max(42, Math.round(scene.height * 0.06)),
+        fontWeight: 900,
+        lineHeight: 0.96,
+        maxLines: 2,
+      };
+    case "top":
+      return {
+        box: {
+          left: safeArea.left,
+          top: safeArea.top,
+          width: availableWidth,
+          height: titleHeight,
+        },
+        textAlign: "center",
+        fontSize: Math.max(32, Math.round(scene.height * 0.04)),
+        fontWeight: 800,
+        lineHeight: 1.12,
+        maxLines: 3,
+      };
+    case "bottom":
+      return {
+        box: {
+          left: safeArea.left,
+          top: scene.height - safeArea.bottom - captionHeight,
+          width: availableWidth,
+          height: captionHeight,
+        },
+        textAlign: "center",
+        fontSize: Math.max(24, Math.round(scene.height * 0.03)),
+        fontWeight: 700,
+        lineHeight: 1.16,
+        maxLines: 2,
+      };
+    case "center":
+      return {
+        box: {
+          left: safeArea.left,
+          top: safeArea.top + Math.round((availableHeight - centerHeight) / 2),
+          width: availableWidth,
+          height: centerHeight,
+        },
+        textAlign: "center",
+        fontSize: Math.max(32, Math.round(scene.height * 0.044)),
+        fontWeight: 800,
+        lineHeight: 1.08,
+        maxLines: 3,
+      };
+  }
+}
+
+function resolveTextBoxSafeArea(
+  scene: ResolvedSceneOptions,
+  safeArea: TextBoxSafeArea | undefined,
+): ResolvedSafeArea {
+  const defaultX = Math.round(Math.min(scene.width, scene.height) * 0.067);
+  const defaultY = Math.round(scene.height * 0.06);
+
+  if (safeArea === false) {
+    return { top: 0, right: 0, bottom: 0, left: 0 };
+  }
+
+  if (typeof safeArea === "number") {
+    return {
+      top: safeArea,
+      right: safeArea,
+      bottom: safeArea,
+      left: safeArea,
+    };
+  }
+
+  if (typeof safeArea === "object") {
+    return {
+      top: safeArea.top ?? safeArea.y ?? defaultY,
+      right: safeArea.right ?? safeArea.x ?? defaultX,
+      bottom: safeArea.bottom ?? safeArea.y ?? defaultY,
+      left: safeArea.left ?? safeArea.x ?? defaultX,
+    };
+  }
+
+  return {
+    top: defaultY,
+    right: defaultX,
+    bottom: defaultY,
+    left: defaultX,
   };
 }
 

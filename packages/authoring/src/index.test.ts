@@ -13,6 +13,7 @@ import {
   publicAsset,
   seconds,
   textBlock,
+  textBox,
   title,
   toFrames,
   toSeconds,
@@ -154,6 +155,98 @@ describe("@motionforge/authoring", () => {
       right: 129,
       top: 529,
       fontSize: 24,
+    });
+  });
+
+  it("builds robust bounded text boxes with placement defaults", () => {
+    const scene = makeScene({
+      size: "portrait",
+      fps: 30,
+      duration: seconds(3),
+      children: [
+        textBox("A very long title that should stay readable in a safe box", {
+          id: "title-box",
+          placement: "title",
+          maxLines: 2,
+        }),
+        textBox("Speaker name and role", {
+          id: "lower-third",
+          placement: "lowerThird",
+          safeArea: { x: 96, y: 128 },
+          fit: "truncate",
+          minFontSize: 28,
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "title-box",
+      type: "text",
+      text: "A very long title that should stay readable in a safe box",
+      style: {
+        left: 72,
+        top: 211,
+        width: 936,
+        height: 346,
+        overflow: "hidden",
+        textFit: "shrink",
+        textOverflow: "ellipsis",
+        maxLines: 2,
+        fontSize: 100,
+        minFontSize: 55,
+      },
+    });
+    expect(scene.nodes[1]).toMatchObject({
+      id: "lower-third",
+      style: {
+        left: 96,
+        top: 1274,
+        width: 657,
+        height: 288,
+        textAlign: "left",
+        textFit: "truncate",
+        minFontSize: 28,
+        maxLines: 2,
+      },
+    });
+  });
+
+  it("lets text box style overrides keep manual control", () => {
+    const scene = makeScene({
+      size: "square",
+      duration: seconds(2),
+      children: [
+        textBox("Manual caption", {
+          id: "manual",
+          placement: "bottom",
+          safeArea: false,
+          style: {
+            left: 24,
+            top: 900,
+            width: 512,
+            height: 80,
+            fontSize: 34,
+            textAlign: "left",
+            textFit: "wrap",
+            textOverflow: "clip",
+            maxLines: 1,
+          },
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]?.style).toMatchObject({
+      left: 24,
+      top: 900,
+      width: 512,
+      height: 80,
+      fontSize: 34,
+      textAlign: "left",
+      textFit: "wrap",
+      textOverflow: "clip",
+      maxLines: 1,
     });
   });
 

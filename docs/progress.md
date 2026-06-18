@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text robustness TX3: authoring text box helper)
+
+### Changed
+
+- Added `textBox()` to `@motionforge/authoring` for bounded, production-safe text overlays.
+- Added typed placement options for center, top, bottom, title, subtitle, lower-third, and stat-callout overlays.
+- Added safe-area options with default scene-relative insets, equal padding, axis padding, edge-specific padding, and full-frame opt-out.
+- Wired helper options to scene style data: `textFit`, `maxLines`, `minFontSize`, `textOverflow`, and hidden overflow.
+- Documented title, subtitle, lower-third, and stat-callout examples in the authoring guide.
+- Marked TX3 complete in the text overlay robustness roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- `textBox()` remains an authoring convenience only. It emits ordinary text nodes so chat, Studio, Playground, renderers, and validators all see the same scene data.
+
 ## 2026-06-18 (text robustness TX2: shrink-to-fit text)
 
 ### Changed

@@ -73,7 +73,7 @@ Done:
 - layout and renderer agree on the resolved font size
 - tests cover width-only, height-constrained, and impossible-fit cases
 
-## Slice TX3 - Authoring Text Box Helper
+## Slice TX3 - Authoring Text Box Helper ✅
 
 **Goal:** programmers can create robust text overlays without memorizing low-level style keys.
 
@@ -82,7 +82,7 @@ Targets:
 - `packages/authoring`
 - docs/guides
 
-Done when:
+Done:
 
 - `textBox()` or equivalent helper emits bounded text nodes with robust defaults
 - helper exposes fit, maxLines, minFontSize, placement, and safe-area options
