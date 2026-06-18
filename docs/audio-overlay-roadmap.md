@@ -122,12 +122,17 @@ Targets:
 
 Done when:
 
-- audio nodes can express volume over time without pretending style animations affect sound
+- audio and video nodes can express volume over time without pretending style animations affect sound
 - fade-in and fade-out helpers compile to mixer-visible volume automation
 - long music/ambience beds can loop through a node window without duplicating nodes manually
 - ducking can be compiled deterministically: music lowers under voiceover/video audio windows, then recovers
 - unit tests cover envelope math, chunk boundaries, overlap mixing, loop wrap, and ducking windows
 - in-browser export tests decode the resulting AAC and verify audible levels before, during, and after fades/ducking
+
+Progress:
+
+- AX5a complete: schema/core/export now carry `volumeEnvelope` on audio/video nodes and the mixer samples it in node-local frames, including clipped chunks.
+- Still remaining in AX5: preset/authoring fade helpers, looping, ducking compilation, player/UI affordances, and browser-level audible regression checks.
 
 ## Slice AX6 - Audio Overlay Stress Gallery
 

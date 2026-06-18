@@ -6,6 +6,7 @@ import {
   sceneNodeSchema,
   sceneSchema,
   styleSchema,
+  volumeEnvelopeSchema,
   type Scene,
   type SceneAnimation,
   type SceneAsset,
@@ -43,6 +44,7 @@ const setNodePropsOp = z.object({
       playbackRate: z.number().positive().nullable().optional(),
       audioStartTime: z.number().nonnegative().nullable().optional(),
       volume: z.number().min(0).max(1).nullable().optional(),
+      volumeEnvelope: z.lazy(() => volumeEnvelopeSchema).nullable().optional(),
     })
     .strict()
     .refine((props) => Object.keys(props).length > 0, {

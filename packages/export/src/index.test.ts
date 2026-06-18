@@ -4,6 +4,7 @@ import {
   audioChunkRanges,
   collectAudioPlacements,
   detectExportCapability,
+  evaluateVolumeEnvelope,
   exportVideo,
   frameToTimestampUs,
   mixAudioSegments,
@@ -342,6 +343,79 @@ describe("mixAudioSegments with rate-scaled segments", () => {
 });
 
 describe("mixAudioSegments", () => {
+  it("evaluates volume envelopes with keyframe easing", () => {
+    expect(
+      evaluateVolumeEnvelope(
+        [
+          { frame: 0, value: 0 },
+          { frame: 10, value: 1, easing: "linear" },
+        ],
+        5,
+      ),
+    ).toBeCloseTo(0.5, 5);
+    expect(
+      evaluateVolumeEnvelope(
+        [
+          { frame: 0, value: 0 },
+          { frame: 10, value: 1, easing: "easeOut" },
+        ],
+        5,
+      ),
+    ).toBeGreaterThan(0.5);
+  });
+
+  it("applies node-local volume envelopes during mixing", () => {
+    const mixed = mixAudioSegments(
+      [
+        {
+          channels: [new Float32Array([1, 1, 1, 1])],
+          sampleRate: 4,
+          startTime: 0,
+          volume: 0.5,
+          envelopeFps: 4,
+          volumeEnvelope: [
+            { frame: 0, value: 0 },
+            { frame: 3, value: 1 },
+          ],
+        },
+      ],
+      1,
+      4,
+      1,
+    );
+
+    expect(Array.from(mixed[0] ?? [])).toEqual([
+      0,
+      expect.closeTo(1 / 6, 6),
+      expect.closeTo(1 / 3, 6),
+      0.5,
+    ]);
+  });
+
+  it("samples volume envelopes from a chunk's node-local offset", () => {
+    const mixed = mixAudioSegments(
+      [
+        {
+          channels: [new Float32Array([1, 1])],
+          sampleRate: 2,
+          startTime: 0,
+          volume: 1,
+          envelopeStartTime: 0.5,
+          envelopeFps: 2,
+          volumeEnvelope: [
+            { frame: 0, value: 0 },
+            { frame: 2, value: 1 },
+          ],
+        },
+      ],
+      1,
+      2,
+      1,
+    );
+
+    expect(Array.from(mixed[0] ?? [])).toEqual([0.5, 1]);
+  });
+
   it("places segments at the right offset with volume applied", () => {
     const mixed = mixAudioSegments(
       [

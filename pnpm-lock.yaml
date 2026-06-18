@@ -190,6 +190,9 @@ importers:
 
   packages/export:
     dependencies:
+      '@motionforge/core':
+        specifier: workspace:*
+        version: link:../core
       '@motionforge/renderer-canvas2d':
         specifier: workspace:*
         version: link:../renderer-canvas2d

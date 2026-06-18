@@ -133,7 +133,15 @@ describe("applyScenePatch", () => {
       {
         op: "setNodeProps",
         id: "shot",
-        props: { videoStartTime: 2.5, playbackRate: 1.25, volume: 0.4 },
+        props: {
+          videoStartTime: 2.5,
+          playbackRate: 1.25,
+          volume: 0.4,
+          volumeEnvelope: [
+            { frame: 0, value: 0 },
+            { frame: 12, value: 1 },
+          ],
+        },
       },
       { op: "setNodeProps", id: "shot", props: { playbackRate: null } },
     ], mediaScene());
@@ -141,6 +149,10 @@ describe("applyScenePatch", () => {
 
     expect(shot?.videoStartTime).toBe(2.5);
     expect(shot?.volume).toBe(0.4);
+    expect(shot?.volumeEnvelope).toEqual([
+      { frame: 0, value: 0 },
+      { frame: 12, value: 1 },
+    ]);
     expect(shot?.playbackRate).toBeUndefined();
   });
 
@@ -150,7 +162,7 @@ describe("applyScenePatch", () => {
     ]);
 
     expect(errors.map((error) => error.message).join("\n")).toContain(
-      "volume only applies to audio and video nodes",
+      "volume and volumeEnvelope only apply to audio and video nodes",
     );
   });
 

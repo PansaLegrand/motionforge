@@ -257,6 +257,87 @@ describe("scene schema", () => {
     );
   });
 
+  it("accepts mixer-visible volume envelopes on audio and video nodes only", () => {
+    const valid = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      assets: {
+        tone: { id: "tone", type: "audio", src: "tone.wav" },
+        clip: { id: "clip", type: "video", src: "clip.mp4" },
+      },
+      nodes: [
+        {
+          id: "music",
+          type: "audio",
+          assetId: "tone",
+          volumeEnvelope: [
+            { frame: 0, value: 0 },
+            { frame: 12, value: 1, easing: "easeOut" },
+          ],
+        },
+        {
+          id: "shot",
+          type: "video",
+          assetId: "clip",
+          volumeEnvelope: [
+            { frame: 0, value: 1 },
+            { frame: 24, value: 0.4 },
+          ],
+        },
+      ],
+    });
+
+    expect(valid.ok).toBe(true);
+
+    const invalidTarget = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      nodes: [
+        {
+          id: "box",
+          type: "div",
+          volumeEnvelope: [{ frame: 0, value: 1 }],
+        },
+      ],
+    });
+
+    expect(invalidTarget.ok).toBe(false);
+    expect(invalidTarget.ok ? [] : invalidTarget.errors.join("\n")).toContain(
+      "volume and volumeEnvelope only apply",
+    );
+
+    const invalidOrder = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 30,
+      assets: { tone: { id: "tone", type: "audio", src: "tone.wav" } },
+      nodes: [
+        {
+          id: "music",
+          type: "audio",
+          assetId: "tone",
+          volumeEnvelope: [
+            { frame: 10, value: 0 },
+            { frame: 10, value: 1 },
+          ],
+        },
+      ],
+    });
+
+    expect(invalidOrder.ok).toBe(false);
+    expect(invalidOrder.ok ? [] : invalidOrder.errors.join("\n")).toContain(
+      "strictly increasing",
+    );
+  });
+
   it("validates lottie nodes: assetId required, playbackRate allowed", () => {
     const base = {
       schemaVersion: 0,

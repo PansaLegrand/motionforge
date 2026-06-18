@@ -5,7 +5,8 @@ import {
   type AudioClip,
   type ResolvedAssets,
 } from "@motionforge/renderer-canvas2d";
-import type { Scene, SceneNode } from "@motionforge/schema";
+import { evaluateKeyframes } from "@motionforge/core";
+import type { Scene, SceneNode, VolumeEnvelope } from "@motionforge/schema";
 import {
   AudioBufferSource,
   BufferTarget,
@@ -135,6 +136,12 @@ export type AudioSegment = {
   startTime: number;
   /** Gain 0..1. */
   volume: number;
+  /** Optional node-local gain curve multiplied by volume. */
+  volumeEnvelope?: VolumeEnvelope;
+  /** Node-local seconds at segment start, used when sampling volumeEnvelope. */
+  envelopeStartTime?: number;
+  /** Scene fps for frame-based volumeEnvelope sampling. */
+  envelopeFps?: number;
 };
 
 /**
@@ -188,9 +195,19 @@ export function mixAudioSegments(
         const t = sourcePosition - lower;
         const lowerValue = source[lower] ?? 0;
         const upperValue = source[upper] ?? 0;
+        const envelopeGain =
+          segment.volumeEnvelope && segment.envelopeFps
+            ? evaluateVolumeEnvelope(
+                segment.volumeEnvelope,
+                ((segment.envelopeStartTime ?? 0) + index / sampleRate) *
+                  segment.envelopeFps,
+              )
+            : 1;
         target[outIndex] =
           (target[outIndex] ?? 0) +
-          (lowerValue + (upperValue - lowerValue) * t) * segment.volume;
+          (lowerValue + (upperValue - lowerValue) * t) *
+            segment.volume *
+            envelopeGain;
       }
     }
   }
@@ -202,6 +219,14 @@ export function mixAudioSegments(
   }
 
   return output;
+}
+
+export function evaluateVolumeEnvelope(
+  envelope: VolumeEnvelope | undefined,
+  frame: number,
+): number {
+  const value = evaluateKeyframes(envelope ?? [], frame);
+  return typeof value === "number" ? value : 1;
 }
 
 export type RenderFrameSequenceProgress = {
@@ -600,6 +625,9 @@ export async function mixSceneAudio(
       sampleRate: clip.sampleRate * rate,
       startTime: (audibleStart - startFrame) / scene.fps,
       volume: placement.node.volume ?? 1,
+      volumeEnvelope: placement.node.volumeEnvelope,
+      envelopeStartTime: framesIntoSource / scene.fps,
+      envelopeFps: scene.fps,
     });
   }
 

@@ -100,6 +100,32 @@
                 "minimum": 0,
                 "maximum": 1
               },
+              "volumeEnvelope": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "frame": {
+                      "type": "integer",
+                      "minimum": 0
+                    },
+                    "value": {
+                      "type": "number",
+                      "minimum": 0,
+                      "maximum": 1
+                    },
+                    "easing": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "frame",
+                    "value"
+                  ],
+                  "additionalProperties": false
+                },
+                "minItems": 1
+              },
               "from": {
                 "type": "integer",
                 "default": 0

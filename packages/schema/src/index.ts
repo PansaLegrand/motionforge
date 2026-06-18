@@ -228,6 +228,38 @@ export const animationSchema = z
 
 export type SceneAnimation = z.infer<typeof animationSchema>;
 
+export const volumeEnvelopePointSchema = z.object({
+  frame: z.number().int().nonnegative(),
+  value: z.number().min(0).max(1),
+  easing: z
+    .string()
+    .refine(isEasingExpression, {
+      message:
+        "Easing must be linear/easeIn/easeOut/easeInOut, cubic-bezier(x1, y1, x2, y2) with x1 and x2 in [0, 1], or spring(bounce) with bounce in [0, 1).",
+    })
+    .optional(),
+});
+
+export const volumeEnvelopeSchema = z
+  .array(volumeEnvelopePointSchema)
+  .min(1)
+  .superRefine((envelope, ctx) => {
+    for (let index = 1; index < envelope.length; index += 1) {
+      const previous = envelope[index - 1];
+      const current = envelope[index];
+
+      if (previous && current && current.frame <= previous.frame) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [index, "frame"],
+          message: `Volume envelope frames must be strictly increasing; frame ${current.frame} follows frame ${previous.frame}. Sort the points and merge duplicates.`,
+        });
+      }
+    }
+  });
+
+export type VolumeEnvelope = z.infer<typeof volumeEnvelopeSchema>;
+
 export const assetSchema = z.object({
   id: z.string().min(1),
   type: z.enum(["image", "video", "audio", "font", "lottie"]),
@@ -253,6 +285,12 @@ export type SceneNodeInput = {
    * playbackRate also retimes the sound (pitch shifts — no time-stretch).
    */
   volume?: number;
+  /**
+   * Audio and video nodes: node-local gain curve multiplied by `volume`.
+   * Frames are node-local, not source-local. Export and preview both sample it
+   * during mixing, so fades and ducking affect sound rather than visuals.
+   */
+  volumeEnvelope?: VolumeEnvelope;
   from?: number;
   duration?: number;
   style?: SceneStyle;
@@ -273,6 +311,7 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
       playbackRate: z.number().positive().optional(),
       audioStartTime: z.number().nonnegative().optional(),
       volume: z.number().min(0).max(1).optional(),
+      volumeEnvelope: volumeEnvelopeSchema.optional(),
       from: z.number().int().default(0),
       duration: z.number().int().positive().optional(),
       style: styleSchema.default({}),
@@ -333,12 +372,12 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
       if (
         node.type !== "audio" &&
         node.type !== "video" &&
-        node.volume !== undefined
+        (node.volume !== undefined || node.volumeEnvelope !== undefined)
       ) {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
-          path: ["volume"],
-          message: `volume only applies to audio and video nodes; remove it from this ${node.type} node.`,
+          path: node.volume !== undefined ? ["volume"] : ["volumeEnvelope"],
+          message: `volume and volumeEnvelope only apply to audio and video nodes; remove them from this ${node.type} node.`,
         });
       }
 
@@ -365,7 +404,7 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
             code: z.ZodIssueCode.custom,
             path: ["animations"],
             message:
-              "Audio nodes do not support animations yet; use the static volume field.",
+              "Audio nodes do not support animations yet; use volume or volumeEnvelope for sound gain.",
           });
         }
       }

@@ -2,6 +2,32 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX5a: volume envelopes)
+
+### Changed
+
+- Added `volumeEnvelope` to the scene contract for audio and video nodes.
+- Carried volume envelopes through `@motionforge/core` builders and validated them through `setNodeProps`.
+- Made the export mixer multiply static `volume` by node-local envelope samples, including ancestor-clipped chunks.
+- Reused the existing keyframe easing evaluator so envelope points can use the same easing vocabulary as visual animations.
+- Updated scene-format docs, LLM prompt context, and the audio roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema typecheck`
+- `pnpm --filter @motionforge/schema test`
+- `pnpm --filter @motionforge/schema build`
+- `pnpm --filter @motionforge/core typecheck`
+- `pnpm --filter @motionforge/core test`
+- `pnpm --filter @motionforge/core build`
+- `pnpm --filter @motionforge/export typecheck`
+- `pnpm --filter @motionforge/export test`
+- `pnpm --filter @motionforge/export build`
+
+### Notes
+
+- This is the mixer-visible foundation for fades and ducking. Preset/authoring helpers and browser-level audible regression checks remain in AX5.
+
 ## 2026-06-19 (audio overlay AX4b: chat/app refresh)
 
 ### Changed

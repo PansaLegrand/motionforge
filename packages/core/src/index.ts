@@ -4,6 +4,7 @@ import {
   type SceneAsset,
   type SceneNode,
   type SceneStyle,
+  type VolumeEnvelope,
   parseScene,
 } from "@motionforge/schema";
 
@@ -27,6 +28,8 @@ export type VideoNodeOptions = NodeOptions & {
   videoStartTime?: number;
   /** Playback speed multiplier (1 = natural speed). */
   playbackRate?: number;
+  /** Node-local gain curve multiplied by `volume`. */
+  volumeEnvelope?: VolumeEnvelope;
 };
 
 export type AudioNodeOptions = Omit<NodeOptions, "style"> & {
@@ -34,6 +37,8 @@ export type AudioNodeOptions = Omit<NodeOptions, "style"> & {
   audioStartTime?: number;
   /** Gain from 0 (silent) to 1 (natural), default 1. */
   volume?: number;
+  /** Node-local gain curve multiplied by `volume`. */
+  volumeEnvelope?: VolumeEnvelope;
 };
 
 type IdCounter = { next: number };
@@ -81,6 +86,7 @@ export class NodeBuilder {
   private readonly playbackRate?: number;
   private readonly audioStartTime?: number;
   private readonly volume?: number;
+  private readonly volumeEnvelope?: VolumeEnvelope;
   private from: number;
   private duration?: number;
   private readonly style: SceneStyle;
@@ -100,6 +106,7 @@ export class NodeBuilder {
     this.playbackRate = options.playbackRate;
     this.audioStartTime = options.audioStartTime;
     this.volume = options.volume;
+    this.volumeEnvelope = options.volumeEnvelope;
     this.from = options.from ?? 0;
     this.duration = options.duration;
     this.style = options.style ?? {};
@@ -146,6 +153,7 @@ export class NodeBuilder {
       playbackRate: this.playbackRate,
       audioStartTime: this.audioStartTime,
       volume: this.volume,
+      volumeEnvelope: this.volumeEnvelope,
       from: this.from,
       duration: this.duration,
       style: this.style,
