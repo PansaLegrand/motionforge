@@ -15,8 +15,9 @@ Audio overlays must stay data-first:
 - timing uses frame `from` / `duration`; source trim uses `audioStartTime` in seconds
 - static volume uses the existing `volume` field
 - fades use `volumeEnvelope` points on ordinary audio/video nodes
+- looping beds use `loop: true` on ordinary audio nodes
 - helpers expose named roles and sensible defaults, but every output is patchable scene data
-- loop and ducking behavior must be represented in schema and mixer code before presets claim to support it
+- ducking behavior must be represented in schema and mixer code before presets claim to support it
 - generated examples must prove preview/export semantics, not just TypeScript helper shapes
 
 ## Current Baseline
@@ -32,10 +33,10 @@ Already shipped:
 - chat asset shelf visibility and manual insert support for audio assets
 - mixer-visible `volumeEnvelope` support for audio/video nodes
 - audio overlay preset and authoring helpers with fade-in/fade-out options
+- audio-node `loop` support for repeated music/ambience beds
 
 Known gaps:
 
-- no audio loop primitive for long music/ambience beds
 - no deterministic ducking compiler for lowering beds under voice/video audio windows
 - no audio stress gallery proving trim, volume, fades, looping, ducking, and export mix behavior together
 
@@ -131,7 +132,8 @@ Progress:
 
 - AX5a complete: schema/core/export now carry `volumeEnvelope` on audio/video nodes and the mixer samples it in node-local frames, including clipped chunks.
 - AX5b complete: preset and authoring audio helpers compile fade-in/fade-out options to `volumeEnvelope`.
-- Still remaining in AX5: looping, ducking compilation, player/UI affordances, and browser-level audible regression checks.
+- AX5d complete: audio nodes can loop source playback through long node windows, and preset/authoring/chat helpers expose `loop`.
+- Still remaining in AX5: ducking compilation, player/UI affordances, and browser-level audible regression checks.
 
 ## Slice AX6 - Audio Overlay Stress Gallery
 

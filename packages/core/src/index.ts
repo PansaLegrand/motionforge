@@ -39,6 +39,8 @@ export type AudioNodeOptions = Omit<NodeOptions, "style"> & {
   volume?: number;
   /** Node-local gain curve multiplied by `volume`. */
   volumeEnvelope?: VolumeEnvelope;
+  /** Wrap source playback through the node's active window. */
+  loop?: boolean;
 };
 
 type IdCounter = { next: number };
@@ -87,6 +89,7 @@ export class NodeBuilder {
   private readonly audioStartTime?: number;
   private readonly volume?: number;
   private readonly volumeEnvelope?: VolumeEnvelope;
+  private readonly loop?: boolean;
   private from: number;
   private duration?: number;
   private readonly style: SceneStyle;
@@ -107,6 +110,7 @@ export class NodeBuilder {
     this.audioStartTime = options.audioStartTime;
     this.volume = options.volume;
     this.volumeEnvelope = options.volumeEnvelope;
+    this.loop = options.loop;
     this.from = options.from ?? 0;
     this.duration = options.duration;
     this.style = options.style ?? {};
@@ -154,6 +158,7 @@ export class NodeBuilder {
       audioStartTime: this.audioStartTime,
       volume: this.volume,
       volumeEnvelope: this.volumeEnvelope,
+      loop: this.loop,
       from: this.from,
       duration: this.duration,
       style: this.style,

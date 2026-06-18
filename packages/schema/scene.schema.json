@@ -126,6 +126,9 @@
                 },
                 "minItems": 1
               },
+              "loop": {
+                "type": "boolean"
+              },
               "from": {
                 "type": "integer",
                 "default": 0

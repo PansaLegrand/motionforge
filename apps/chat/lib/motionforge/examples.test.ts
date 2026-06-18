@@ -81,7 +81,7 @@ describe("starter template examples", () => {
       "Put @Video 1 in the top-right as picture-in-picture.",
     );
     expect(promptChips).toContain(
-      "Add @Audio 1 as quiet background music with a 1s fade in and 1s fade out.",
+      "Add @Audio 1 as looping quiet background music with a 1s fade in and 1s fade out.",
     );
     expect(promptChips).toContain("Play @Ping at 3s as a notification ping.");
     expect(promptChips).toContain(

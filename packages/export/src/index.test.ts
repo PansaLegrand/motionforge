@@ -7,6 +7,7 @@ import {
   evaluateVolumeEnvelope,
   exportVideo,
   frameToTimestampUs,
+  loopedSourceRanges,
   mixAudioSegments,
   renderFrameSequence,
 } from "./index.js";
@@ -281,7 +282,13 @@ describe("collectAudioPlacements", () => {
             // Starts at local frame -5 relative to the parent window via the
             // grandparent clip: parent window [10, 50), node start 10 + 5 = 15
             // here is NOT clipped; use a deeper case below for clipping.
-            { id: "shot", type: "video", assetId: "clip", from: 5, duration: 20 },
+            {
+              id: "shot",
+              type: "video",
+              assetId: "clip",
+              from: 5,
+              duration: 20,
+            },
           ],
         },
         {
@@ -466,6 +473,48 @@ describe("mixAudioSegments", () => {
     const mixed = mixAudioSegments([loud, loud], 1, 2, 1);
 
     expect(Array.from(mixed[0] ?? [])).toEqual([1, 1]);
+  });
+});
+
+describe("loopedSourceRanges", () => {
+  it("returns one bounded range for non-looped audio", () => {
+    expect(
+      loopedSourceRanges({
+        start: 0.25,
+        duration: 2,
+        sourceDuration: 1,
+        loop: false,
+      }),
+    ).toEqual([{ sourceStart: 0.25, sourceEnd: 1, outputOffset: 0 }]);
+  });
+
+  it("splits looped audio across source wraps", () => {
+    expect(
+      loopedSourceRanges({
+        start: 0.75,
+        duration: 2,
+        sourceDuration: 1,
+        loop: true,
+      }),
+    ).toEqual([
+      { sourceStart: 0.75, sourceEnd: 1, outputOffset: 0 },
+      { sourceStart: 0, sourceEnd: 1, outputOffset: 0.25 },
+      { sourceStart: 0, sourceEnd: 0.75, outputOffset: 1.25 },
+    ]);
+  });
+
+  it("wraps trim offsets beyond the source duration", () => {
+    expect(
+      loopedSourceRanges({
+        start: 2.5,
+        duration: 0.75,
+        sourceDuration: 1,
+        loop: true,
+      }),
+    ).toEqual([
+      { sourceStart: 0.5, sourceEnd: 1, outputOffset: 0 },
+      { sourceStart: 0, sourceEnd: 0.25, outputOffset: 0.5 },
+    ]);
   });
 });
 

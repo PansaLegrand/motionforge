@@ -143,6 +143,7 @@ export type AudioTrackOptions = AuthorTimingOptions & {
   trimStart?: TimeValue;
   volume?: number;
   volumeEnvelope?: VolumeEnvelope;
+  loop?: boolean;
   fadeIn?: TimeValue;
   fadeOut?: TimeValue;
   fadeInEasing?: string;
@@ -490,6 +491,7 @@ export function audioTrack(
         ...timing,
         audioStartTime: toSeconds(options.trimStart, fps),
         volume: options.volume,
+        loop: options.loop,
         volumeEnvelope:
           options.volumeEnvelope ??
           audioFadeEnvelope({
@@ -687,6 +689,7 @@ function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
         audioStartTime: node.audioStartTime,
         volume: node.volume,
         volumeEnvelope: node.volumeEnvelope,
+        loop: node.loop,
       });
       break;
     case "lottie":

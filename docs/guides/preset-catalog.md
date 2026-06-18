@@ -111,14 +111,14 @@ Templates use shared safe-area placement and set conservative `objectFit` defaul
 
 Use with `videoOverlay({ assetId, template })`. Video overlays emit ordinary `video` nodes, so apps and agents can patch placement, timing, source trim, playback rate, volume, object fit, opacity, shadows, and crop styles by id.
 
-| Key                | Best For                                  |
-| ------------------ | ----------------------------------------- |
-| `pictureInPicture` | Small inset video clips                   |
-| `reactionCam`      | Talking-head or reaction camera overlays  |
-| `screenDemo`       | Large contained app/product walkthroughs  |
+| Key                | Best For                                   |
+| ------------------ | ------------------------------------------ |
+| `pictureInPicture` | Small inset video clips                    |
+| `reactionCam`      | Talking-head or reaction camera overlays   |
+| `screenDemo`       | Large contained app/product walkthroughs   |
 | `backgroundLoop`   | Muted full-frame looping-style backgrounds |
-| `brollStrip`       | Wide editorial supplemental footage       |
-| `videoBadge`       | Compact rounded live/proof video badges   |
+| `brollStrip`       | Wide editorial supplemental footage        |
+| `videoBadge`       | Compact rounded live/proof video badges    |
 
 ```ts
 scene.nodes.push(
@@ -140,14 +140,14 @@ The preset catalog can also generate a patch example for video overlays when the
 
 Use with `audioOverlay({ assetId, template })`. Audio overlays emit ordinary `audio` nodes, so apps and agents can patch timing, source trim, static volume, and `volumeEnvelope` by id.
 
-| Key                | Best For                                      |
-| ------------------ | --------------------------------------------- |
-| `backgroundMusic`  | Quiet music beds under a whole scene/section  |
-| `voiceover`        | Primary narration or spoken explanation       |
-| `soundEffect`      | One-shot effects aligned to edits or actions  |
-| `beatAccent`       | Short percussive hits for cuts and reveals    |
-| `ambientBed`       | Low ambience under a scene                    |
-| `notificationPing` | Compact UI/callout cue sounds                 |
+| Key                | Best For                                     |
+| ------------------ | -------------------------------------------- |
+| `backgroundMusic`  | Quiet music beds under a whole scene/section |
+| `voiceover`        | Primary narration or spoken explanation      |
+| `soundEffect`      | One-shot effects aligned to edits or actions |
+| `beatAccent`       | Short percussive hits for cuts and reveals   |
+| `ambientBed`       | Low ambience under a scene                   |
+| `notificationPing` | Compact UI/callout cue sounds                |
 
 ```ts
 scene.nodes.push(
@@ -159,13 +159,14 @@ scene.nodes.push(
     trimStart: 8,
     fadeInDuration: 30,
     fadeOutDuration: 45,
+    loop: true,
   }),
 );
 ```
 
-Role templates choose conservative default volumes: music and ambience sit quietly, voiceover stays full-level, and short cues get bounded default durations. Pass `volume`, `muted`, `trimStart`, `from`, `duration`, `fadeInDuration`, `fadeOutDuration`, or an explicit `volumeEnvelope` for stricter control.
+Role templates choose conservative default volumes: music and ambience sit quietly, voiceover stays full-level, and short cues get bounded default durations. Pass `volume`, `muted`, `trimStart`, `from`, `duration`, `loop`, `fadeInDuration`, `fadeOutDuration`, or an explicit `volumeEnvelope` for stricter control.
 
-Fades compile to mixer-visible `volumeEnvelope` points, so preview and export use the same gain curve. Looping beds and ducking are still future engine work.
+Fades compile to mixer-visible `volumeEnvelope` points, so preview and export use the same gain curve. Looping is audio-node data via `loop: true`; ducking is still future engine work.
 
 ## Media Looks
 

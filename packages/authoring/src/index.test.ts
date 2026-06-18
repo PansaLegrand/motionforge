@@ -234,6 +234,7 @@ describe("@motionforge/authoring", () => {
           fadeIn: seconds(0.5),
           fadeOut: seconds(1),
           volume: 0.4,
+          loop: true,
         }),
       ],
     });
@@ -244,6 +245,7 @@ describe("@motionforge/authoring", () => {
       type: "audio",
       duration: 150,
       volume: 0.4,
+      loop: true,
       volumeEnvelope: [
         { frame: 0, value: 0 },
         { frame: 15, value: 1, easing: "easeOut" },

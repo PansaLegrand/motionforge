@@ -2340,6 +2340,7 @@ export type AudioOverlayOptions = {
   fadeOutDuration?: number;
   fadeInEasing?: string;
   fadeOutEasing?: string;
+  loop?: boolean;
   muted?: boolean;
 };
 
@@ -2372,6 +2373,7 @@ export function audioOverlay(options: AudioOverlayOptions): SceneNode {
     duration,
     audioStartTime: options.trimStart,
     volume: options.volume ?? (options.muted ? 0 : template.defaultVolume),
+    loop: options.loop,
     volumeEnvelope:
       options.volumeEnvelope ??
       audioFadeEnvelope({

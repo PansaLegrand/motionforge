@@ -2,6 +2,41 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX5d: looped beds)
+
+### Changed
+
+- Added audio-only `loop` to the scene schema, patch vocabulary, and core builders.
+- Made export/player audio mixing split looped source ranges deterministically across source wraps.
+- Added `loop` options to preset and authoring audio helpers.
+- Taught deterministic chat audio prompts to recognize loop/repeat wording for audio overlays.
+- Updated scene docs, authoring docs, preset docs, chat examples, and LLM context.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema typecheck`
+- `pnpm --filter @motionforge/schema test`
+- `pnpm --filter @motionforge/schema build`
+- `pnpm --filter @motionforge/core typecheck`
+- `pnpm --filter @motionforge/core test`
+- `pnpm --filter @motionforge/core build`
+- `pnpm --filter @motionforge/export typecheck`
+- `pnpm --filter @motionforge/export test`
+- `pnpm --filter @motionforge/export build`
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test -- index.test.ts`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat test -- local-agent.test.ts`
+- `pnpm --filter @motionforge/chat test -- examples.test.ts`
+
+### Notes
+
+- Looping is deliberately audio-only in this slice. Video visual looping and ducking remain separate work.
+
 ## 2026-06-19 (audio overlay AX5c: chat fade refresh)
 
 ### Changed

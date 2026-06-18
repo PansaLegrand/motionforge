@@ -1247,6 +1247,7 @@ describe("audio overlay template catalog", () => {
       duration: 120,
       trimStart: 3.5,
       volume: 0.4,
+      loop: true,
     });
     const muted = audioOverlay({
       template: "voiceover",
@@ -1260,6 +1261,7 @@ describe("audio overlay template catalog", () => {
       duration: 120,
       audioStartTime: 3.5,
       volume: 0.4,
+      loop: true,
     });
     expect(muted.volume).toBe(0);
   });
@@ -1301,9 +1303,7 @@ describe("audio overlay template catalog", () => {
   });
 
   it("validates audio fade envelope inputs", () => {
-    expect(
-      audioFadeEnvelope({ duration: 100, fadeInDuration: 12 }),
-    ).toEqual([
+    expect(audioFadeEnvelope({ duration: 100, fadeInDuration: 12 })).toEqual([
       { frame: 0, value: 0 },
       { frame: 12, value: 1, easing: "easeOut" },
     ]);

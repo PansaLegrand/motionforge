@@ -525,9 +525,14 @@ function sceneHasAudibleContent(
       : (placement.node.audioStartTime ?? 0);
     const framesIntoSource =
       placement.framesIntoNode + (audibleStart - placement.startFrame);
+    const loopsAudio = placement.node.type === "audio" && placement.node.loop;
     const trimOffset = nodeTrim + (framesIntoSource / scene.fps) * rate;
 
-    if (trimOffset < clip.duration) {
+    if (loopsAudio) {
+      if (clip.duration > 0) {
+        return true;
+      }
+    } else if (trimOffset < clip.duration) {
       return true;
     }
   }
@@ -609,26 +614,37 @@ export async function mixSceneAudio(
       : (placement.node.audioStartTime ?? 0);
     const framesIntoSource =
       placement.framesIntoNode + (audibleStart - placement.startFrame);
+    const windowSeconds = (audibleEnd - audibleStart) / scene.fps;
     const trimOffset = nodeTrim + (framesIntoSource / scene.fps) * rate;
-    const sourceEnd = Math.min(
-      clip.duration,
-      trimOffset + ((audibleEnd - audibleStart) / scene.fps) * rate,
-    );
+    const sourceRanges = loopedSourceRanges({
+      start: trimOffset,
+      duration: windowSeconds * rate,
+      sourceDuration: clip.duration,
+      loop: placement.node.type === "audio" && placement.node.loop === true,
+    });
 
-    if (trimOffset >= sourceEnd) {
+    if (sourceRanges.length === 0) {
       // Trimmed past the end of the clip: silence, not an error.
       continue;
     }
 
-    segments.push({
-      channels: await decodeAudioRange(clip, trimOffset, sourceEnd),
-      sampleRate: clip.sampleRate * rate,
-      startTime: (audibleStart - startFrame) / scene.fps,
-      volume: placement.node.volume ?? 1,
-      volumeEnvelope: placement.node.volumeEnvelope,
-      envelopeStartTime: framesIntoSource / scene.fps,
-      envelopeFps: scene.fps,
-    });
+    for (const range of sourceRanges) {
+      segments.push({
+        channels: await decodeAudioRange(
+          clip,
+          range.sourceStart,
+          range.sourceEnd,
+        ),
+        sampleRate: clip.sampleRate * rate,
+        startTime:
+          (audibleStart - startFrame) / scene.fps + range.outputOffset / rate,
+        volume: placement.node.volume ?? 1,
+        volumeEnvelope: placement.node.volumeEnvelope,
+        envelopeStartTime:
+          framesIntoSource / scene.fps + range.outputOffset / rate,
+        envelopeFps: scene.fps,
+      });
+    }
   }
 
   if (segments.length === 0) {
@@ -703,6 +719,68 @@ async function decodeAudioRange(
   }
 
   return channels;
+}
+
+export type LoopedSourceRange = {
+  /** Source seconds to decode, inclusive start. */
+  sourceStart: number;
+  /** Source seconds to decode, exclusive end. */
+  sourceEnd: number;
+  /** Seconds from the audible window start where this decoded range plays. */
+  outputOffset: number;
+};
+
+export function loopedSourceRanges({
+  start,
+  duration,
+  sourceDuration,
+  loop,
+}: {
+  start: number;
+  duration: number;
+  sourceDuration: number;
+  loop: boolean;
+}): LoopedSourceRange[] {
+  if (duration <= 0 || sourceDuration <= 0) {
+    return [];
+  }
+
+  if (!loop) {
+    const sourceStart = start;
+    const sourceEnd = Math.min(sourceDuration, start + duration);
+
+    return sourceStart < sourceEnd
+      ? [{ sourceStart, sourceEnd, outputOffset: 0 }]
+      : [];
+  }
+
+  const ranges: LoopedSourceRange[] = [];
+  let remaining = duration;
+  let outputOffset = 0;
+  let cursor = positiveModulo(start, sourceDuration);
+
+  while (remaining > 1e-9) {
+    const span = Math.min(sourceDuration - cursor, remaining);
+
+    if (span <= 0) {
+      break;
+    }
+
+    ranges.push({
+      sourceStart: cursor,
+      sourceEnd: cursor + span,
+      outputOffset,
+    });
+    remaining -= span;
+    outputOffset += span;
+    cursor = 0;
+  }
+
+  return ranges;
+}
+
+function positiveModulo(value: number, modulus: number): number {
+  return ((value % modulus) + modulus) % modulus;
 }
 
 function createExportCanvas(

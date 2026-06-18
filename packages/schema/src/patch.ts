@@ -45,6 +45,7 @@ const setNodePropsOp = z.object({
       audioStartTime: z.number().nonnegative().nullable().optional(),
       volume: z.number().min(0).max(1).nullable().optional(),
       volumeEnvelope: z.lazy(() => volumeEnvelopeSchema).nullable().optional(),
+      loop: z.boolean().nullable().optional(),
     })
     .strict()
     .refine((props) => Object.keys(props).length > 0, {

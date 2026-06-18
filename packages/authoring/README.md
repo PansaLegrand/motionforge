@@ -184,6 +184,7 @@ export default makeScene({
       trimStart: seconds(12),
       fadeIn: seconds(0.75),
       fadeOut: seconds(1),
+      loop: true,
     }),
     audioOverlay(ping, {
       template: "notificationPing",
@@ -193,7 +194,7 @@ export default makeScene({
 });
 ```
 
-The helper emits normal `audio` nodes and auto-registers audio asset objects in `scene.assets`. It controls timing, source trim, static volume, and fade-in/fade-out gain automation through `volumeEnvelope`; looping and ducking remain future mixer features.
+The helper emits normal `audio` nodes and auto-registers audio asset objects in `scene.assets`. It controls timing, source trim, static volume, looped beds, and fade-in/fade-out gain automation through `volumeEnvelope`; ducking remains future mixer work.
 
 ## Subtitles
 

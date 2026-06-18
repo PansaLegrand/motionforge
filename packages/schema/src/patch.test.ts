@@ -129,22 +129,25 @@ describe("applyScenePatch", () => {
   });
 
   it("sets and deletes validated scalar node props", () => {
-    const scene = applied([
-      {
-        op: "setNodeProps",
-        id: "shot",
-        props: {
-          videoStartTime: 2.5,
-          playbackRate: 1.25,
-          volume: 0.4,
-          volumeEnvelope: [
-            { frame: 0, value: 0 },
-            { frame: 12, value: 1 },
-          ],
+    const scene = applied(
+      [
+        {
+          op: "setNodeProps",
+          id: "shot",
+          props: {
+            videoStartTime: 2.5,
+            playbackRate: 1.25,
+            volume: 0.4,
+            volumeEnvelope: [
+              { frame: 0, value: 0 },
+              { frame: 12, value: 1 },
+            ],
+          },
         },
-      },
-      { op: "setNodeProps", id: "shot", props: { playbackRate: null } },
-    ], mediaScene());
+        { op: "setNodeProps", id: "shot", props: { playbackRate: null } },
+      ],
+      mediaScene(),
+    );
     const shot = scene.nodes.find((n) => n.id === "shot");
 
     expect(shot?.videoStartTime).toBe(2.5);
@@ -154,6 +157,34 @@ describe("applyScenePatch", () => {
       { frame: 12, value: 1 },
     ]);
     expect(shot?.playbackRate).toBeUndefined();
+  });
+
+  it("sets and deletes audio loop props", () => {
+    const scene = applied(
+      [
+        { op: "setNodeProps", id: "music", props: { loop: true } },
+        { op: "setNodeProps", id: "music", props: { loop: null } },
+      ],
+      {
+        ...baseScene(),
+        assets: {
+          ...baseScene().assets,
+          music: { id: "music", type: "audio", src: "music.mp3" },
+        },
+        nodes: [
+          ...baseScene().nodes,
+          {
+            id: "music",
+            type: "audio",
+            assetId: "music",
+            duration: 90,
+          },
+        ],
+      },
+    );
+    const music = scene.nodes.find((node) => node.id === "music");
+
+    expect(music?.loop).toBeUndefined();
   });
 
   it("rejects setNodeProps when final node-type invariants fail", () => {
@@ -172,9 +203,10 @@ describe("applyScenePatch", () => {
         ?.message,
     ).toContain("props must include");
     expect(
-      rejected([
-        { op: "setNodeProps", id: "shot", props: { src: "other.mp4" } },
-      ], mediaScene())[0]?.message,
+      rejected(
+        [{ op: "setNodeProps", id: "shot", props: { src: "other.mp4" } }],
+        mediaScene(),
+      )[0]?.message,
     ).toContain("Unrecognized key");
   });
 
@@ -186,7 +218,9 @@ describe("applyScenePatch", () => {
   });
 
   it("retimes from and duration", () => {
-    const scene = applied([{ op: "retime", id: "title", from: 10, duration: 40 }]);
+    const scene = applied([
+      { op: "retime", id: "title", from: 10, duration: 40 },
+    ]);
     const title = scene.nodes.find((n) => n.id === "title");
     expect(title?.from).toBe(10);
     expect(title?.duration).toBe(40);
@@ -212,7 +246,9 @@ describe("applyScenePatch", () => {
         ],
       },
     ]);
-    expect(scene.nodes.find((n) => n.id === "title")?.animations).toHaveLength(1);
+    expect(scene.nodes.find((n) => n.id === "title")?.animations).toHaveLength(
+      1,
+    );
 
     const errors = rejected([
       {
@@ -247,7 +283,12 @@ describe("applyScenePatch", () => {
       },
     ]);
 
-    expect(scene.nodes.map((n) => n.id)).toEqual(["bg", "sub", "title", "badge"]);
+    expect(scene.nodes.map((n) => n.id)).toEqual([
+      "bg",
+      "sub",
+      "title",
+      "badge",
+    ]);
     expect(scene.nodes[0]?.children?.[0]?.id).toBe("child");
   });
 

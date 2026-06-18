@@ -218,9 +218,7 @@ describe("scene schema", () => {
       fps: 30,
       duration: 30,
       assets: { clip: { id: "clip", type: "video", src: "clip.mp4" } },
-      nodes: [
-        { id: "shot", type: "video", assetId: "clip", volume: 0.5 },
-      ],
+      nodes: [{ id: "shot", type: "video", assetId: "clip", volume: 0.5 }],
     });
 
     expect(valid.ok).toBe(true);
@@ -335,6 +333,50 @@ describe("scene schema", () => {
     expect(invalidOrder.ok).toBe(false);
     expect(invalidOrder.ok ? [] : invalidOrder.errors.join("\n")).toContain(
       "strictly increasing",
+    );
+  });
+
+  it("accepts audio loop flags only on audio nodes", () => {
+    const valid = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 90,
+      assets: { music: { id: "music", type: "audio", src: "music.mp3" } },
+      nodes: [
+        {
+          id: "music",
+          type: "audio",
+          assetId: "music",
+          duration: 90,
+          loop: true,
+        },
+      ],
+    });
+
+    expect(valid.ok).toBe(true);
+
+    const invalid = validateScene({
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 90,
+      assets: { clip: { id: "clip", type: "video", src: "clip.mp4" } },
+      nodes: [
+        {
+          id: "shot",
+          type: "video",
+          assetId: "clip",
+          loop: true,
+        },
+      ],
+    });
+
+    expect(invalid.ok).toBe(false);
+    expect(invalid.ok ? [] : invalid.errors.join("\n")).toContain(
+      "loop only applies to audio nodes",
     );
   });
 

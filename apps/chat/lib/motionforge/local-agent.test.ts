@@ -153,7 +153,9 @@ describe("local motionforge agent", () => {
         id: "logoBug-overlay",
         type: "div",
         duration: scene.duration,
-        children: [{ id: "logoBug-overlay-image", type: "img", assetId: "logo" }],
+        children: [
+          { id: "logoBug-overlay-image", type: "img", assetId: "logo" },
+        ],
       },
     });
     expect(inserted?.style).toMatchObject({
@@ -189,7 +191,10 @@ describe("local motionforge agent", () => {
 
     expect(result.mode).toBe("scene");
     expect(result.patch).toMatchObject([
-      { op: "setAsset", asset: { id: "image_1", type: "image", src: "blob:logo" } },
+      {
+        op: "setAsset",
+        asset: { id: "image_1", type: "image", src: "blob:logo" },
+      },
       {
         op: "insertNode",
         node: {
@@ -274,7 +279,10 @@ describe("local motionforge agent", () => {
 
     expect(result.mode).toBe("scene");
     expect(result.patch).toMatchObject([
-      { op: "setAsset", asset: { id: "video_1", type: "video", src: "blob:video-1" } },
+      {
+        op: "setAsset",
+        asset: { id: "video_1", type: "video", src: "blob:video-1" },
+      },
       {
         op: "insertNode",
         node: {
@@ -310,7 +318,7 @@ describe("local motionforge agent", () => {
     };
     const result = applyInstructionLocally(
       scene,
-      "Add quiet background music under the whole scene, fade in for 1s and fade out for 2s.",
+      "Add looping quiet background music under the whole scene, fade in for 1s and fade out for 2s.",
     );
     const inserted = nodeById(result.scene, "backgroundMusic-overlay");
 
@@ -324,6 +332,7 @@ describe("local motionforge agent", () => {
         assetId: "music",
         duration: scene.duration,
         volume: 0.22,
+        loop: true,
         volumeEnvelope: [
           { frame: 0, value: 0 },
           { frame: 30, value: 1, easing: "easeOut" },
@@ -338,6 +347,7 @@ describe("local motionforge agent", () => {
       from: 0,
       duration: scene.duration,
       volume: 0.22,
+      loop: true,
       volumeEnvelope: [
         { frame: 0, value: 0 },
         { frame: 30, value: 1, easing: "easeOut" },
@@ -370,7 +380,10 @@ describe("local motionforge agent", () => {
 
     expect(result.mode).toBe("scene");
     expect(result.patch).toMatchObject([
-      { op: "setAsset", asset: { id: "audio_1", type: "audio", src: "blob:ping" } },
+      {
+        op: "setAsset",
+        asset: { id: "audio_1", type: "audio", src: "blob:ping" },
+      },
       {
         op: "insertNode",
         node: {

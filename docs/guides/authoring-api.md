@@ -357,6 +357,7 @@ export default makeScene({
       duration: seconds(8),
       fadeIn: seconds(0.75),
       fadeOut: seconds(1),
+      loop: true,
       volume: 0.22,
     }),
     audioOverlay(voice, {
@@ -385,7 +386,7 @@ audioOverlay("ambience", {
 });
 ```
 
-Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at`, `duration`, `fadeIn`, and `fadeOut` compile from authoring time values to frame integers. Fades emit `volumeEnvelope` data on the audio node. Looping and ducking are still future engine work.
+Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at`, `duration`, `fadeIn`, and `fadeOut` compile from authoring time values to frame integers. Fades emit `volumeEnvelope` data on the audio node, and `loop: true` repeats source audio through the node duration. Ducking is still future engine work.
 
 ## Media Nodes
 

@@ -291,6 +291,8 @@ export type SceneNodeInput = {
    * during mixing, so fades and ducking affect sound rather than visuals.
    */
   volumeEnvelope?: VolumeEnvelope;
+  /** Audio nodes: wrap source playback through the node's active window. */
+  loop?: boolean;
   from?: number;
   duration?: number;
   style?: SceneStyle;
@@ -312,6 +314,7 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
       audioStartTime: z.number().nonnegative().optional(),
       volume: z.number().min(0).max(1).optional(),
       volumeEnvelope: volumeEnvelopeSchema.optional(),
+      loop: z.boolean().optional(),
       from: z.number().int().default(0),
       duration: z.number().int().positive().optional(),
       style: styleSchema.default({}),
@@ -378,6 +381,14 @@ export const sceneNodeSchema: z.ZodType<SceneNodeInput> = z.lazy(() =>
           code: z.ZodIssueCode.custom,
           path: node.volume !== undefined ? ["volume"] : ["volumeEnvelope"],
           message: `volume and volumeEnvelope only apply to audio and video nodes; remove them from this ${node.type} node.`,
+        });
+      }
+
+      if (node.type !== "audio" && node.loop !== undefined) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["loop"],
+          message: `loop only applies to audio nodes; remove it from this ${node.type} node.`,
         });
       }
 

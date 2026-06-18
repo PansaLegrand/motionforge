@@ -116,28 +116,28 @@ The local fallback supports the core media sequence flow and several first-draft
 
 Use these when there is no scene yet:
 
-| Goal | Prompt |
-|---|---|
-| Product teaser | `Make a 5 second vertical product launch teaser for a new AI video app.` |
-| Kinetic typography | `Create a kinetic typography scene saying SHIP THE DEMO with punchy motion.` |
-| Founder update | `Turn this into a calm founder update with a clean title and three points.` |
-| Subtitle gallery | `Show a subtitle template gallery previewing all caption styles.` |
-| Karaoke subtitle style | `Make a vertical video with neon karaoke subtitles.` |
+| Goal                   | Prompt                                                                       |
+| ---------------------- | ---------------------------------------------------------------------------- |
+| Product teaser         | `Make a 5 second vertical product launch teaser for a new AI video app.`     |
+| Kinetic typography     | `Create a kinetic typography scene saying SHIP THE DEMO with punchy motion.` |
+| Founder update         | `Turn this into a calm founder update with a clean title and three points.`  |
+| Subtitle gallery       | `Show a subtitle template gallery previewing all caption styles.`            |
+| Karaoke subtitle style | `Make a vertical video with neon karaoke subtitles.`                         |
 
 ### Uploaded Video And Image Commands
 
 Upload media first in the Assets panel. The app assigns stable names like `Video 1`, `Video 2`, and `Image 1`.
 
-| Goal | Prompt |
-|---|---|
-| Add one clip | `Use @Video 1.` |
-| Trim one clip | `Use @Video 1[00:05-00:10].` |
-| Sequence two clips | `Put video one first from 5 to 10 seconds, then video two full.` |
+| Goal                       | Prompt                                                                                                                              |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| Add one clip               | `Use @Video 1.`                                                                                                                     |
+| Trim one clip              | `Use @Video 1[00:05-00:10].`                                                                                                        |
+| Sequence two clips         | `Put video one first from 5 to 10 seconds, then video two full.`                                                                    |
 | Sequence with overlay text | `Put video one first, only keep it from 5 to 10 seconds, then video two full. Write text "I love this" on top of the second video.` |
-| Use filenames | `Use @beach.mp4[3-8] then @city.mp4.` |
-| Mix images and video | `Use @Image 1 first, then @Video 1, and write "Launch day" in the center.` |
-| Add background music | `Add @Audio 1 as quiet background music with a 1s fade in and 1s fade out.` |
-| Add a cue sound | `Play @Ping at 3s as a notification ping.` |
+| Use filenames              | `Use @beach.mp4[3-8] then @city.mp4.`                                                                                               |
+| Mix images and video       | `Use @Image 1 first, then @Video 1, and write "Launch day" in the center.`                                                          |
+| Add background music       | `Add @Audio 1 as looping quiet background music with a 1s fade in and 1s fade out.`                                                 |
+| Add a cue sound            | `Play @Ping at 3s as a notification ping.`                                                                                          |
 
 Current local behavior for media sequence commands:
 
@@ -147,23 +147,23 @@ Current local behavior for media sequence commands:
 - Quoted text becomes a text overlay on the targeted clip, usually the second clip when the prompt says `second video`.
 - The assistant shows an operation plan; clicking a plan row selects the generated layer.
 
-Audio assets are visible in the asset shelf and can be inserted manually or by chat. The deterministic local compiler recognizes common sound-design requests such as quiet background music, voiceover, ambience, sound effects, beat accents, notification pings, start times, volume hints, and fade-in/fade-out phrasing. Fades compile to validated `volumeEnvelope` data on ordinary audio nodes.
+Audio assets are visible in the asset shelf and can be inserted manually or by chat. The deterministic local compiler recognizes common sound-design requests such as quiet background music, voiceover, ambience, sound effects, beat accents, notification pings, start times, volume hints, loop/repeat phrasing, and fade-in/fade-out phrasing. Fades compile to validated `volumeEnvelope` data on ordinary audio nodes.
 
 ### Follow-Up Edit Commands
 
 Use these after a scene exists:
 
-| Goal | Prompt |
-|---|---|
-| Change title text | `Change the title to "Launch in 3 days".` |
-| Make title larger | `Make the title bigger.` |
-| Add title motion | `Add a spring pop-in animation to the title.` |
-| Change palette | `Change the color palette to bold coral and teal.` |
-| Make timing shorter | `Make it faster.` |
-| Make timing longer | `Make it slower.` |
-| Add captions | `Add TikTok-style caption text near the bottom.` |
-| Add a specific subtitle style | `Use terminal-style subtitles for the caption track.` |
-| Add karaoke captions | `Add neon karaoke subtitles with active word highlights.` |
+| Goal                          | Prompt                                                    |
+| ----------------------------- | --------------------------------------------------------- |
+| Change title text             | `Change the title to "Launch in 3 days".`                 |
+| Make title larger             | `Make the title bigger.`                                  |
+| Add title motion              | `Add a spring pop-in animation to the title.`             |
+| Change palette                | `Change the color palette to bold coral and teal.`        |
+| Make timing shorter           | `Make it faster.`                                         |
+| Make timing longer            | `Make it slower.`                                         |
+| Add captions                  | `Add TikTok-style caption text near the bottom.`          |
+| Add a specific subtitle style | `Use terminal-style subtitles for the caption track.`     |
+| Add karaoke captions          | `Add neon karaoke subtitles with active word highlights.` |
 
 ### Practical End-To-End Cases
 
@@ -207,10 +207,10 @@ Then use the Inspector or timeline to adjust exact positions, source starts, vol
 Upload an audio file, then send:
 
 ```txt
-Add @Audio 1 as quiet background music with a 1s fade in and 1s fade out.
+Add @Audio 1 as looping quiet background music with a 1s fade in and 1s fade out.
 ```
 
-Expected result: the audio asset is added as a `backgroundMusic` audio overlay for the scene duration, with conservative volume and a `volumeEnvelope` for the fades.
+Expected result: the audio asset is added as a looped `backgroundMusic` audio overlay for the scene duration, with conservative volume and a `volumeEnvelope` for the fades.
 
 ## How This Compares To Other Agentic Design Tools
 

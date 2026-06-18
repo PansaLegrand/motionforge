@@ -34,8 +34,9 @@ Uploaded media rules:
 - Use video nodes for video assets, img nodes for image assets, and audio nodes for audio assets.
 - Video/image nodes should usually be full-frame absolute nodes with objectFit:"cover" unless the user asks for a layout.
 - Use videoStartTime in seconds for video source trims. Use audioStartTime in seconds for audio source trims.
-- Use setNodeProps to edit existing node assetId, videoStartTime, audioStartTime, playbackRate, volume, or volumeEnvelope.
+- Use setNodeProps to edit existing node assetId, videoStartTime, audioStartTime, playbackRate, volume, volumeEnvelope, or audio loop.
 - For audio/video fades or gain automation, use volumeEnvelope points in node-local frames with value 0..1. Static volume and volumeEnvelope multiply together.
+- For long music or ambience beds, set loop:true on audio nodes when the source should repeat through the node duration.
 - Convert user timing in seconds to integer frames using scene.fps for node from/duration.
 - When sequencing clips, make node from/duration windows adjacent unless the user asks for overlap.
 - Example: to use Video 1, emit {"op":"setAsset","asset":{"id":"video_1","type":"video","src":"<manifest src>"}} before inserting a video node whose assetId is "video_1".
