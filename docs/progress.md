@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX1: roadmap)
+
+### Changed
+
+- Added `docs/audio-overlay-roadmap.md` as the next media theme after video overlays.
+- Scoped audio overlays around data-first helpers for background music, voiceover, ambience, sound effects, beat accents, and notification cues.
+- Recorded the current engine baseline: `audio` nodes, `audioStartTime`, static `volume`, export mixing, player preview, and `audioTrack()`.
+- Explicitly separated current-helper work from later engine work for volume automation, fades, looping, and ducking.
+
+### Tested
+
+- Documentation-only slice; no code tests run.
+
+### Notes
+
+- Audio nodes currently reject animations, so fade and ducking helpers should wait for mixer-visible schema support instead of pretending style/keyframe animations affect sound.
+
 ## 2026-06-19 (video overlay VX5: stress gallery)
 
 ### Changed
