@@ -1,4 +1,6 @@
 import {
+  audioOverlay,
+  audioOverlayTemplateEntries,
   clipLayout,
   captionTemplateEntries,
   clipLayoutEntries,
@@ -12,6 +14,7 @@ import {
   transitionTemplateEntries,
   videoOverlay,
   videoOverlayTemplateEntries,
+  type AudioOverlayTemplateKey,
   type ClipLayoutKey,
   type ImageOverlayTemplateKey,
   type MediaLookKey,
@@ -33,6 +36,7 @@ export type PresetFamily =
   | "text"
   | "image"
   | "video"
+  | "audio"
   | "media"
   | "layout"
   | "transition";
@@ -69,6 +73,7 @@ export const presetFamilyLabels: Record<PresetFamily, string> = {
   text: "Text",
   image: "Image Overlays",
   video: "Video Overlays",
+  audio: "Audio Overlays",
   media: "Media Looks",
   layout: "Clip Layouts",
   transition: "Transitions",
@@ -129,6 +134,23 @@ scene.nodes.push(
     composition: { width: scene.width, height: scene.height },
     trimStart: 4,
     duration: 120,
+  }),
+);`,
+  })),
+  ...audioOverlayTemplateEntries.map(([key, preset]) => ({
+    family: "audio" as const,
+    key,
+    name: preset.name,
+    category: preset.category,
+    description: preset.description,
+    snippet: `import { audioOverlay } from "@motionforge/presets";
+
+scene.nodes.push(
+  audioOverlay({
+    assetId: "music",
+    template: "${key}",
+    from: 0,
+    duration: scene.duration,
   }),
 );`,
   })),
@@ -240,6 +262,9 @@ export function buildPresetPatchExample(
 
     case "video":
       return buildVideoInsertPatch(item, parsed.scene);
+
+    case "audio":
+      return buildAudioInsertPatch(item, parsed.scene);
 
     case "transition":
       return buildTransitionInsertPatch(item, parsed.scene);
@@ -378,6 +403,39 @@ function buildVideoInsertPatch(
     ok: true,
     title: `${item.name} patch`,
     description: `Inserts a ${item.key} overlay using video asset ${asset.id}.`,
+    patch: [{ op: "insertNode", node }],
+  };
+}
+
+function buildAudioInsertPatch(
+  item: PresetCatalogItem,
+  scene: Scene,
+): PresetPatchExample {
+  const asset = Object.values(scene.assets).find(
+    (entry) => entry.type === "audio",
+  );
+
+  if (!asset) {
+    return {
+      ok: false,
+      title: "Patch unavailable",
+      reason:
+        "The current scene does not define an audio asset. Add audio to scene.assets before inserting an audio overlay.",
+    };
+  }
+
+  const node = audioOverlay({
+    template: item.key as AudioOverlayTemplateKey,
+    id: uniqueNodeId(scene, `${item.key}-overlay`),
+    assetId: asset.id,
+    from: recommendedOverlayStart(scene),
+    duration: recommendedOverlayDuration(scene),
+  });
+
+  return {
+    ok: true,
+    title: `${item.name} patch`,
+    description: `Inserts a ${item.key} overlay using audio asset ${asset.id}.`,
     patch: [{ op: "insertNode", node }],
   };
 }

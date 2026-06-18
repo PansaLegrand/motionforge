@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX4a: catalog and patch examples)
+
+### Changed
+
+- Added an `audio` preset family to the shared preset catalog.
+- Added catalog entries and TypeScript snippets for all audio overlay templates.
+- Added audio overlay patch examples that insert audio nodes using the first audio asset in the current scene.
+- Added unavailable-state messaging when a scene has no audio assets.
+- Updated Playground preset catalog tests through the shared catalog re-export path.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test -- catalog.test.ts`
+- `pnpm --filter @motionforge/playground test -- preset-catalog.test.ts`
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/playground typecheck`
+
+### Notes
+
+- The Playground preset explorer can list audio presets immediately. A visual gallery scene is deferred until the audio stress gallery because the useful proof is audible/export-measurable rather than visual cards alone.
+
 ## 2026-06-19 (audio overlay AX3: authoring helper)
 
 ### Changed

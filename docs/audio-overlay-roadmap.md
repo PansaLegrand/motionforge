@@ -100,11 +100,14 @@ Targets:
 - `apps/chat`
 - docs/examples
 
-Done when:
+Catalog done:
 
 - preset catalog lists audio template keys and best-use descriptions
 - patch examples can insert an audio node against an existing scene audio asset
 - unavailable-state messaging is clear when no audio asset exists
+
+Still to do:
+
 - chat prompt chips include background music, voiceover, and sound-effect examples
 - deterministic local chat can compile basic audio instructions such as "add @Audio 1 as quiet background music" and "put @Audio 2 at 3s as a sound effect"
 

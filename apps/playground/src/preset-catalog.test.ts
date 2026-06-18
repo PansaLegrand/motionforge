@@ -20,6 +20,11 @@ function sceneWithMedia(): Scene {
         type: "video",
         src: "clip.mp4",
       },
+      musicAsset: {
+        id: "musicAsset",
+        type: "audio",
+        src: "music.mp3",
+      },
     },
     nodes: [
       {
@@ -50,8 +55,21 @@ function sceneWithoutVideoAsset(): Scene {
     ...scene,
     assets: {
       shotAsset: scene.assets.shotAsset!,
+      musicAsset: scene.assets.musicAsset!,
     },
     nodes: scene.nodes.filter((node) => node.id !== "clip"),
+  };
+}
+
+function sceneWithoutAudioAsset(): Scene {
+  const scene = sceneWithMedia();
+
+  return {
+    ...scene,
+    assets: {
+      shotAsset: scene.assets.shotAsset!,
+      clipAsset: scene.assets.clipAsset!,
+    },
   };
 }
 
@@ -168,6 +186,27 @@ describe("preset patch examples", () => {
     expect(applyScenePatch(sceneWithMedia(), example.patch).ok).toBe(true);
   });
 
+  it("builds insertNode examples for audio overlays", () => {
+    const example = buildPresetPatchExample(
+      catalogItem("audio", "voiceover"),
+      sceneWithMedia(),
+    );
+
+    expect(example.ok).toBe(true);
+    if (!example.ok) return;
+
+    expect(example.patch[0]).toMatchObject({
+      op: "insertNode",
+      node: {
+        id: "voiceover-overlay",
+        type: "audio",
+        assetId: "musicAsset",
+        volume: 1,
+      },
+    });
+    expect(applyScenePatch(sceneWithMedia(), example.patch).ok).toBe(true);
+  });
+
   it("builds insertNode examples for transitions", () => {
     const example = buildPresetPatchExample(
       catalogItem("transition", "fade"),
@@ -201,6 +240,10 @@ describe("preset patch examples", () => {
       catalogItem("video", "pictureInPicture"),
       sceneWithoutVideoAsset(),
     );
+    const audio = buildPresetPatchExample(
+      catalogItem("audio", "backgroundMusic"),
+      sceneWithoutAudioAsset(),
+    );
 
     expect(noTarget).toMatchObject({
       ok: false,
@@ -217,6 +260,10 @@ describe("preset patch examples", () => {
     expect(video).toMatchObject({
       ok: false,
       reason: expect.stringContaining("video asset"),
+    });
+    expect(audio).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining("audio asset"),
     });
   });
 });
