@@ -2,6 +2,24 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX5c: chat fade refresh)
+
+### Changed
+
+- Taught the deterministic chat audio overlay parser to recognize `fade in` and `fade out` durations in seconds.
+- Threaded parsed fade durations into preset-backed audio overlay nodes, producing validated `volumeEnvelope` data.
+- Updated chat prompt chips, README examples, and model prompt context around fade-capable audio overlays.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat test -- local-agent.test.ts`
+- `pnpm --filter @motionforge/chat test -- examples.test.ts`
+
+### Notes
+
+- Chat now exercises the same fade API as programmers. Looping and ducking still need dedicated engine support.
+
 ## 2026-06-19 (audio overlay AX5b: fade helpers)
 
 ### Changed

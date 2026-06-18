@@ -136,6 +136,8 @@ Upload media first in the Assets panel. The app assigns stable names like `Video
 | Sequence with overlay text | `Put video one first, only keep it from 5 to 10 seconds, then video two full. Write text "I love this" on top of the second video.` |
 | Use filenames | `Use @beach.mp4[3-8] then @city.mp4.` |
 | Mix images and video | `Use @Image 1 first, then @Video 1, and write "Launch day" in the center.` |
+| Add background music | `Add @Audio 1 as quiet background music with a 1s fade in and 1s fade out.` |
+| Add a cue sound | `Play @Ping at 3s as a notification ping.` |
 
 Current local behavior for media sequence commands:
 
@@ -145,7 +147,7 @@ Current local behavior for media sequence commands:
 - Quoted text becomes a text overlay on the targeted clip, usually the second clip when the prompt says `second video`.
 - The assistant shows an operation plan; clicking a plan row selects the generated layer.
 
-Audio assets are visible in the asset shelf and can be inserted manually. Model-backed chat is instructed to use `audio` nodes, `audioStartTime`, and `volume`, but the deterministic local media compiler currently focuses on visual sequencing.
+Audio assets are visible in the asset shelf and can be inserted manually or by chat. The deterministic local compiler recognizes common sound-design requests such as quiet background music, voiceover, ambience, sound effects, beat accents, notification pings, start times, volume hints, and fade-in/fade-out phrasing. Fades compile to validated `volumeEnvelope` data on ordinary audio nodes.
 
 ### Follow-Up Edit Commands
 
@@ -199,6 +201,16 @@ Make the title bigger and add a spring pop-in animation.
 ```
 
 Then use the Inspector or timeline to adjust exact positions, source starts, volume, and timing. Chat and manual edits both produce validated scene patches against the same scene document.
+
+**Case 4: Add a music bed with fades**
+
+Upload an audio file, then send:
+
+```txt
+Add @Audio 1 as quiet background music with a 1s fade in and 1s fade out.
+```
+
+Expected result: the audio asset is added as a `backgroundMusic` audio overlay for the scene duration, with conservative volume and a `volumeEnvelope` for the fades.
 
 ## How This Compares To Other Agentic Design Tools
 

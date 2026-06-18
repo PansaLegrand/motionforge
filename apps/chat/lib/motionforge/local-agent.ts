@@ -1065,6 +1065,8 @@ function selectAudioOverlayIntent(
   from?: number;
   duration?: number;
   volume?: number;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
 } | null {
   const mentionsAudioOverlay =
     /\b(background music|music bed|voiceover|voice over|sound effect|sfx|beat accent|beat hit|ambient bed|ambience|notification ping|audio overlay|overlay audio)\b/.test(
@@ -1078,28 +1080,44 @@ function selectAudioOverlayIntent(
 
   const from = audioStartFrameFromInstruction(instruction, fps);
   const volume = audioVolumeFromInstruction(instruction);
+  const fadeInDuration = audioFadeFrameDurationFromInstruction(
+    instruction,
+    "in",
+    fps,
+  );
+  const fadeOutDuration = audioFadeFrameDurationFromInstruction(
+    instruction,
+    "out",
+    fps,
+  );
+  const sharedOptions = {
+    from,
+    volume,
+    fadeInDuration,
+    fadeOutDuration,
+  };
 
   if (instruction.includes("voiceover") || instruction.includes("voice over")) {
-    return { template: "voiceover", from, volume };
+    return { template: "voiceover", ...sharedOptions };
   }
 
   if (instruction.includes("beat accent") || instruction.includes("beat hit")) {
-    return { template: "beatAccent", from, volume };
+    return { template: "beatAccent", ...sharedOptions };
   }
 
   if (instruction.includes("notification ping")) {
-    return { template: "notificationPing", from, volume };
+    return { template: "notificationPing", ...sharedOptions };
   }
 
   if (instruction.includes("ambient") || instruction.includes("ambience")) {
-    return { template: "ambientBed", from, volume };
+    return { template: "ambientBed", ...sharedOptions };
   }
 
   if (instruction.includes("sound effect") || instruction.includes("sfx")) {
-    return { template: "soundEffect", from, volume };
+    return { template: "soundEffect", ...sharedOptions };
   }
 
-  return { template: "backgroundMusic", from, volume };
+  return { template: "backgroundMusic", ...sharedOptions };
 }
 
 function audioStartFrameFromInstruction(
@@ -1117,12 +1135,54 @@ function audioStartFrameFromInstruction(
   return Math.max(0, Math.round(Number(match[1]) * fps));
 }
 
+function audioFadeFrameDurationFromInstruction(
+  instruction: string,
+  direction: "in" | "out",
+  fps: number,
+): number | undefined {
+  const match = instruction.match(
+    new RegExp(
+      `\\bfade[-\\s]+(?:it\\s+)?${direction}\\s*(?:for|over)?\\s*(\\d+(?:\\.\\d+)?)\\s*(?:s|sec|secs|second|seconds)\\b`,
+      "i",
+    ),
+  );
+
+  if (!match) {
+    return undefined;
+  }
+
+  return Math.max(0, Math.round(Number(match[1]) * fps));
+}
+
 function audioOverlayDurationOptions(
-  intent: { template: AudioOverlayTemplateKey; duration?: number },
+  intent: {
+    template: AudioOverlayTemplateKey;
+    duration?: number;
+    fadeInDuration?: number;
+    fadeOutDuration?: number;
+  },
   sceneDuration: number,
-): { duration?: number } {
+): {
+  duration?: number;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+} {
+  const options: {
+    duration?: number;
+    fadeInDuration?: number;
+    fadeOutDuration?: number;
+  } = {};
+
+  if (intent.fadeInDuration !== undefined) {
+    options.fadeInDuration = intent.fadeInDuration;
+  }
+
+  if (intent.fadeOutDuration !== undefined) {
+    options.fadeOutDuration = intent.fadeOutDuration;
+  }
+
   if (intent.duration !== undefined) {
-    return { duration: intent.duration };
+    return { ...options, duration: intent.duration };
   }
 
   if (
@@ -1130,10 +1190,10 @@ function audioOverlayDurationOptions(
     intent.template === "ambientBed" ||
     intent.template === "voiceover"
   ) {
-    return { duration: sceneDuration };
+    return { ...options, duration: sceneDuration };
   }
 
-  return {};
+  return options;
 }
 
 function audioVolumeFromInstruction(instruction: string): number | undefined {

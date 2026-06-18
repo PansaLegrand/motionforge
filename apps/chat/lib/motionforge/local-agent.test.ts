@@ -310,7 +310,7 @@ describe("local motionforge agent", () => {
     };
     const result = applyInstructionLocally(
       scene,
-      "Add quiet background music under the whole scene.",
+      "Add quiet background music under the whole scene, fade in for 1s and fade out for 2s.",
     );
     const inserted = nodeById(result.scene, "backgroundMusic-overlay");
 
@@ -324,6 +324,12 @@ describe("local motionforge agent", () => {
         assetId: "music",
         duration: scene.duration,
         volume: 0.22,
+        volumeEnvelope: [
+          { frame: 0, value: 0 },
+          { frame: 30, value: 1, easing: "easeOut" },
+          { frame: scene.duration - 60, value: 1 },
+          { frame: scene.duration, value: 0, easing: "easeIn" },
+        ],
       },
     });
     expect(inserted).toMatchObject({
@@ -332,6 +338,12 @@ describe("local motionforge agent", () => {
       from: 0,
       duration: scene.duration,
       volume: 0.22,
+      volumeEnvelope: [
+        { frame: 0, value: 0 },
+        { frame: 30, value: 1, easing: "easeOut" },
+        { frame: scene.duration - 60, value: 1 },
+        { frame: scene.duration, value: 0, easing: "easeIn" },
+      ],
     });
     expect(validateScene(result.scene)).toMatchObject({ ok: true });
   });

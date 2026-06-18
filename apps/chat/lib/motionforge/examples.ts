@@ -67,7 +67,7 @@ export const promptChips = [
   "Put @Video 1 in the top-right as picture-in-picture.",
   "Add @Video 2 as a muted b-roll strip near the bottom.",
   "Use @Screen Recording as a centered screen demo overlay.",
-  "Add @Audio 1 as quiet background music.",
+  "Add @Audio 1 as quiet background music with a 1s fade in and 1s fade out.",
   "Put @Voiceover at 1s as a voiceover track.",
   "Play @Ping at 3s as a notification ping.",
   "Make the title bigger and add a spring pop-in animation.",
