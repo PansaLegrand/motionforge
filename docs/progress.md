@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (subtitle overlay SX4: template robustness)
+
+### Changed
+
+- Added an explicit subtitle text safety helper for segment-timed subtitle tracks.
+- Added regression coverage that runs long subtitle text through every named subtitle template.
+- Verified every template keeps segment subtitles bounded with full-size text boxes, hidden overflow, shrink fit, ellipsis, `maxLines`, and `minFontSize`.
+- Documented segment subtitle safety semantics and override controls in the preset catalog.
+- Marked SX4 complete in the subtitle overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+
+### Notes
+
+- This slice keeps the existing template visuals intact; it hardens the contract around long SRT/VTT-style text and proves the override path still works.
+
 ## 2026-06-18 (subtitle overlay SX3: authoring workflow)
 
 ### Changed

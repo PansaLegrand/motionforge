@@ -49,6 +49,8 @@ scene.nodes.push(
 );
 ```
 
+Segment subtitle tracks use the same template names as word-timed captions, but their text nodes always add production-safe bounds: `width: "100%"`, `height: "100%"`, `overflow: "hidden"`, `textFit: "shrink"`, `textOverflow: "ellipsis"`, `maxLines: 2`, and a template-derived `minFontSize`. Pass `maxLines`, `minFontSize`, `textFit`, `textOverflow`, or `style` when a project needs stricter manual control.
+
 ## Text Overlay Templates
 
 Use with `textOverlay({ template })`.

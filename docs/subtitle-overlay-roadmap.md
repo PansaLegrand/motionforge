@@ -87,7 +87,7 @@ Done:
 - examples explain where transcript/subtitle assets belong
 - generated nodes validate through `@motionforge/schema`
 
-## Slice SX4 - Template Robustness Upgrade
+## Slice SX4 - Template Robustness Upgrade ✅
 
 **Goal:** named subtitle templates behave safely for segment-timed captions and long user text.
 
@@ -96,7 +96,7 @@ Targets:
 - `@motionforge/presets`
 - preset catalog/showcase docs
 
-Done when:
+Done:
 
 - segment subtitle tracks can use existing caption templates
 - line captions use robust bounded text defaults

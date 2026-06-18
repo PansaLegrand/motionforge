@@ -2800,8 +2800,23 @@ function subtitleTextStyle(
     textOverflow?: SceneStyle["textOverflow"];
   },
 ): SceneStyle {
+  const subtitleStyle = subtitleTextSafetyStyle(style, options);
+
+  return captionTextStyle(style, subtitleStyle) ?? subtitleStyle;
+}
+
+function subtitleTextSafetyStyle(
+  style: CaptionTemplateStyle,
+  options: {
+    maxLines?: number;
+    minFontSize?: number;
+    textFit?: SceneStyle["textFit"];
+    textOverflow?: SceneStyle["textOverflow"];
+  },
+): SceneStyle {
   const fontSize = style.fontSize ?? captionStyleDefaults.fontSize;
-  const subtitleStyle: SceneStyle = {
+
+  return {
     width: "100%",
     height: "100%",
     overflow: "hidden",
@@ -2810,8 +2825,6 @@ function subtitleTextStyle(
     maxLines: options.maxLines ?? 2,
     minFontSize: options.minFontSize ?? Math.max(16, Math.round(fontSize * 0.5)),
   };
-
-  return captionTextStyle(style, subtitleStyle) ?? subtitleStyle;
 }
 
 function wordTemplateCaptions(

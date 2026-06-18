@@ -596,6 +596,44 @@ describe("caption template catalog", () => {
     });
   });
 
+  it("keeps every subtitle template bounded for long segment text", () => {
+    for (const [template] of captionTemplateEntries) {
+      const track = subtitleTrack(
+        [
+          {
+            text: "A long subtitle line that may come from chat, transcripts, or pasted SRT files and must stay inside the subtitle band without bleeding into the video frame.",
+            startMs: 0,
+            endMs: 2200,
+          },
+        ],
+        {
+          fps: 30,
+          idPrefix: `bounded-${template}`,
+          template,
+          composition: { width: 1080, height: 1920 },
+        },
+      );
+      const text = track.children?.[0]?.children?.[0];
+
+      expect(validateScene(sceneWith(track))).toMatchObject({ ok: true });
+      expect(track.style).toMatchObject({
+        left: 72,
+        top: 1316,
+        width: 936,
+        height: 230,
+      });
+      expect(text?.style).toMatchObject({
+        width: "100%",
+        height: "100%",
+        overflow: "hidden",
+        textFit: "shrink",
+        textOverflow: "ellipsis",
+        maxLines: 2,
+      });
+      expect(text?.style?.minFontSize).toEqual(expect.any(Number));
+    }
+  });
+
   it("rejects malformed subtitle segments", () => {
     expect(() =>
       subtitleTrack([{ text: "oops", startMs: 1200, endMs: 900 }], {
