@@ -105,6 +105,26 @@ describe("preset patch examples", () => {
     expect(applyScenePatch(sceneWithMedia(), example.patch).ok).toBe(true);
   });
 
+  it("builds insertNode examples for image overlays", () => {
+    const example = buildPresetPatchExample(
+      catalogItem("image", "logoBug"),
+      sceneWithMedia(),
+    );
+
+    expect(example.ok).toBe(true);
+    if (!example.ok) return;
+
+    expect(example.patch[0]).toMatchObject({
+      op: "insertNode",
+      node: {
+        id: "logoBug-overlay",
+        type: "div",
+        children: [{ type: "img", assetId: "shotAsset" }],
+      },
+    });
+    expect(applyScenePatch(sceneWithMedia(), example.patch).ok).toBe(true);
+  });
+
   it("builds insertNode examples for transitions", () => {
     const example = buildPresetPatchExample(
       catalogItem("transition", "fade"),
@@ -130,6 +150,10 @@ describe("preset patch examples", () => {
       catalogItem("subtitles", "classic"),
       sceneWithMedia(),
     );
+    const image = buildPresetPatchExample(
+      catalogItem("image", "logoBug"),
+      sceneWithoutMedia(),
+    );
 
     expect(noTarget).toMatchObject({
       ok: false,
@@ -138,6 +162,10 @@ describe("preset patch examples", () => {
     expect(subtitles).toMatchObject({
       ok: false,
       reason: expect.stringContaining("word-level transcript"),
+    });
+    expect(image).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining("image asset"),
     });
   });
 });

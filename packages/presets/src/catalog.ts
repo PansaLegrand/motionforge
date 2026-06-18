@@ -2,6 +2,8 @@ import {
   clipLayout,
   captionTemplateEntries,
   clipLayoutEntries,
+  imageOverlay,
+  imageOverlayTemplateEntries,
   mediaLook,
   mediaLookEntries,
   textOverlay,
@@ -9,6 +11,7 @@ import {
   transitionOverlay,
   transitionTemplateEntries,
   type ClipLayoutKey,
+  type ImageOverlayTemplateKey,
   type MediaLookKey,
   type TextOverlaySlot,
   type TextOverlayTemplateKey,
@@ -25,6 +28,7 @@ import {
 export type PresetFamily =
   | "subtitles"
   | "text"
+  | "image"
   | "media"
   | "layout"
   | "transition";
@@ -59,6 +63,7 @@ type TextOverlaySlotValues = Pick<
 export const presetFamilyLabels: Record<PresetFamily, string> = {
   subtitles: "Subtitles",
   text: "Text",
+  image: "Image Overlays",
   media: "Media Looks",
   layout: "Clip Layouts",
   transition: "Transitions",
@@ -87,6 +92,22 @@ scene.nodes.push(
     category: preset.category,
     description: preset.description,
     snippet: textOverlaySnippet(key, preset.required),
+  })),
+  ...imageOverlayTemplateEntries.map(([key, preset]) => ({
+    family: "image" as const,
+    key,
+    name: preset.name,
+    category: preset.category,
+    description: preset.description,
+    snippet: `import { imageOverlay } from "@motionforge/presets";
+
+scene.nodes.push(
+  imageOverlay({
+    assetId: "logo",
+    template: "${key}",
+    composition: { width: scene.width, height: scene.height },
+  }),
+);`,
   })),
   ...mediaLookEntries.map(([key, preset]) => ({
     family: "media" as const,
@@ -168,7 +189,8 @@ export function buildPresetPatchExample(
     return {
       ok: false,
       title: "Patch unavailable",
-      reason: "The current scene must be valid before a preset patch can be generated.",
+      reason:
+        "The current scene must be valid before a preset patch can be generated.",
     };
   }
 
@@ -190,6 +212,9 @@ export function buildPresetPatchExample(
     case "text":
       return buildTextInsertPatch(item, parsed.scene);
 
+    case "image":
+      return buildImageInsertPatch(item, parsed.scene);
+
     case "transition":
       return buildTransitionInsertPatch(item, parsed.scene);
 
@@ -208,8 +233,9 @@ function buildMediaStylePatch(
   scene: Scene,
   style: SceneStyle,
 ): PresetPatchExample {
-  const target = findFirstNode(scene.nodes, (node) =>
-    node.type === "img" || node.type === "video",
+  const target = findFirstNode(
+    scene.nodes,
+    (node) => node.type === "img" || node.type === "video",
   );
 
   if (!target) {
@@ -258,6 +284,40 @@ function buildTextInsertPatch(
     ok: true,
     title: `${item.name} patch`,
     description: `Inserts a ${item.key} overlay at the scene root.`,
+    patch: [{ op: "insertNode", node }],
+  };
+}
+
+function buildImageInsertPatch(
+  item: PresetCatalogItem,
+  scene: Scene,
+): PresetPatchExample {
+  const asset = Object.values(scene.assets).find(
+    (entry) => entry.type === "image",
+  );
+
+  if (!asset) {
+    return {
+      ok: false,
+      title: "Patch unavailable",
+      reason:
+        "The current scene does not define an image asset. Add an image to scene.assets before inserting an image overlay.",
+    };
+  }
+
+  const node = imageOverlay({
+    template: item.key as ImageOverlayTemplateKey,
+    id: uniqueNodeId(scene, `${item.key}-overlay`),
+    assetId: asset.id,
+    from: recommendedOverlayStart(scene),
+    duration: recommendedOverlayDuration(scene),
+    composition: { width: scene.width, height: scene.height },
+  });
+
+  return {
+    ok: true,
+    title: `${item.name} patch`,
+    description: `Inserts a ${item.key} overlay using image asset ${asset.id}.`,
     patch: [{ op: "insertNode", node }],
   };
 }

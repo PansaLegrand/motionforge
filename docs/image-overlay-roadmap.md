@@ -70,7 +70,7 @@ Done:
 - docs show logo, watermark, sticker, product shot, and avatar examples
 - generated nodes validate through `@motionforge/schema`
 
-## Slice IX3 - Preset Catalog And Patch Examples
+## Slice IX3 - Preset Catalog And Patch Examples ✅
 
 **Goal:** image overlay templates become discoverable by programmers, agents, and app UIs.
 
@@ -80,7 +80,7 @@ Targets:
 - playground preset catalog
 - docs/guides
 
-Done when:
+Done:
 
 - preset catalog lists image overlay template keys and best-use descriptions
 - patch examples can insert image overlay nodes against an existing scene asset

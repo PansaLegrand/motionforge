@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (image overlay IX3: catalog and patch examples)
+
+### Changed
+
+- Added an `image` preset family to the shared preset catalog.
+- Added catalog entries and TypeScript snippets for all image overlay templates.
+- Added image overlay patch examples that insert overlay nodes using the first image asset in the current scene.
+- Added unavailable-state messaging when a scene has no image assets.
+- Updated Playground preset catalog tests through the shared catalog re-export path.
+- Marked IX3 complete in the image overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test -- catalog.test.ts`
+- `pnpm --filter @motionforge/playground test -- preset-catalog.test.ts`
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/playground typecheck`
+
+### Notes
+
+- The visual gallery preview for image overlays is intentionally left to IX5; until then, the Playground preset explorer shows snippets and patch examples for the image family.
+
 ## 2026-06-18 (image overlay IX2: authoring helper)
 
 ### Changed
