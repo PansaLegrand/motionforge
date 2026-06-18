@@ -2,6 +2,34 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (preset explorer PX4: CLI Studio adoption)
+
+### Changed
+
+- Moved the preset catalog/snippet/patch-example builder into `@motionforge/presets/catalog`.
+- Kept the playground on the shared catalog through a local re-export and Vite alias.
+- Added a compact preset panel to MotionForge Studio with family filters, preset cards, snippet copy, patch copy, and patch apply.
+- Studio preset patches run through `applyScenePatch` and update the in-memory preview scene/JSON inspector.
+- Studio now exposes validated scene JSON before preview player creation finishes, so preset inspection remains usable even if media preview setup fails.
+- Marked PX4 complete in the preset explorer roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/cli typecheck`
+- `pnpm --filter @motionforge/cli test`
+- `pnpm --filter @motionforge/cli build`
+- `pnpm --filter @motionforge/playground typecheck`
+- `pnpm --filter @motionforge/playground test`
+- `pnpm --filter @motionforge/playground build`
+- Browser smoke at `http://127.0.0.1:5173/`: opened Studio for a temp scene, selected Text, confirmed an `insertNode` patch, applied it, confirmed unique-id refresh and JSON update, selected Media Looks, confirmed a `setStyle` patch targeted the image node, and checked console error logs were empty.
+
+### Notes
+
+- The shared catalog is still intentionally devtool-shaped. Core scene rendering remains independent of preset metadata and UI affordances.
+
 ## 2026-06-18 (preset explorer PX3: executable patch examples)
 
 ### Changed

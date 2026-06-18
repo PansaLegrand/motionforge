@@ -61,7 +61,7 @@ Done:
 - text/transition presets can generate `insertNode` examples
 - failures explain why a preset cannot be applied to the current scene
 
-## Slice PX4 - CLI Studio Adoption
+## Slice PX4 - CLI Studio Adoption ✅
 
 **Goal:** A generated project can discover presets inside `motionforge dev`.
 
@@ -70,7 +70,7 @@ Targets:
 - share catalog/snippet data between playground and Studio
 - add a compact preset panel to the CLI Studio client
 
-Done when:
+Done:
 
 - Studio users can copy the same snippets without leaving their project preview
 - no browser-only playground assumptions leak into the CLI package

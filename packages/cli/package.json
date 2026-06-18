@@ -50,6 +50,7 @@
   "dependencies": {
     "@motionforge/export": "workspace:*",
     "@motionforge/player": "workspace:*",
+    "@motionforge/presets": "workspace:*",
     "@motionforge/schema": "workspace:*",
     "tsx": "^4.22.4",
     "vite": "^7.3.5"

@@ -167,6 +167,7 @@ describe("@motionforge/cli", () => {
       expect(html).toContain(
         "/@id/__x00__virtual:motionforge-studio-client",
       );
+      expect(html).toContain("preset-family-tabs");
 
       const clientResponse = await fetch(
         `${match?.[1]}@id/__x00__virtual:motionforge-studio-client`,
@@ -175,7 +176,10 @@ describe("@motionforge/cli", () => {
 
       expect(clientResponse.status, client).toBe(200);
       expect(client).toContain("createPlayer");
+      expect(client).toContain("presetCatalog");
+      expect(client).toContain("buildPresetPatchExample");
       expect(client).not.toContain('from "@motionforge/player"');
+      expect(client).not.toContain('from "@motionforge/presets/catalog"');
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

@@ -56,6 +56,10 @@ function resolveStudioRuntimeAliases() {
       "@motionforge/export",
       "packages/export/src/index.ts",
     ),
+    "@motionforge/presets/catalog": resolveStudioRuntimePackage(
+      "@motionforge/presets/catalog",
+      "packages/presets/src/catalog.ts",
+    ),
     "@motionforge/player": resolveStudioRuntimePackage(
       "@motionforge/player",
       "packages/player/src/index.ts",
@@ -192,7 +196,7 @@ function studioHtml() {
       main {
         display: grid;
         min-height: 100vh;
-        grid-template-columns: minmax(260px, 420px) minmax(320px, 1fr);
+        grid-template-columns: minmax(260px, 420px) minmax(340px, 1fr) minmax(300px, 380px);
         gap: 24px;
         align-items: center;
         padding: 24px;
@@ -210,8 +214,17 @@ function studioHtml() {
         max-height: calc(100vh - 48px);
         max-width: 100%;
       }
-      .panel {
-        max-width: 640px;
+      .panel { max-width: 640px; }
+      .preset-panel {
+        align-self: stretch;
+        display: flex;
+        min-height: 0;
+        flex-direction: column;
+        gap: 12px;
+        padding: 14px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: rgb(255 255 255 / 68%);
       }
       h1 { margin: 0 0 8px; font-size: 40px; line-height: 1; }
       p { color: #4b5563; }
@@ -230,6 +243,65 @@ function studioHtml() {
       button.secondary { background: #ffffff; color: #111827; border: 1px solid #cbd5e1; }
       button:disabled { cursor: not-allowed; opacity: 0.45; }
       input[type="range"] { width: min(100%, 420px); }
+      .preset-tabs {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 6px;
+      }
+      .preset-tabs button,
+      .preset-actions button {
+        height: 32px;
+        border-radius: 6px;
+        padding: 0 10px;
+        font-size: 12px;
+      }
+      .preset-tabs button[data-active="true"],
+      .preset-card[data-active="true"] {
+        border-color: #111827;
+        background: #111827;
+        color: white;
+      }
+      .preset-list {
+        display: grid;
+        gap: 8px;
+        max-height: 220px;
+        overflow: auto;
+        padding-right: 2px;
+      }
+      .preset-card {
+        display: grid;
+        gap: 4px;
+        min-height: 0;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        padding: 10px;
+        background: #ffffff;
+        color: #111827;
+        text-align: left;
+      }
+      .preset-card strong { font-size: 13px; }
+      .preset-card span { color: #475569; font-size: 11px; font-weight: 800; overflow-wrap: anywhere; }
+      .preset-card p { margin: 0; font-size: 12px; line-height: 1.35; }
+      .preset-block {
+        display: grid;
+        gap: 8px;
+        min-height: 0;
+      }
+      .preset-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+      .preset-header strong { font-size: 13px; overflow-wrap: anywhere; }
+      .preset-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 6px; }
+      .preset-description { margin: 0; font-size: 12px; line-height: 1.35; }
+      .preset-status {
+        min-height: 1.2em;
+        color: #475569;
+        white-space: pre-wrap;
+        font-size: 12px;
+      }
       pre {
         max-height: 280px;
         overflow: auto;
@@ -240,8 +312,13 @@ function studioHtml() {
         font-size: 12px;
         line-height: 1.5;
       }
+      .preset-panel pre {
+        max-height: 180px;
+        white-space: pre;
+      }
+      #preset-patch[data-available="false"] { display: none; }
       .error { color: #b91c1c; }
-      @media (max-width: 840px) {
+      @media (max-width: 1120px) {
         main { grid-template-columns: 1fr; }
         .preview { justify-self: center; max-height: 62vh; }
         canvas { max-height: 62vh; }
@@ -268,6 +345,36 @@ function studioHtml() {
         </div>
         <pre id="json"></pre>
       </section>
+      <aside class="preset-panel">
+        <div>
+          <h2>Presets</h2>
+          <p class="preset-description">Copy code or apply scene patches while previewing this project.</p>
+        </div>
+        <div id="preset-family-tabs" class="preset-tabs" aria-label="Preset families"></div>
+        <div id="preset-list" class="preset-list"></div>
+        <div class="preset-block">
+          <div class="preset-header">
+            <strong id="preset-snippet-title">Snippet</strong>
+            <div class="preset-actions">
+              <button id="preset-copy" type="button" class="secondary">Copy</button>
+            </div>
+          </div>
+          <pre id="preset-snippet"></pre>
+          <output id="preset-copy-status" class="preset-status"></output>
+        </div>
+        <div class="preset-block">
+          <div class="preset-header">
+            <strong id="preset-patch-title">Patch example</strong>
+            <div class="preset-actions">
+              <button id="preset-patch-apply" type="button">Apply</button>
+              <button id="preset-patch-copy" type="button" class="secondary">Copy patch</button>
+            </div>
+          </div>
+          <p id="preset-patch-description" class="preset-description"></p>
+          <pre id="preset-patch"></pre>
+          <output id="preset-patch-status" class="preset-status"></output>
+        </div>
+      </aside>
     </main>
     <script type="module" src="/@id/__x00__virtual:motionforge-studio-client"></script>
   </body>
@@ -278,6 +385,8 @@ function studioHtml() {
 function studioClientSource() {
   return `import { detectExportCapability, exportVideo } from "@motionforge/export";
 import { createPlayer } from "@motionforge/player";
+import { buildPresetPatchExample, presetCatalog, presetFamilyLabels } from "@motionforge/presets/catalog";
+import { applyScenePatch } from "@motionforge/schema";
 
 const canvas = document.querySelector("#preview");
 const status = document.querySelector("#status");
@@ -287,8 +396,20 @@ const playButton = document.querySelector("#play");
 const reloadButton = document.querySelector("#reload");
 const exportButton = document.querySelector("#export");
 const json = document.querySelector("#json");
+const presetFamilyTabs = document.querySelector("#preset-family-tabs");
+const presetList = document.querySelector("#preset-list");
+const presetSnippetTitle = document.querySelector("#preset-snippet-title");
+const presetSnippet = document.querySelector("#preset-snippet");
+const presetCopy = document.querySelector("#preset-copy");
+const presetCopyStatus = document.querySelector("#preset-copy-status");
+const presetPatchTitle = document.querySelector("#preset-patch-title");
+const presetPatchDescription = document.querySelector("#preset-patch-description");
+const presetPatch = document.querySelector("#preset-patch");
+const presetPatchApply = document.querySelector("#preset-patch-apply");
+const presetPatchCopy = document.querySelector("#preset-patch-copy");
+const presetPatchStatus = document.querySelector("#preset-patch-status");
 
-if (!(canvas instanceof HTMLCanvasElement) || !status || !(slider instanceof HTMLInputElement) || !(readout instanceof HTMLOutputElement) || !(playButton instanceof HTMLButtonElement) || !(reloadButton instanceof HTMLButtonElement) || !(exportButton instanceof HTMLButtonElement) || !json) {
+if (!(canvas instanceof HTMLCanvasElement) || !status || !(slider instanceof HTMLInputElement) || !(readout instanceof HTMLOutputElement) || !(playButton instanceof HTMLButtonElement) || !(reloadButton instanceof HTMLButtonElement) || !(exportButton instanceof HTMLButtonElement) || !json || !presetFamilyTabs || !presetList || !presetSnippetTitle || !presetSnippet || !(presetCopy instanceof HTMLButtonElement) || !(presetCopyStatus instanceof HTMLOutputElement) || !presetPatchTitle || !presetPatchDescription || !presetPatch || !(presetPatchApply instanceof HTMLButtonElement) || !(presetPatchCopy instanceof HTMLButtonElement) || !(presetPatchStatus instanceof HTMLOutputElement)) {
   throw new Error("Studio DOM is missing required elements.");
 }
 
@@ -301,6 +422,11 @@ if (!context) {
 const capability = detectExportCapability();
 let scene = null;
 let player = null;
+let selectedPresetFamily = "subtitles";
+let selectedPreset = presetCatalog[0];
+let selectedPatchExample = null;
+
+renderPresetExplorer();
 
 async function loadScene() {
   status.classList.remove("error");
@@ -313,30 +439,47 @@ async function loadScene() {
   const payload = await response.json();
 
   if (!payload.ok) {
+    scene = null;
     status.classList.add("error");
     status.textContent = "Scene failed validation.";
     json.textContent = payload.errors.join("\\n");
+    renderPresetSnippet();
     return;
   }
 
   scene = payload.scene;
-  canvas.width = scene.width;
-  canvas.height = scene.height;
-  slider.max = String(scene.duration - 1);
+  await loadSceneDoc(scene);
+}
+
+async function loadSceneDoc(nextScene) {
+  scene = nextScene;
+  canvas.width = nextScene.width;
+  canvas.height = nextScene.height;
+  slider.max = String(nextScene.duration - 1);
   slider.value = "0";
   readout.value = "0";
-  player = await createPlayer({ context, scene, loop: true });
-  await player.seek(0);
-  player.on("frame", (frame) => {
-    slider.value = String(frame);
-    readout.value = String(frame);
-  });
+  player?.dispose();
+  player = null;
   json.textContent = JSON.stringify(scene, null, 2);
-  status.textContent = \`\${scene.width}x\${scene.height} · \${scene.fps}fps · \${(scene.duration / scene.fps).toFixed(1)}s\`;
+  status.classList.remove("error");
+  status.textContent = \`\${nextScene.width}x\${nextScene.height} · \${nextScene.fps}fps · \${(nextScene.duration / nextScene.fps).toFixed(1)}s\`;
   exportButton.disabled = !capability.videoEncoder;
   exportButton.title = capability.videoEncoder
     ? "Export MP4"
     : "MP4 export needs WebCodecs VideoEncoder. Try desktop Chrome or Edge.";
+  renderPresetSnippet();
+
+  try {
+    player = await createPlayer({ context, scene: nextScene, loop: true });
+    await player.seek(0);
+    player.on("frame", (frame) => {
+      slider.value = String(frame);
+      readout.value = String(frame);
+    });
+  } catch (error) {
+    status.classList.add("error");
+    status.textContent = error instanceof Error ? error.message : String(error);
+  }
 }
 
 slider.addEventListener("input", () => {
@@ -388,6 +531,139 @@ exportButton.addEventListener("click", async () => {
   } finally {
     exportButton.disabled = !capability.videoEncoder;
   }
+});
+
+function renderPresetExplorer() {
+  renderPresetFamilyTabs();
+  renderPresetList();
+  renderPresetSnippet();
+}
+
+function renderPresetFamilyTabs() {
+  presetFamilyTabs.replaceChildren(
+    ...Object.entries(presetFamilyLabels).map(([family, label]) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.textContent = label;
+      button.dataset.active = selectedPresetFamily === family ? "true" : "false";
+      button.addEventListener("click", () => {
+        selectedPresetFamily = family;
+        selectedPreset =
+          presetCatalog.find((item) => item.family === selectedPresetFamily) ??
+          selectedPreset;
+        renderPresetExplorer();
+      });
+      return button;
+    }),
+  );
+}
+
+function renderPresetList() {
+  const items = presetCatalog.filter(
+    (item) => item.family === selectedPresetFamily,
+  );
+
+  presetList.replaceChildren(
+    ...items.map((item) => {
+      const button = document.createElement("button");
+      button.type = "button";
+      button.className = "preset-card";
+      button.dataset.active = item.key === selectedPreset.key ? "true" : "false";
+      button.addEventListener("click", () => {
+        selectedPreset = item;
+        renderPresetList();
+        renderPresetSnippet();
+      });
+
+      const heading = document.createElement("strong");
+      heading.textContent = item.name;
+
+      const meta = document.createElement("span");
+      meta.textContent = \`\${item.key} · \${item.category}\`;
+
+      const description = document.createElement("p");
+      description.textContent = item.description;
+
+      button.append(heading, meta, description);
+      return button;
+    }),
+  );
+}
+
+function renderPresetSnippet() {
+  if (!selectedPreset) return;
+
+  presetSnippetTitle.textContent = \`\${selectedPreset.name} snippet\`;
+  presetSnippet.textContent = selectedPreset.snippet;
+  presetCopyStatus.value = "";
+  renderPresetPatchExample();
+}
+
+function renderPresetPatchExample() {
+  if (!selectedPreset) return;
+
+  selectedPatchExample = buildPresetPatchExample(selectedPreset, scene);
+  presetPatchStatus.value = "";
+  presetPatchTitle.textContent = selectedPatchExample.title;
+
+  if (selectedPatchExample.ok) {
+    presetPatchDescription.textContent =
+      scene === null
+        ? \`\${selectedPatchExample.description} Load a valid scene before applying.\`
+        : selectedPatchExample.description;
+    presetPatch.textContent = JSON.stringify(selectedPatchExample.patch, null, 2);
+    presetPatch.dataset.available = "true";
+    presetPatchApply.disabled = scene === null;
+    presetPatchCopy.disabled = false;
+    return;
+  }
+
+  presetPatchDescription.textContent = selectedPatchExample.reason;
+  presetPatch.textContent = "";
+  presetPatch.dataset.available = "false";
+  presetPatchApply.disabled = true;
+  presetPatchCopy.disabled = true;
+}
+
+presetCopy.addEventListener("click", () => {
+  if (!selectedPreset) return;
+
+  void navigator.clipboard
+    .writeText(selectedPreset.snippet)
+    .then(() => {
+      presetCopyStatus.value = \`Copied \${selectedPreset.key}\`;
+    })
+    .catch(() => {
+      presetCopyStatus.value = "Clipboard unavailable.";
+    });
+});
+
+presetPatchCopy.addEventListener("click", () => {
+  if (!selectedPatchExample?.ok) return;
+
+  void navigator.clipboard
+    .writeText(JSON.stringify(selectedPatchExample.patch, null, 2))
+    .then(() => {
+      presetPatchStatus.value = \`Copied \${selectedPreset.key} patch\`;
+    })
+    .catch(() => {
+      presetPatchStatus.value = "Clipboard unavailable.";
+    });
+});
+
+presetPatchApply.addEventListener("click", () => {
+  if (!selectedPatchExample?.ok || !scene) return;
+
+  const result = applyScenePatch(scene, selectedPatchExample.patch);
+
+  if (!result.ok) {
+    presetPatchStatus.value = result.errors.map((error) => error.message).join("\\n");
+    return;
+  }
+
+  void loadSceneDoc(result.scene).then(() => {
+    presetPatchStatus.value = \`Applied \${selectedPreset.key}\`;
+  });
 });
 
 void loadScene();
