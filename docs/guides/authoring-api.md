@@ -2,10 +2,18 @@
 
 `@motionforge/authoring` is the high-level TypeScript layer. It reduces boilerplate but still emits the same validated MotionForge scene JSON.
 
+Use this package first for programmer-facing videos: `textBox()` handles unknown-length overlay copy, `subtitleTrack()` handles SRT/VTT-style subtitle cues, and `captionTrack()` handles word-timed ASR captions while keeping the output as ordinary scene nodes.
+
 ## Scene
 
 ```ts
-import { frames, makeScene, seconds, toFrames, toSeconds } from "@motionforge/authoring";
+import {
+  frames,
+  makeScene,
+  seconds,
+  toFrames,
+  toSeconds,
+} from "@motionforge/authoring";
 
 export default makeScene({
   size: "portrait",
@@ -25,10 +33,10 @@ export default makeScene({
 Timing helpers:
 
 ```ts
-seconds(2.5)
-frames(75)
-toFrames(seconds(2.5), 30) // 75
-toSeconds(frames(75), 30)  // 2.5
+seconds(2.5);
+frames(75);
+toFrames(seconds(2.5), 30); // 75
+toSeconds(frames(75), 30); // 2.5
 ```
 
 Bare numbers are not timing values. Use `seconds()` for readability or `frames()` for exact control.
@@ -36,18 +44,18 @@ Bare numbers are not timing values. Use `seconds()` for readability or `frames()
 ## Visual Nodes
 
 ```ts
-bg("#0f172a")
+bg("#0f172a");
 
 title("Launch Week", {
   at: seconds(0.5),
   duration: seconds(3),
   enter: fadeUp(),
-})
+});
 
 textBlock("Three updates. One clean video.", {
   at: seconds(1.2),
   style: { top: 980, color: "#cbd5e1" },
-})
+});
 
 box({
   id: "card",
@@ -60,7 +68,7 @@ box({
     backgroundColor: "#ffffff",
     borderRadius: 28,
   },
-})
+});
 ```
 
 Every helper accepts `id`, `at`, `duration`, and most visual helpers accept `style` and `enter`.
@@ -184,8 +192,16 @@ Manual segments are useful when chat, a CMS, or your own code already has cue ti
 ```ts
 subtitleTrack(
   [
-    { text: "Keep only the strong opening.", startSeconds: 0.5, endSeconds: 2.2 },
-    { text: "Then let the full second thought land.", startSeconds: 2.5, endSeconds: 5.8 },
+    {
+      text: "Keep only the strong opening.",
+      startSeconds: 0.5,
+      endSeconds: 2.2,
+    },
+    {
+      text: "Then let the full second thought land.",
+      startSeconds: 2.5,
+      endSeconds: 5.8,
+    },
   ],
   {
     idPrefix: "story-subs",
@@ -282,7 +298,9 @@ import { composition, div, text } from "@motionforge/core";
 
 const scene = composition({ width: 1080, height: 1920, fps: 30, duration: 90 })
   .children(
-    div({ style: { width: "100%", height: "100%", backgroundColor: "#111827" } }),
+    div({
+      style: { width: "100%", height: "100%", backgroundColor: "#111827" },
+    }),
     text("Hello", {
       style: {
         position: "absolute",

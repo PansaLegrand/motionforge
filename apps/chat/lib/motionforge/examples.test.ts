@@ -66,6 +66,12 @@ describe("starter template examples", () => {
     expect(promptChips.length).toBeGreaterThan(starterTemplateExamples.length);
     expect(promptChips).toContain(starterTemplateExamples[0]!.prompt);
     expect(promptChips).toContain(
+      "Add a long title overlay that stays inside the safe area.",
+    );
+    expect(promptChips).toContain(
+      "Add minimal bar subtitles from this transcript.",
+    );
+    expect(promptChips).toContain(
       "Show a subtitle template gallery previewing all caption styles.",
     );
   });

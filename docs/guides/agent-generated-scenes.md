@@ -84,10 +84,34 @@ The generated scene asset is explicit:
 
 Do not invent files. Only reference files the user placed in `public/assets` or URLs they supplied.
 
+## Text And Subtitle Instructions
+
+When text can come from prompts, transcripts, CMS rows, or user files, prefer the authoring helpers that already set safe bounds:
+
+```ts
+textBox("A prompt-generated title that may be longer than expected", {
+  placement: "title",
+  maxLines: 2,
+});
+```
+
+Use segment subtitles for SRT, WebVTT, and transcript cues:
+
+```ts
+const segments = parseSrt(srtText);
+subtitleTrack(segments, {
+  template: "minimalBar",
+  maxLines: 2,
+});
+```
+
+Use `parseVtt()` for WebVTT files and `captionTrack(words, { template })` for ASR word timings. The emitted scene is still ordinary timed `div` and `text` nodes, so patch loops and validators can inspect or edit it directly.
+
 ## Practical Prompting Rules
 
 - Use `@motionforge/authoring` for new programmer-facing scene modules.
 - Prefer stable preset names from the preset catalog over raw style invention.
+- Prefer `textBox()` for unknown-length overlay copy, `subtitleTrack()` for SRT/VTT/segment cues, and `captionTrack()` for word-timed ASR captions.
 - Prefer `seconds()` in source, but remember emitted scene JSON uses integer frames.
 - Keep ids semantic and stable: `headline`, `clip-main`, `music-bed`.
 - Use `publicAsset()` for local files and absolute URLs for remote files.

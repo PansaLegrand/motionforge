@@ -66,6 +66,46 @@ export default makeScene({
 
 `makeScene()` returns plain scene JSON. You can validate it, print it, diff it, patch it, store it, preview it, or export it.
 
+## Add Robust Text And Subtitles
+
+Use `textBox()` when the final copy length is unknown, and `subtitleTrack()` when subtitles come from SRT, WebVTT, transcripts, or chat-generated cue lists:
+
+```ts
+import {
+  makeScene,
+  parseSrt,
+  seconds,
+  subtitleTrack,
+  textBox,
+} from "@motionforge/authoring";
+
+const subtitles = parseSrt(`1
+00:00:00,500 --> 00:00:02,200
+I love this
+
+2
+00:00:02,500 --> 00:00:04,800
+Long subtitle text stays inside the safe area`);
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    textBox("A title that can safely come from a prompt or CMS", {
+      placement: "title",
+      maxLines: 2,
+    }),
+    subtitleTrack(subtitles, {
+      template: "minimalBar",
+      maxLines: 2,
+    }),
+  ],
+});
+```
+
+Use `captionTrack()` instead when ASR gives word-level timings such as `{ word, startMs, endMs }[]`.
+
 ## Useful Commands
 
 ```sh

@@ -5,7 +5,7 @@
 [![Status: M0 complete](https://img.shields.io/badge/status-M0%20complete-brightgreen.svg)](docs/m0-roadmap.md)
 [![Version: 0.3.0](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 
-`motionforge` is a deterministic, browser-native video scene engine for apps and coding agents.
+`motionforge` is a deterministic, browser-native video scene engine for apps and coding agents. Write videos as TypeScript or JSON, then preview, patch, validate, and export the same canonical scene document.
 
 ![motionforge playground previewing the sample scene](docs/assets/playground.png)
 
@@ -24,7 +24,7 @@ The current engine can turn plain scene JSON into demo-grade MP4s in the browser
 
 Together they exercise animated layout (`width`, `left`, `top`, `borderRadius`, `letterSpacing`), per-section `filter` keyframes, Lottie synced to beats, nested overflow clipping, deterministic synthesized audio, and multi-video compositing. They are authored as scene JSON today; a natural-language compiler or editor can sit above the same contract.
 
-The playground also ships a curated seven-scene showcase catalog from `@motionforge/showcase` for product-shaped demos and docs. See [docs/showcase.md](docs/showcase.md) for the full set, including [Lottie Sticker](examples/generated/lottie-sticker.mp4) ([JSON](examples/generated/lottie-sticker.json)), a self-contained vector Lottie document rendered twice at different playback rates.
+The playground also ships a curated showcase catalog from `@motionforge/showcase` for product-shaped demos and docs. See [docs/showcase.md](docs/showcase.md) for the full set, including text and subtitle stress galleries, [Lottie Sticker](examples/generated/lottie-sticker.mp4) ([JSON](examples/generated/lottie-sticker.json)), and generated scene JSON you can inspect or render locally.
 
 ## The bet
 
@@ -195,6 +195,42 @@ export default makeScene({
     textBlock("Deterministic video as TypeScript data.", {
       at: seconds(1.4),
       enter: fadeUp({ delay: 6 }),
+    }),
+  ],
+});
+```
+
+Use robust overlays when copy or captions come from users, chat, transcripts, or data:
+
+```ts
+import {
+  makeScene,
+  parseSrt,
+  seconds,
+  subtitleTrack,
+  textBox,
+} from "@motionforge/authoring";
+
+const subtitles = parseSrt(`1
+00:00:00,500 --> 00:00:02,100
+I love this
+
+2
+00:00:02,400 --> 00:00:04,800
+Keep long subtitle text readable`);
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    textBox("Launch Week: every update in under one minute", {
+      placement: "title",
+      maxLines: 2,
+    }),
+    subtitleTrack(subtitles, {
+      template: "minimalBar",
+      maxLines: 2,
     }),
   ],
 });
