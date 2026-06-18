@@ -72,7 +72,7 @@ Done:
 - tests cover schema validity, template metadata, default volumes, source trim, timing, and override behavior
 - docs explain that fades/looping/ducking land in later slices because the current scene contract cannot express them yet
 
-## Slice AX3 - Authoring Audio Overlay Helper
+## Slice AX3 - Authoring Audio Overlay Helper ✅
 
 **Goal:** `@motionforge/authoring` makes audio roles as easy as `audioTrack()` and media overlays.
 
@@ -81,12 +81,12 @@ Targets:
 - `packages/authoring`
 - docs/guides
 
-Done when:
+Done:
 
 - `audioOverlay(asset, options)` accepts an audio asset object or existing asset id
 - passing an audio asset object auto-adds it to `scene.assets`
 - helper compiles through the preset helper with seconds-first authoring time values
-- role aliases such as `musicBed()` and `voiceover()` are either exported or documented as thin wrappers
+- role templates are documented through `audioOverlay({ template })`
 - generated nodes validate through `@motionforge/schema`
 
 ## Slice AX4 - Preset Catalog And Chat/App Refresh

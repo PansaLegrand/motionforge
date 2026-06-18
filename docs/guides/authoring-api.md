@@ -329,6 +329,62 @@ videoOverlay("screen", {
 
 Decorative templates default to muted output (`volume: 0`); `reactionCam` keeps clip audio unless you pass `muted: true`. Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at` and `duration` compile from authoring time values to frame integers.
 
+## Audio Overlays
+
+Use `audioOverlay()` when an audio asset has a role in the composition: background music, voiceover, ambience, one-shot sound effects, beat accents, and notification cues. Passing an audio asset object auto-adds it to `scene.assets`.
+
+```ts
+import {
+  audioAsset,
+  audioOverlay,
+  makeScene,
+  publicAsset,
+  seconds,
+} from "@motionforge/authoring";
+
+const music = audioAsset("music", publicAsset("assets/music.mp3"));
+const voice = audioAsset("voice", publicAsset("assets/voiceover.mp3"));
+const ping = audioAsset("ping", publicAsset("assets/ping.wav"));
+
+export default makeScene({
+  size: "landscape",
+  fps: 30,
+  duration: seconds(8),
+  children: [
+    audioOverlay(music, {
+      id: "music-bed",
+      template: "backgroundMusic",
+      duration: seconds(8),
+      volume: 0.22,
+    }),
+    audioOverlay(voice, {
+      id: "voiceover",
+      template: "voiceover",
+      at: seconds(1),
+      duration: seconds(5),
+      trimStart: seconds(2.5),
+    }),
+    audioOverlay(ping, {
+      id: "ping",
+      template: "notificationPing",
+      at: seconds(6.2),
+    }),
+  ],
+});
+```
+
+You can also pass an existing audio asset id when assets are defined elsewhere:
+
+```ts
+audioOverlay("ambience", {
+  template: "ambientBed",
+  duration: seconds(12),
+  volume: 0.18,
+});
+```
+
+Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at` and `duration` compile from authoring time values to frame integers. Fades, looping, and ducking are not authoring options yet because the current scene contract exposes static `volume`; those controls will arrive with mixer-visible automation.
+
 ## Media Nodes
 
 ```ts

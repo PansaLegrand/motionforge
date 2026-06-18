@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateScene } from "@motionforge/schema";
 import {
+  audioOverlay,
   audioTrack,
   audioAsset,
   bg,
@@ -125,6 +126,82 @@ describe("@motionforge/authoring", () => {
       type: "audio",
       audioStartTime: 10,
       volume: 0.25,
+    });
+  });
+
+  it("builds audio overlays with asset registration and role defaults", () => {
+    const music = audioAsset("music", publicAsset("assets/music.mp3"));
+    const ping = audioAsset("ping", publicAsset("assets/ping.wav"));
+
+    const scene = makeScene({
+      size: "landscape",
+      fps: 24,
+      duration: seconds(8),
+      children: [
+        audioOverlay(music, {
+          id: "music-bed",
+          template: "backgroundMusic",
+          duration: seconds(8),
+          trimStart: seconds(12),
+        }),
+        audioOverlay(ping, {
+          id: "ping-cue",
+          template: "notificationPing",
+          at: seconds(3),
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.assets).toMatchObject({
+      music: { id: "music", type: "audio", src: "/assets/music.mp3" },
+      ping: { id: "ping", type: "audio", src: "/assets/ping.wav" },
+    });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "music-bed",
+      type: "audio",
+      assetId: "music",
+      duration: 192,
+      audioStartTime: 12,
+      volume: 0.28,
+    });
+    expect(scene.nodes[1]).toMatchObject({
+      id: "ping-cue",
+      type: "audio",
+      assetId: "ping",
+      from: 72,
+      duration: 30,
+      volume: 0.65,
+    });
+  });
+
+  it("builds audio overlays from existing asset ids with manual overrides", () => {
+    const scene = makeScene({
+      size: "portrait",
+      fps: 30,
+      duration: seconds(6),
+      assets: defineAssets(audioAsset("voice", "/assets/voice.mp3")),
+      children: [
+        audioOverlay("voice", {
+          id: "voiceover",
+          template: "voiceover",
+          at: seconds(1),
+          duration: seconds(4),
+          trimStart: seconds(2.5),
+          volume: 0.72,
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "voiceover",
+      type: "audio",
+      assetId: "voice",
+      from: 30,
+      duration: 120,
+      audioStartTime: 2.5,
+      volume: 0.72,
     });
   });
 

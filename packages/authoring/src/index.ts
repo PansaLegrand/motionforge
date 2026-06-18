@@ -17,6 +17,7 @@ import {
   type VideoNodeOptions,
 } from "@motionforge/core";
 import {
+  audioOverlay as presetAudioOverlay,
   imageOverlay as presetImageOverlay,
   parseSrt,
   parseVtt,
@@ -25,6 +26,7 @@ import {
   subtitleTrack as presetSubtitleTrack,
   videoOverlay as presetVideoOverlay,
   type CaptionWord,
+  type AudioOverlayOptions as PresetAudioOverlayOptions,
   type ImageOverlayOptions as PresetImageOverlayOptions,
   type StyledCaptionOptions as PresetStyledCaptionOptions,
   type SafeAreaAnchor,
@@ -34,6 +36,7 @@ import {
   type VideoOverlayOptions as PresetVideoOverlayOptions,
 } from "@motionforge/presets";
 export {
+  audioOverlayTemplates,
   fadeUp,
   imageOverlayTemplates,
   inferSafeAreaProfile,
@@ -52,6 +55,7 @@ export type {
   CaptionRenderMode,
   CaptionTemplateKey,
   CaptionWord,
+  AudioOverlayTemplateKey,
   ImageOverlayPlacement,
   ImageOverlayTemplateKey,
   SafeAreaAnchor,
@@ -136,6 +140,14 @@ export type AudioTrackOptions = AuthorTimingOptions & {
   trimStart?: TimeValue;
   volume?: number;
 };
+
+export type AudioOverlayOptions = Omit<
+  PresetAudioOverlayOptions,
+  "assetId" | "from" | "duration" | "trimStart"
+> &
+  AuthorTimingOptions & {
+    trimStart?: TimeValue;
+  };
 
 export type ImageOverlayOptions = Omit<
   PresetImageOverlayOptions,
@@ -465,6 +477,31 @@ export function audioTrack(
       };
 
       return audio(assetIdFromReference(asset), nodeOptions);
+    },
+  };
+}
+
+export function audioOverlay(
+  asset: AssetReference<"audio">,
+  options: AudioOverlayOptions = {},
+): AuthorNode {
+  return {
+    assets: assetsFromReference(asset),
+    toNode(fps) {
+      const { at, duration, trimStart, ...presetOptions } = options;
+
+      return builderFromSceneNode(
+        presetAudioOverlay({
+          ...presetOptions,
+          assetId: assetIdFromReference(asset),
+          from: toFrames(at, fps),
+          duration:
+            duration === undefined ? undefined : toFrames(duration, fps),
+          ...(trimStart === undefined
+            ? {}
+            : { trimStart: toSeconds(trimStart, fps) }),
+        }),
+      );
     },
   };
 }

@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX3: authoring helper)
+
+### Changed
+
+- Added authoring-level `audioOverlay(asset, options)` that accepts an audio asset object or existing asset id.
+- Passing an audio asset object now auto-adds it to `scene.assets`, matching `audioTrack()`, image overlays, and video overlays.
+- Re-exported audio overlay template metadata and template-key types from `@motionforge/authoring`.
+- Documented background music, voiceover, ambience, notification cue, and existing-asset workflows in the authoring guide and package README.
+- Marked AX3 complete in the audio overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- `audioOverlay()` accepts seconds-first `trimStart`, `at`, and `duration` options, then emits ordinary frame-timed `audio` scene nodes.
+
 ## 2026-06-19 (audio overlay AX2: preset helper)
 
 ### Changed

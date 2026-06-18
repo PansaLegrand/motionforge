@@ -157,6 +157,42 @@ export default makeScene({
 
 The helper emits a normal `video` node and auto-registers video asset objects in `scene.assets`. Decorative templates are muted by default; pass `volume` or `muted: false` when the overlay should contribute audio.
 
+## Audio Overlays
+
+Use `audioOverlay()` for background music, voiceover, ambience, sound effects, beat accents, and notification cues:
+
+```ts
+import {
+  audioAsset,
+  audioOverlay,
+  makeScene,
+  publicAsset,
+  seconds,
+} from "@motionforge/authoring";
+
+const music = audioAsset("music", publicAsset("assets/music.mp3"));
+const ping = audioAsset("ping", publicAsset("assets/ping.wav"));
+
+export default makeScene({
+  size: "landscape",
+  fps: 30,
+  duration: seconds(8),
+  children: [
+    audioOverlay(music, {
+      template: "backgroundMusic",
+      duration: seconds(8),
+      trimStart: seconds(12),
+    }),
+    audioOverlay(ping, {
+      template: "notificationPing",
+      at: seconds(3),
+    }),
+  ],
+});
+```
+
+The helper emits normal `audio` nodes and auto-registers audio asset objects in `scene.assets`. Today it controls timing, source trim, and static volume; fades, looping, and ducking will land once the scene contract exposes mixer-visible automation.
+
 ## Subtitles
 
 Use `subtitleTrack()` for SRT/VTT-style sentence cues, or `captionTrack()` for word-timed ASR output:
