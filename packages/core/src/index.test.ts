@@ -8,6 +8,7 @@ import {
   layoutScene,
   parseColor,
   parseTransform,
+  prepareTextLayout,
   prepareTextLines,
   sampleScene,
   springEasing,
@@ -461,6 +462,62 @@ describe("bounded text lines", () => {
     const title = layout.boxes.find((box) => box.id === "title");
 
     expect(title?.height).toBe(50);
+  });
+});
+
+describe("text fit modes", () => {
+  const measureTextLine = (line: string, fontSize: number) =>
+    Array.from(line).length * fontSize * 0.5;
+
+  it("truncate mode keeps one line and can ellipsize it", () => {
+    const layout = prepareTextLayout(
+      "aaaa bbbb cccc",
+      50,
+      20,
+      measureTextLine,
+      {
+        textFit: "truncate",
+        textOverflow: "ellipsis",
+      },
+    );
+
+    expect(layout.lines).toEqual(["aaaa…"]);
+    expect(layout.fontSize).toBe(20);
+  });
+
+  it("shrinks font size until bounded text fits the box height", () => {
+    const layout = prepareTextLayout(
+      "aaaa bbbb cccc dddd",
+      50,
+      20,
+      measureTextLine,
+      {
+        textFit: "shrink",
+        height: 40,
+        lineHeight: 1,
+        minFontSize: 10,
+      },
+    );
+
+    expect(layout.fontSize).toBeLessThan(20);
+    expect(layout.fontSize).toBeGreaterThanOrEqual(10);
+    expect(layout.lines.length * layout.lineHeight).toBeLessThanOrEqual(40);
+  });
+
+  it("does not shrink below minFontSize", () => {
+    const layout = prepareTextLayout(
+      "aaaaaaaaaaaaaaaaaaaaaaaa",
+      20,
+      20,
+      measureTextLine,
+      {
+        textFit: "shrink",
+        height: 10,
+        minFontSize: 12,
+      },
+    );
+
+    expect(layout.fontSize).toBe(12);
   });
 });
 

@@ -801,6 +801,19 @@ export type PrepareTextLinesOptions = {
   textOverflow?: SceneStyle["textOverflow"];
 };
 
+export type PrepareTextLayoutOptions = PrepareTextLinesOptions & {
+  textFit?: SceneStyle["textFit"];
+  minFontSize?: number;
+  height?: number;
+  lineHeight?: SceneStyle["lineHeight"];
+};
+
+export type PreparedTextLayout = {
+  fontSize: number;
+  lines: string[];
+  lineHeight: number;
+};
+
 export function prepareTextLines(
   text: string,
   maxWidth: number,
@@ -822,6 +835,61 @@ export function prepareTextLines(
   }
 
   return visible;
+}
+
+export function prepareTextLayout(
+  text: string,
+  maxWidth: number,
+  fontSize: number,
+  measure: (line: string, fontSize: number) => number,
+  options: PrepareTextLayoutOptions = {},
+): PreparedTextLayout {
+  const textFit = options.textFit ?? "wrap";
+  const baseOptions = {
+    maxLines: textFit === "truncate" ? 1 : options.maxLines,
+    textOverflow: options.textOverflow,
+  };
+  const makeLines = (size: number) =>
+    prepareTextLines(text, maxWidth, (line) => measure(line, size), baseOptions);
+  const makeLayout = (size: number): PreparedTextLayout => ({
+    fontSize: size,
+    lines: makeLines(size),
+    lineHeight: resolveLineHeight(options.lineHeight, size),
+  });
+
+  if (textFit !== "shrink") {
+    return makeLayout(fontSize);
+  }
+
+  const minFontSize = Math.max(1, Math.min(fontSize, options.minFontSize ?? 12));
+  const fits = (size: number): boolean => {
+    const lines = makeLines(size);
+    const lineHeight = resolveLineHeight(options.lineHeight, size);
+    const heightFits =
+      options.height === undefined || lines.length * lineHeight <= options.height;
+    const widthFits = lines.every((line) => measure(line, size) <= maxWidth);
+
+    return heightFits && widthFits;
+  };
+
+  if (fits(fontSize)) {
+    return makeLayout(fontSize);
+  }
+
+  let low = minFontSize;
+  let high = fontSize;
+
+  for (let pass = 0; pass < 10; pass += 1) {
+    const mid = (low + high) / 2;
+
+    if (fits(mid)) {
+      low = mid;
+    } else {
+      high = mid;
+    }
+  }
+
+  return makeLayout(low);
 }
 
 function ellipsizeLine(
@@ -1130,16 +1198,20 @@ function textIntrinsicHeight(
   measure: MeasureTextLine,
 ): number {
   const fontSize = readLength(node.style.fontSize, 0, 24);
-  const lines = prepareTextLines(
+  const layout = prepareTextLayout(
     node.text ?? "",
     width,
-    (line) => measure(line, node.style, fontSize),
+    fontSize,
+    (line, size) => measure(line, node.style, size),
     {
       maxLines: node.style.maxLines,
+      minFontSize: readLength(node.style.minFontSize, 0, 12),
+      textFit: node.style.textFit,
       textOverflow: node.style.textOverflow,
+      lineHeight: node.style.lineHeight,
     },
   );
-  return lines.length * resolveLineHeight(node.style.lineHeight, fontSize);
+  return layout.lines.length * layout.lineHeight;
 }
 
 function resolveLineHeight(

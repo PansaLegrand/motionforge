@@ -280,6 +280,17 @@
                     "type": "integer",
                     "exclusiveMinimum": 0
                   },
+                  "minFontSize": {
+                    "$ref": "#/definitions/MotionforgeScene/properties/nodes/items/properties/style/properties/gap"
+                  },
+                  "textFit": {
+                    "type": "string",
+                    "enum": [
+                      "wrap",
+                      "shrink",
+                      "truncate"
+                    ]
+                  },
                   "textOverflow": {
                     "type": "string",
                     "enum": [

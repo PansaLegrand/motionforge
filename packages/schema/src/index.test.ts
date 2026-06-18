@@ -80,6 +80,8 @@ describe("scene schema", () => {
           text: "A long generated title",
           style: {
             maxLines: 2,
+            minFontSize: 24,
+            textFit: "shrink",
             textOverflow: "ellipsis",
           },
         },
@@ -103,6 +105,7 @@ describe("scene schema", () => {
           text: "A long generated title",
           style: {
             maxLines: 0,
+            textFit: "squeeze",
             textOverflow: "fade",
           },
         },

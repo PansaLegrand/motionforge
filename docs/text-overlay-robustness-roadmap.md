@@ -56,7 +56,7 @@ Done:
 - ellipsis is measured and appended to the final visible line when possible
 - unit tests cover Latin, long words, CJK, and tiny boxes
 
-## Slice TX2 - Shrink-To-Fit Text
+## Slice TX2 - Shrink-To-Fit Text ✅
 
 **Goal:** bounded titles and callouts can reduce font size until they fit their width/height constraints.
 
@@ -66,7 +66,7 @@ Targets:
 - `packages/core`
 - `packages/renderer-canvas2d`
 
-Done when:
+Done:
 
 - text style supports `textFit: "wrap" | "shrink" | "truncate"`
 - shrink mode respects `minFontSize`

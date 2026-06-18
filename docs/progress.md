@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text robustness TX2: shrink-to-fit text)
+
+### Changed
+
+- Added `textFit: "wrap" | "shrink" | "truncate"` and `minFontSize` to scene styles.
+- Added `prepareTextLayout()` in `@motionforge/core` to resolve fitted font size, visible lines, and line height together.
+- Updated Canvas2D text drawing to use the same fitted text layout helper as core layout.
+- Added deterministic tests for truncate, shrink-to-fit, min font-size clamping, and renderer font selection.
+- Regenerated `packages/schema/scene.schema.json`.
+- Marked TX2 complete in the text overlay robustness roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema typecheck`
+- `pnpm --filter @motionforge/schema test`
+- `pnpm --filter @motionforge/schema build`
+- `pnpm --filter @motionforge/core typecheck`
+- `pnpm --filter @motionforge/core test`
+- `pnpm --filter @motionforge/core build`
+- `pnpm --filter @motionforge/renderer-canvas2d typecheck`
+- `pnpm --filter @motionforge/renderer-canvas2d test`
+- `pnpm --filter @motionforge/renderer-canvas2d build`
+
+### Notes
+
+- Shrink currently optimizes within a bounded text box and clamps at `minFontSize`; impossible-fit text remains bounded by existing line wrapping and overflow semantics.
+
 ## 2026-06-18 (text robustness TX1: bounded lines and ellipsis)
 
 ### Changed

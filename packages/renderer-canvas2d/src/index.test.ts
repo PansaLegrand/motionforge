@@ -385,6 +385,58 @@ describe("renderStill bounded text", () => {
 
     expect(drawn).toEqual(["aaaa", "bbbb…"]);
   });
+
+  it("draws shrink-fit text with the resolved smaller font", () => {
+    const drawnFonts: string[] = [];
+    const scene = {
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "title",
+          type: "text",
+          text: "aaaa bbbb cccc dddd",
+          style: {
+            width: 50,
+            height: 40,
+            fontSize: 20,
+            minFontSize: 10,
+            lineHeight: 1,
+            textFit: "shrink",
+          },
+        },
+      ],
+    };
+
+    const context = {
+      globalAlpha: 1,
+      font: "",
+      fillStyle: "",
+      textAlign: "left",
+      textBaseline: "alphabetic",
+      save: () => undefined,
+      restore: () => undefined,
+      clearRect: () => undefined,
+      translate: () => undefined,
+      measureText: function (this: { font: string }, line: string) {
+        const match = this.font.match(/(\d+(?:\.\d+)?)px/);
+        const fontSize = match ? Number.parseFloat(match[1] ?? "20") : 20;
+        return { width: Array.from(line).length * fontSize * 0.5 };
+      },
+      fillText: function (this: { font: string }) {
+        drawnFonts.push(this.font);
+      },
+    } as unknown as CanvasRenderingContext2D;
+
+    renderStill(context, scene as never, 0);
+
+    expect(drawnFonts.length).toBeGreaterThan(0);
+    expect(drawnFonts.every((font) => !font.includes("20px"))).toBe(true);
+  });
 });
 
 describe("parseBoxShadow", () => {
