@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (video overlay roadmap)
+
+### Changed
+
+- Added `docs/video-overlay-roadmap.md` as the next overlay theme after image overlays.
+- Scoped the theme around data-first video overlay helpers, authoring convenience, preset catalog discovery, chat/app refresh, and visual stress galleries.
+- Recorded the current video baseline: schema-backed `video` nodes, source trims, playback rate, volume, clip audio export, `videoClip()`, media looks, clip layouts, and chat media sequencing.
+- Linked the roadmap from `docs/roadmap.md`.
+
+### Tested
+
+- Documentation-only change; no runtime tests.
+
+### Notes
+
+- Video overlays will default toward muted/decorative behavior for overlay templates, while full media sequencing remains responsible for normal clip audio unless the caller opts in.
+
 ## 2026-06-18 (image overlay IX5: stress gallery)
 
 ### Changed

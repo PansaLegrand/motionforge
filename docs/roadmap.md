@@ -113,6 +113,8 @@ The next subtitle overlay direction is recorded in [`docs/subtitle-overlay-roadm
 
 The next image overlay direction is recorded in [`docs/image-overlay-roadmap.md`](image-overlay-roadmap.md): logo, watermark, sticker, product-shot, corner-badge, and avatar overlays with safe-area placement, authoring helpers, patch examples, and stress galleries.
 
+The next video overlay direction is recorded in [`docs/video-overlay-roadmap.md`](video-overlay-roadmap.md): picture-in-picture, reaction-cam, screen-demo, background-loop, b-roll-strip, and video-badge overlays with trims, muted audio defaults, patch examples, and stress galleries.
+
 Decisions recorded 2026-06-12:
 
 - **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.
