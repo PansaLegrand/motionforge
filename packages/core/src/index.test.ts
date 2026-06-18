@@ -8,6 +8,7 @@ import {
   layoutScene,
   parseColor,
   parseTransform,
+  prepareTextLines,
   sampleScene,
   springEasing,
   text,
@@ -392,6 +393,73 @@ describe("intrinsic text auto-height", () => {
 
     // Heuristic: 9 chars × 20 × 0.58 = 104.4 > 50, each word 46.4 ≤ 50 →
     // two lines, same shape as real measurement at this size.
+    expect(title?.height).toBe(50);
+  });
+});
+
+describe("bounded text lines", () => {
+  const measureTextLine = (line: string) => Array.from(line).length * 10;
+
+  it("limits rendered lines to maxLines", () => {
+    expect(
+      prepareTextLines("aaaa bbbb cccc", 50, measureTextLine, {
+        maxLines: 2,
+      }),
+    ).toEqual(["aaaa", "bbbb"]);
+  });
+
+  it("adds a measured ellipsis to the final visible line", () => {
+    expect(
+      prepareTextLines("aaaa bbbb cccc", 50, measureTextLine, {
+        maxLines: 2,
+        textOverflow: "ellipsis",
+      }),
+    ).toEqual(["aaaa", "bbbb…"]);
+  });
+
+  it("returns an empty final line when the ellipsis cannot fit", () => {
+    expect(
+      prepareTextLines("abcdef", 5, measureTextLine, {
+        maxLines: 1,
+        textOverflow: "ellipsis",
+      }),
+    ).toEqual([""]);
+  });
+
+  it("clamps CJK text after grapheme wrapping", () => {
+    expect(
+      prepareTextLines("这是一个很长的中文段落", 40, measureTextLine, {
+        maxLines: 2,
+        textOverflow: "ellipsis",
+      }),
+    ).toEqual(["这是一个", "很长的…"]);
+  });
+
+  it("uses maxLines for intrinsic auto-height", () => {
+    const layout = layoutScene(
+      evaluateScene(
+        composition({ width: 200, height: 400, fps: 30, duration: 1 })
+          .children(
+            text("aaaa bbbb cccc", {
+              id: "title",
+              style: {
+                position: "absolute",
+                left: 0,
+                top: 30,
+                width: 50,
+                fontSize: 20,
+                maxLines: 2,
+                textOverflow: "ellipsis",
+              },
+            }),
+          )
+          .toJSON(),
+        0,
+      ),
+      { measureTextLine },
+    );
+    const title = layout.boxes.find((box) => box.id === "title");
+
     expect(title?.height).toBe(50);
   });
 });

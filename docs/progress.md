@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text robustness TX1: bounded lines and ellipsis)
+
+### Changed
+
+- Added `maxLines` and `textOverflow: "clip" | "ellipsis"` to the scene style schema.
+- Added `prepareTextLines()` in `@motionforge/core` so layout and renderers share clamping/ellipsis semantics.
+- Updated intrinsic text auto-height to respect bounded visible lines.
+- Updated Canvas2D text rendering to draw only the prepared visible lines.
+- Regenerated `packages/schema/scene.schema.json`.
+- Marked TX1 complete in the text overlay robustness roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/schema typecheck`
+- `pnpm --filter @motionforge/schema test`
+- `pnpm --filter @motionforge/schema build`
+- `pnpm --filter @motionforge/core typecheck`
+- `pnpm --filter @motionforge/core test`
+- `pnpm --filter @motionforge/core build`
+- `pnpm --filter @motionforge/renderer-canvas2d typecheck`
+- `pnpm --filter @motionforge/renderer-canvas2d test`
+- `pnpm --filter @motionforge/renderer-canvas2d build`
+
+### Notes
+
+- Ellipsis keeps as much of the final visible line as fits. If even the ellipsis cannot fit, the final visible line becomes empty instead of overflowing.
+
 ## 2026-06-18 (text overlay robustness roadmap)
 
 ### Changed

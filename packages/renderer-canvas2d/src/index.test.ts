@@ -338,6 +338,55 @@ describe("renderStill with video nodes", () => {
   });
 });
 
+describe("renderStill bounded text", () => {
+  it("draws only maxLines and ellipsizes the final visible line", () => {
+    const drawn: string[] = [];
+    const scene = {
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 30,
+      duration: 1,
+      assets: {},
+      nodes: [
+        {
+          id: "title",
+          type: "text",
+          text: "aaaa bbbb cccc",
+          style: {
+            width: 50,
+            fontSize: 20,
+            maxLines: 2,
+            textOverflow: "ellipsis",
+          },
+        },
+      ],
+    };
+
+    const context = {
+      globalAlpha: 1,
+      font: "",
+      fillStyle: "",
+      textAlign: "left",
+      textBaseline: "alphabetic",
+      save: () => undefined,
+      restore: () => undefined,
+      clearRect: () => undefined,
+      translate: () => undefined,
+      measureText: (line: string) => ({
+        width: Array.from(line).length * 10,
+      }),
+      fillText: (line: string) => {
+        drawn.push(line);
+      },
+    } as unknown as CanvasRenderingContext2D;
+
+    renderStill(context, scene as never, 0);
+
+    expect(drawn).toEqual(["aaaa", "bbbb…"]);
+  });
+});
+
 describe("parseBoxShadow", () => {
   it("parses offset/blur/color forms", () => {
     expect(parseBoxShadow("2px 4px 8px rgba(0, 0, 0, 0.5)")).toEqual({

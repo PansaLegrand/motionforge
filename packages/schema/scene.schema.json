@@ -276,6 +276,17 @@
                   "textStroke": {
                     "type": "string"
                   },
+                  "maxLines": {
+                    "type": "integer",
+                    "exclusiveMinimum": 0
+                  },
+                  "textOverflow": {
+                    "type": "string",
+                    "enum": [
+                      "clip",
+                      "ellipsis"
+                    ]
+                  },
                   "textBackgroundColor": {
                     "type": "string"
                   },

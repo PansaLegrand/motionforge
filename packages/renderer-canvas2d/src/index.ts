@@ -1,6 +1,7 @@
 import {
   evaluateScene,
   layoutScene,
+  prepareTextLines,
   wrapTextLines,
   type LayoutBox,
   type MeasureTextLine,
@@ -1162,10 +1163,14 @@ function drawText(
         : box.x;
 
   const lineHeight = resolveLineHeight(style.lineHeight, fontSize);
-  const lines = wrapTextLines(
+  const lines = prepareTextLines(
     value,
     box.width,
     (line) => context.measureText(line).width,
+    {
+      maxLines: style.maxLines,
+      textOverflow: style.textOverflow,
+    },
   );
   // The line block is centered vertically in the box, matching the previous
   // single-line behavior when there is exactly one line.

@@ -66,6 +66,58 @@ describe("scene schema", () => {
     expect(result.ok).toBe(true);
   });
 
+  it("accepts bounded text controls", () => {
+    const result = validateScene({
+      schemaVersion: 0,
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      duration: 90,
+      nodes: [
+        {
+          id: "title",
+          type: "text",
+          text: "A long generated title",
+          style: {
+            maxLines: 2,
+            textOverflow: "ellipsis",
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(true);
+  });
+
+  it("rejects invalid bounded text controls", () => {
+    const result = validateScene({
+      schemaVersion: 0,
+      width: 1920,
+      height: 1080,
+      fps: 30,
+      duration: 90,
+      nodes: [
+        {
+          id: "title",
+          type: "text",
+          text: "A long generated title",
+          style: {
+            maxLines: 0,
+            textOverflow: "fade",
+          },
+        },
+      ],
+    });
+
+    expect(result.ok).toBe(false);
+    expect(result.ok ? "" : result.errors.join("\n")).toContain(
+      "Number must be greater than 0",
+    );
+    expect(result.ok ? "" : result.errors.join("\n")).toContain(
+      "Invalid enum value",
+    );
+  });
+
   it("rejects duplicate node ids anywhere in the tree", () => {
     const result = validateScene({
       schemaVersion: 0,

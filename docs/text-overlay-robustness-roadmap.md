@@ -36,7 +36,7 @@ Known gaps:
 - no safe-area presets for common overlay placements
 - limited golden/example coverage for very long text overlays
 
-## Slice TX1 - Bounded Lines And Ellipsis
+## Slice TX1 - Bounded Lines And Ellipsis ✅
 
 **Goal:** long text can be clamped predictably without overflowing normal overlay boxes.
 
@@ -47,7 +47,7 @@ Targets:
 - `packages/renderer-canvas2d`
 - docs/tests
 
-Done when:
+Done:
 
 - text style supports `maxLines`
 - text style supports `textOverflow: "clip" | "ellipsis"`

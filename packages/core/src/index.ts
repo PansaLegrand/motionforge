@@ -796,6 +796,64 @@ function splitGraphemes(text: string): string[] {
   return Array.from(text);
 }
 
+export type PrepareTextLinesOptions = {
+  maxLines?: number;
+  textOverflow?: SceneStyle["textOverflow"];
+};
+
+export function prepareTextLines(
+  text: string,
+  maxWidth: number,
+  measure: (line: string) => number,
+  options: PrepareTextLinesOptions = {},
+): string[] {
+  const lines = wrapTextLines(text, maxWidth, measure);
+  const maxLines = options.maxLines;
+
+  if (maxLines === undefined || lines.length <= maxLines) {
+    return lines;
+  }
+
+  const visible = lines.slice(0, maxLines);
+
+  if (options.textOverflow === "ellipsis" && visible.length > 0) {
+    const lastIndex = visible.length - 1;
+    visible[lastIndex] = ellipsizeLine(visible[lastIndex] ?? "", maxWidth, measure);
+  }
+
+  return visible;
+}
+
+function ellipsizeLine(
+  line: string,
+  maxWidth: number,
+  measure: (line: string) => number,
+): string {
+  const ellipsis = "…";
+
+  if (measure(ellipsis) > maxWidth) {
+    return "";
+  }
+
+  if (measure(`${line}${ellipsis}`) <= maxWidth) {
+    return `${line}${ellipsis}`;
+  }
+
+  const clusters = splitGraphemes(line);
+
+  while (clusters.length > 0) {
+    const candidate = `${clusters.join("")}${ellipsis}`;
+
+    if (measure(candidate) <= maxWidth) {
+      return candidate;
+    }
+
+    clusters.pop();
+  }
+
+  return ellipsis;
+}
+
 export function layoutScene(
   scene: ResolvedScene,
   options: LayoutOptions = {},
@@ -1072,8 +1130,14 @@ function textIntrinsicHeight(
   measure: MeasureTextLine,
 ): number {
   const fontSize = readLength(node.style.fontSize, 0, 24);
-  const lines = wrapTextLines(node.text ?? "", width, (line) =>
-    measure(line, node.style, fontSize),
+  const lines = prepareTextLines(
+    node.text ?? "",
+    width,
+    (line) => measure(line, node.style, fontSize),
+    {
+      maxLines: node.style.maxLines,
+      textOverflow: node.style.textOverflow,
+    },
   );
   return lines.length * resolveLineHeight(node.style.lineHeight, fontSize);
 }
