@@ -89,7 +89,7 @@ Done:
 - role templates are documented through `audioOverlay({ template })`
 - generated nodes validate through `@motionforge/schema`
 
-## Slice AX4 - Preset Catalog And Chat/App Refresh
+## Slice AX4 - Preset Catalog And Chat/App Refresh ✅
 
 **Goal:** audio roles become discoverable to programmers, agents, and product UIs.
 
@@ -100,14 +100,11 @@ Targets:
 - `apps/chat`
 - docs/examples
 
-Catalog done:
+Done:
 
 - preset catalog lists audio template keys and best-use descriptions
 - patch examples can insert an audio node against an existing scene audio asset
 - unavailable-state messaging is clear when no audio asset exists
-
-Still to do:
-
 - chat prompt chips include background music, voiceover, and sound-effect examples
 - deterministic local chat can compile basic audio instructions such as "add @Audio 1 as quiet background music" and "put @Audio 2 at 3s as a sound effect"
 

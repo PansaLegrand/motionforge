@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX4b: chat/app refresh)
+
+### Changed
+
+- Added chat prompt chips for background music, voiceover, and notification ping audio overlay instructions using `@` asset mentions.
+- Added local audio-overlay intent handling for background music, voiceover, sound effects, beat accents, ambient beds, and notification pings.
+- Made uploaded audio mentions produce `setAsset` plus preset-backed audio nodes, including first-draft scenes.
+- Kept existing scene audio assets usable through plain-language instructions like "add quiet background music".
+- Marked AX4 complete in the audio overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat test -- local-agent.test.ts`
+- `pnpm --filter @motionforge/chat test -- examples.test.ts`
+
+### Notes
+
+- Audio overlay instructions now prefer preset-backed audio nodes over generic fallback text edits when an audio asset is available. Fade/ducking language still waits for AX5 engine support.
+
 ## 2026-06-19 (audio overlay AX4a: catalog and patch examples)
 
 ### Changed

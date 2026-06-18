@@ -301,6 +301,91 @@ describe("local motionforge agent", () => {
     expect(validateScene(result.scene)).toMatchObject({ ok: true });
   });
 
+  it("inserts audio overlay presets for existing scene audio assets", () => {
+    const scene: Scene = {
+      ...createSceneFromInstruction("Make a calm founder update."),
+      assets: {
+        music: { id: "music", type: "audio", src: "music.mp3" },
+      },
+    };
+    const result = applyInstructionLocally(
+      scene,
+      "Add quiet background music under the whole scene.",
+    );
+    const inserted = nodeById(result.scene, "backgroundMusic-overlay");
+
+    expect(result.mode).toBe("patch");
+    expect(result.patch).toHaveLength(1);
+    expect(result.patch?.[0]).toMatchObject({
+      op: "insertNode",
+      node: {
+        id: "backgroundMusic-overlay",
+        type: "audio",
+        assetId: "music",
+        duration: scene.duration,
+        volume: 0.22,
+      },
+    });
+    expect(inserted).toMatchObject({
+      type: "audio",
+      assetId: "music",
+      from: 0,
+      duration: scene.duration,
+      volume: 0.22,
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("uses uploaded audio mentions for first-draft audio overlays", () => {
+    const result = applyInstructionLocally(
+      null,
+      "Play @Ping at 3s as a notification ping.",
+      [
+        {
+          id: "ping",
+          sceneAssetId: "audio_1",
+          type: "audio",
+          src: "blob:ping",
+          label: "Ping",
+          aliases: ["notification"],
+          fileName: "ping.wav",
+          durationSeconds: 1,
+          alreadyInScene: false,
+        },
+      ],
+    );
+    const inserted = nodeById(result.scene, "notificationPing-overlay");
+
+    expect(result.mode).toBe("scene");
+    expect(result.patch).toMatchObject([
+      { op: "setAsset", asset: { id: "audio_1", type: "audio", src: "blob:ping" } },
+      {
+        op: "insertNode",
+        node: {
+          id: "notificationPing-overlay",
+          type: "audio",
+          assetId: "audio_1",
+          from: 90,
+          duration: 30,
+          volume: 0.65,
+        },
+      },
+    ]);
+    expect(result.scene.assets.audio_1).toMatchObject({
+      id: "audio_1",
+      type: "audio",
+      src: "blob:ping",
+    });
+    expect(inserted).toMatchObject({
+      type: "audio",
+      assetId: "audio_1",
+      from: 90,
+      duration: 30,
+      volume: 0.65,
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
   it("compiles local media instructions when uploaded assets are available", () => {
     const result = applyInstructionLocally(
       null,

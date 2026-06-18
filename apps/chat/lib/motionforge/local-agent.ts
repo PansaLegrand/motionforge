@@ -11,6 +11,7 @@ import {
   validateScene,
 } from "@motionforge/schema";
 import {
+  audioOverlay,
   fadeUp,
   imageOverlay,
   popIn,
@@ -21,6 +22,7 @@ import {
   videoOverlay,
   type CaptionTemplateKey,
   type CaptionWord,
+  type AudioOverlayTemplateKey,
   type ImageOverlayPlacement,
   type ImageOverlayTemplateKey,
   type VideoOverlayPlacement,
@@ -299,6 +301,7 @@ export function createPatchFromInstruction(
   const panelId = ids.find((id) => /panel|card|accent/i.test(id));
   const imageOverlayIntent = selectImageOverlayIntent(normalized);
   const videoOverlayIntent = selectVideoOverlayIntent(normalized);
+  const audioOverlayIntent = selectAudioOverlayIntent(normalized, scene.fps);
 
   if (imageOverlayIntent) {
     const imageAsset = selectImageAssetForInstruction(
@@ -359,6 +362,35 @@ export function createPatchFromInstruction(
           ...(videoOverlayIntent.placement
             ? { placement: videoOverlayIntent.placement }
             : {}),
+        }),
+      });
+    }
+  }
+
+  if (audioOverlayIntent) {
+    const audioAsset = selectAudioAssetForInstruction(
+      scene,
+      instruction,
+      mediaAssets,
+    );
+
+    if (audioAsset) {
+      if (!scene.assets[audioAsset.assetId]) {
+        ops.push({
+          op: "setAsset",
+          asset: audioAsset.asset,
+        });
+      }
+
+      ops.push({
+        op: "insertNode",
+        node: audioOverlay({
+          template: audioOverlayIntent.template,
+          id: uniqueNodeId(scene, `${audioOverlayIntent.template}-overlay`),
+          assetId: audioAsset.assetId,
+          from: audioOverlayIntent.from ?? 0,
+          ...audioOverlayDurationOptions(audioOverlayIntent, scene.duration),
+          volume: audioOverlayIntent.volume,
         }),
       });
     }
@@ -496,7 +528,13 @@ export function createPatchFromInstruction(
     });
   }
 
-  if (ops.length === 0 && titleId && !imageOverlayIntent && !videoOverlayIntent) {
+  if (
+    ops.length === 0 &&
+    titleId &&
+    !imageOverlayIntent &&
+    !videoOverlayIntent &&
+    !audioOverlayIntent
+  ) {
     ops.push({
       op: "setText",
       id: titleId,
@@ -1019,6 +1057,107 @@ function selectVideoOverlayIntent(
   return { template: "pictureInPicture", placement };
 }
 
+function selectAudioOverlayIntent(
+  instruction: string,
+  fps = 30,
+): {
+  template: AudioOverlayTemplateKey;
+  from?: number;
+  duration?: number;
+  volume?: number;
+} | null {
+  const mentionsAudioOverlay =
+    /\b(background music|music bed|voiceover|voice over|sound effect|sfx|beat accent|beat hit|ambient bed|ambience|notification ping|audio overlay|overlay audio)\b/.test(
+      instruction,
+    ) &&
+    /\b(add|put|place|use|insert|overlay|play)\b/.test(instruction);
+
+  if (!mentionsAudioOverlay) {
+    return null;
+  }
+
+  const from = audioStartFrameFromInstruction(instruction, fps);
+  const volume = audioVolumeFromInstruction(instruction);
+
+  if (instruction.includes("voiceover") || instruction.includes("voice over")) {
+    return { template: "voiceover", from, volume };
+  }
+
+  if (instruction.includes("beat accent") || instruction.includes("beat hit")) {
+    return { template: "beatAccent", from, volume };
+  }
+
+  if (instruction.includes("notification ping")) {
+    return { template: "notificationPing", from, volume };
+  }
+
+  if (instruction.includes("ambient") || instruction.includes("ambience")) {
+    return { template: "ambientBed", from, volume };
+  }
+
+  if (instruction.includes("sound effect") || instruction.includes("sfx")) {
+    return { template: "soundEffect", from, volume };
+  }
+
+  return { template: "backgroundMusic", from, volume };
+}
+
+function audioStartFrameFromInstruction(
+  instruction: string,
+  fps: number,
+): number | undefined {
+  const match = instruction.match(
+    /\b(?:at|from|after)\s+(\d+(?:\.\d+)?)\s*(?:s|sec|secs|second|seconds)\b/i,
+  );
+
+  if (!match) {
+    return undefined;
+  }
+
+  return Math.max(0, Math.round(Number(match[1]) * fps));
+}
+
+function audioOverlayDurationOptions(
+  intent: { template: AudioOverlayTemplateKey; duration?: number },
+  sceneDuration: number,
+): { duration?: number } {
+  if (intent.duration !== undefined) {
+    return { duration: intent.duration };
+  }
+
+  if (
+    intent.template === "backgroundMusic" ||
+    intent.template === "ambientBed" ||
+    intent.template === "voiceover"
+  ) {
+    return { duration: sceneDuration };
+  }
+
+  return {};
+}
+
+function audioVolumeFromInstruction(instruction: string): number | undefined {
+  if (/\b(mute|muted|silent)\b/.test(instruction)) {
+    return 0;
+  }
+
+  if (/\b(quiet|quietly|soft|softly|low|under|subtle|background)\b/.test(instruction)) {
+    return 0.22;
+  }
+
+  if (/\b(loud|louder|full volume)\b/.test(instruction)) {
+    return 1;
+  }
+
+  const percent = instruction.match(/\b(\d{1,3})\s*%\s*(?:volume|vol)?\b/i);
+
+  if (percent) {
+    return Math.max(0, Math.min(1, Number(percent[1]) / 100));
+  }
+
+  return undefined;
+}
+
 function selectImageAssetForInstruction(
   scene: Scene,
   instruction: string,
@@ -1115,6 +1254,54 @@ function selectVideoAssetForInstruction(
   };
 }
 
+function selectAudioAssetForInstruction(
+  scene: Scene,
+  instruction: string,
+  mediaAssets: ChatMediaAssetManifestItem[],
+):
+  | {
+      assetId: string;
+      asset: { id: string; type: "audio"; src: string };
+    }
+  | null {
+  const audioMediaAssets = mediaAssets.filter((asset) => asset.type === "audio");
+  const mentionedUploadId = parseMediaMentions(instruction, audioMediaAssets)[0]
+    ?.assetId;
+  const mentionedUpload = audioMediaAssets.find(
+    (asset) =>
+      asset.id === mentionedUploadId ||
+      instructionMentionsMediaAsset(instruction, asset),
+  );
+
+  if (mentionedUpload) {
+    return {
+      assetId: mentionedUpload.sceneAssetId,
+      asset: {
+        id: mentionedUpload.sceneAssetId,
+        type: "audio",
+        src: mentionedUpload.src,
+      },
+    };
+  }
+
+  const existingAudioAsset = Object.values(scene.assets).find(
+    (asset) => asset.type === "audio",
+  );
+
+  if (!existingAudioAsset) {
+    return null;
+  }
+
+  return {
+    assetId: existingAudioAsset.id,
+    asset: {
+      id: existingAudioAsset.id,
+      type: "audio",
+      src: existingAudioAsset.src,
+    },
+  };
+}
+
 function instructionMentionsImageAsset(
   instruction: string,
   asset: ChatMediaAssetManifestItem,
@@ -1171,6 +1358,10 @@ function isVideoOverlayInsertOp(op: SceneOp): boolean {
   return op.op === "insertNode" && op.node.type === "video";
 }
 
+function isAudioOverlayInsertOp(op: SceneOp): boolean {
+  return op.op === "insertNode" && op.node.type === "audio";
+}
+
 function uniqueCaptionPrefix(scene: Scene, base: string): string {
   return uniqueNodeId(scene, base);
 }
@@ -1196,9 +1387,11 @@ export function applyInstructionLocally(
   const patchBaseScene =
     currentScene ??
     (selectImageOverlayIntent(instruction.toLowerCase()) ||
-    selectVideoOverlayIntent(instruction.toLowerCase())
+    selectVideoOverlayIntent(instruction.toLowerCase()) ||
+    selectAudioOverlayIntent(instruction.toLowerCase())
       ? createSceneFromInstruction(instruction)
       : null);
+  const audioOverlayIntent = selectAudioOverlayIntent(instruction.toLowerCase());
   const localPatch = patchBaseScene
     ? createPatchFromInstruction(patchBaseScene, instruction, mediaAssets)
     : [];
@@ -1206,7 +1399,8 @@ export function applyInstructionLocally(
     (op) =>
       op.op === "setAsset" ||
       isImageOverlayInsertOp(op) ||
-      isVideoOverlayInsertOp(op),
+      isVideoOverlayInsertOp(op) ||
+      (audioOverlayIntent !== null && isAudioOverlayInsertOp(op)),
   );
   const shouldPreferOverlayPatch = overlayOnlyPatch.length > 0;
   const mediaResult = shouldPreferOverlayPatch
