@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (subtitle overlay roadmap)
+
+### Changed
+
+- Added `docs/subtitle-overlay-roadmap.md` as the next overlay theme after robust text overlays.
+- Scoped the theme around segment subtitle tracks, SRT/VTT parsing, authoring workflow, template robustness, and subtitle stress galleries.
+- Recorded the current subtitle baseline: `tiktokCaptions()`, `karaokeCaptions()`, `styledCaptions()`, subtitle templates, robust text style keys, and safe-area placement helpers.
+- Linked the roadmap from the main project roadmap.
+
+### Tested
+
+- Documentation/link sanity review with `rg`.
+
+### Notes
+
+- First implementation slice is SX1: segment-level `subtitleTrack()` for production-safe subtitles without ASR word timings.
+
 ## 2026-06-18 (text robustness TX6: stress gallery)
 
 ### Changed

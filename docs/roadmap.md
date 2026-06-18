@@ -109,6 +109,8 @@ The next preset discovery direction is recorded in [`docs/preset-explorer-roadma
 
 The next text robustness direction is recorded in [`docs/text-overlay-robustness-roadmap.md`](text-overlay-robustness-roadmap.md): bounded lines, ellipsis, shrink-to-fit, authoring helpers, safe-area placement, preset upgrades, and stress goldens for production-safe text overlays.
 
+The next subtitle overlay direction is recorded in [`docs/subtitle-overlay-roadmap.md`](subtitle-overlay-roadmap.md): segment subtitle tracks, SRT/VTT parsing, authoring docs, robust template semantics, and subtitle stress galleries for production subtitle workflows.
+
 Decisions recorded 2026-06-12:
 
 - **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.
