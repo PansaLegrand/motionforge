@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (subtitle overlay SX5: stress gallery)
+
+### Changed
+
+- Added `subtitleStressGalleryScene()` to `@motionforge/showcase`.
+- Added the generated scene JSON at `examples/generated/subtitle-stress-gallery.json`.
+- Added a docs poster at `docs/assets/showcase/subtitle-stress-gallery.png`.
+- Covered parsed SRT multiline cues, parsed WebVTT cue settings/notes, long Latin, URLs, CJK, emoji, and fast cue changes in one deterministic showcase scene.
+- Documented the gallery in `docs/showcase.md` and the refresh/render command in `examples/README.md`.
+- Marked SX5 complete in the subtitle overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase test`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm showcase:generate`
+- `pnpm --filter @motionforge/golden run example examples/generated/subtitle-stress-gallery.json docs/assets/showcase/subtitle-stress-gallery.mp4 90`
+
+### Notes
+
+- The intermediate MP4 was removed after rendering; the committed poster is frame 90, where the long Latin subtitle proves bounded shrink/clamp behavior.
+
 ## 2026-06-18 (subtitle overlay SX4: template robustness)
 
 ### Changed
@@ -1241,7 +1264,7 @@ This is the living project log. Every meaningful implementation slice should rec
 
 - **Intrinsic text auto-height** (the sharpest documented edge for LLM-generated scenes, phase-2 week-1 slice): a text node without an explicit `height` is now exactly as tall as its wrapped line count × `lineHeight` instead of filling its parent. Top-anchored absolute text starts at `top`; bottom-anchored text sits its own height above `bottom`; absolute nodes with both `top` and `bottom` keep the inset-constrained height; flex parents' size assignments are respected (`sizedByParent`).
 - **Layout and render now share one text measurement**: `wrapTextLines` (+ grapheme breaking) moved from the renderer into `@motionforge/core` (renderer re-exports it); `layoutScene(scene, { measureTextLine })` accepts a measurer, and `renderStill` passes one backed by its canvas context (same font string + `letterSpacing` as `drawText`), so intrinsic boxes wrap exactly like painted text. Without a measurer (plain Node), the 0.58 × fontSize character heuristic stands in — now wrap-aware for flex height estimates too (one slot per rendered line, not per `\n`).
-- Golden harness: probes gained an `absent` option (pass only when *no* pixel matches) so fixtures can assert text does **not** paint somewhere; new `text-auto-height` probe fixture covers top-anchored wrap, bottom-anchored subtitle placement, and no-pixels-below-the-intrinsic-box.
+- Golden harness: probes gained an `absent` option (pass only when _no_ pixel matches) so fixtures can assert text does **not** paint somewhere; new `text-auto-height` probe fixture covers top-anchored wrap, bottom-anchored subtitle placement, and no-pixels-below-the-intrinsic-box.
 - Launch surface: GitHub Pages deploy workflow for the playground (`.github/workflows/deploy-playground.yml`) + `base: "./"` Vite config (with `passWithNoTests` to keep `pnpm -r test` green); getting-started guide fixed (`tiktokCaptions` returns one container node — `push(captionTrack)`, not spread); `docs/roadmap.md` gained the phase-2 plan; scene-format and llms.txt rewritten for the new auto-height contract (the "give absolute text an explicit height" hard rule is gone).
 
 ### Tested
@@ -1370,7 +1393,7 @@ This is the living project log. Every meaningful implementation slice should rec
 ### Notes
 
 - The timeline assumes choreographed nodes share a `from`; a future option could emit `retime` ops instead of holds for nodes that should not exist before their slot.
-- Decision recorded: GSAP itself stays out (proprietary license, imperative runtime); a GSAP-code *baking adapter* remains explicitly deferred unless real users ask.
+- Decision recorded: GSAP itself stays out (proprietary license, imperative runtime); a GSAP-code _baking adapter_ remains explicitly deferred unless real users ask.
 
 ## 2026-06-11 (Lottie spike — week-4 slice 2)
 
@@ -1407,7 +1430,7 @@ This is the living project log. Every meaningful implementation slice should rec
 ### Notes
 
 - Headless Chromium's null audio device free-runs (~1.5× wall clock), and the audio-master-clock design follows it — playback runs fast in headless tests. Real hardware is fine. Follow-up: clamp re-anchoring to wall-clock plausibility so a free-running audio clock can't drag the frame clock.
-- The eared check (does it *sound* beat-locked) is a maintainer task in a real browser tab: `pnpm dev` → Audio Sync Pulse → Play.
+- The eared check (does it _sound_ beat-locked) is a maintainer task in a real browser tab: `pnpm dev` → Audio Sync Pulse → Play.
 
 ## 2026-06-11 (golden diff artifacts — week-3 slice 3)
 
@@ -1458,7 +1481,7 @@ This is the living project log. Every meaningful implementation slice should rec
 
 - **Plan re-scope:** downstream-editor integration dropped from the roadmap (the maintainer's products consume motionforge on their own schedule); weeks 3–5 now target the open-source project itself — agent loop tangibility, capabilities, robustness, launch surface.
 - Playground gains an **agent console**: paste a scene document or a patch op list, apply it through the exact public APIs an agent uses (`validateScene` / `applyScenePatch`), watch the preview update, read the same errors an agent reads. Plus one-click "Copy scene JSON" for the copy → prompt → paste loop. This is the chat loop minus the LLM.
-- Playground refactor: scene loading split into `loadScene(showcaseEntry)` and `loadSceneDoc(anySceneDoc)`, so patched/custom documents share the full asset/player/export lifecycle. Export now exports the *current* (possibly patched) document.
+- Playground refactor: scene loading split into `loadScene(showcaseEntry)` and `loadSceneDoc(anySceneDoc)`, so patched/custom documents share the full asset/player/export lifecycle. Export now exports the _current_ (possibly patched) document.
 - Patch error display no longer double-prefixes op indexes (messages already carry them).
 - README hero regenerated; it now shows the console.
 
@@ -1500,7 +1523,7 @@ This is the living project log. Every meaningful implementation slice should rec
 - `@motionforge/schema`: `volume` now validates on video nodes too (still rejected elsewhere); `audioStartTime` stays audio-only — video trims picture and sound together via `videoStartTime`, and the rejection message says so.
 - `@motionforge/renderer-canvas2d`: `openVideoClip()` probes the clip's audio track on the same input and exposes it as `VideoClip.audio` (`duration`/`sampleRate`/`numberOfChannels`/`AudioBufferSink`). Silent clips simply have no `audio`; `disposeAssets()` is unchanged because the sink shares the clip's input.
 - `@motionforge/export`: `collectAudioPlacements()` now returns video nodes as well, plus a new `framesIntoNode` field (head clipping by ancestor windows). The mix maps a video window to source time exactly like the renderer's `videoSourceTime` (`videoStartTime + (localFrame / fps) × playbackRate`), so exported sound stays aligned with previewed picture; `playbackRate` retimes audio by declaring the segment at rate × native sample rate — varispeed semantics (pitch shifts; no time-stretch), documented.
-- Alignment fix that fell out of `framesIntoNode`: audio nodes whose *head* is clipped by an ancestor window now start that many frames into their source instead of restarting from 0 — matching the evaluator's `localFrame = absoluteFrame − from` everywhere.
+- Alignment fix that fell out of `framesIntoNode`: audio nodes whose _head_ is clipped by an ancestor window now start that many frames into their source instead of restarting from 0 — matching the evaluator's `localFrame = absoluteFrame − from` everywhere.
 
 ### Tested
 
@@ -1580,7 +1603,7 @@ This is the living project log. Every meaningful implementation slice should rec
   - `boxShadow` — `<x> <y> [blur] <color>` string.
 - `@motionforge/renderer-canvas2d`:
   - `filter` sets `context.filter` for the node's own draws; children inherit unless they set their own (per-draw application, not subtree compositing — identical to CSS for leaf media/text nodes, the dominant case). Safari silently ignores it.
-  - Siblings paint in ascending `zIndex` (stable; document order breaks ties) at every tree level. A negative `zIndex` paints behind *all* siblings, including a full-canvas background sibling — CSS sibling semantics, verified visually.
+  - Siblings paint in ascending `zIndex` (stable; document order breaks ties) at every tree level. A negative `zIndex` paints behind _all_ siblings, including a full-canvas background sibling — CSS sibling semantics, verified visually.
   - `border` strokes inside the border box following `borderRadius` (solid only; other line styles are loud nulls). `parseBorder()` exported.
   - `boxShadow` rides the background fill via canvas shadow state (no background → no shadow, documented); `inset`/spread unsupported and make the whole value null rather than subtly wrong. `parseBoxShadow()` exported.
 - Spike correction: `%` translate already tweens and resolves against the node's own box; the editor's `translateX(-100%)` is an adapter rewrite, not engine work.

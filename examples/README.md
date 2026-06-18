@@ -48,6 +48,7 @@ The generated showcase now includes two use-case demos aimed at agent and editor
 - `launch-info-display.json` — a prompt-to-video style launch display with animated panels, scan lines, countdown text, and progress motion.
 - `timed-text-overlay.json` — a written timing prompt mapped to frame-accurate overlays: `motionforge.dev` at top center for the first 5 seconds, then `Coming soon...` in the bottom-right corner for the final 10 seconds.
 - `text-stress-gallery.json` — long Latin, URLs, CJK, emoji, long single-token text, and multiline captions in bounded overlay cards.
+- `subtitle-stress-gallery.json` — parsed SRT, parsed WebVTT, manual subtitle segments, long Latin, URLs, CJK, emoji, and fast cue changes in timed subtitle tracks.
 
 These examples prove the scene contract is ready for prompt-generated videos. The repository does not yet ship a natural-language compiler; today an agent, app, or preset layer writes the scene JSON and motionforge validates, previews, and exports it.
 
@@ -57,6 +58,14 @@ Render the text stress gallery when changing text layout or renderer behavior:
 pnpm build
 pnpm showcase:generate
 pnpm --filter @motionforge/golden run example examples/generated/text-stress-gallery.json out/text-stress-gallery.mp4 30
+```
+
+Render the subtitle stress gallery when changing subtitle parsing, templates, or renderer text-fit behavior:
+
+```sh
+pnpm build
+pnpm showcase:generate
+pnpm --filter @motionforge/golden run example examples/generated/subtitle-stress-gallery.json out/subtitle-stress-gallery.mp4 90
 ```
 
 ## Assets And Transcript Files

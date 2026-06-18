@@ -11,6 +11,7 @@ describe("showcase scenes", () => {
       "launch-info-display",
       "timed-text-overlay",
       "text-stress-gallery",
+      "subtitle-stress-gallery",
       "audio-sync-pulse",
       "lottie-sticker",
     ]);
@@ -87,8 +88,46 @@ describe("showcase scenes", () => {
     expect(JSON.stringify(entry!.scene)).toContain(
       "Supercalifragilisticexpialidocious",
     );
-    expect(JSON.stringify(entry!.scene)).toContain("这是一段很长的中文说明文字");
+    expect(JSON.stringify(entry!.scene)).toContain(
+      "这是一段很长的中文说明文字",
+    );
     expect(JSON.stringify(entry!.scene)).toContain("🚀");
+  });
+
+  it("includes subtitle stress coverage cases", () => {
+    const entry = showcaseScenes.find(
+      (scene) => scene.id === "subtitle-stress-gallery",
+    );
+    const ids = entry!.scene.nodes.map((node) => node.id);
+    const serialized = JSON.stringify(entry!.scene);
+    const srtTrack = entry!.scene.nodes.find(
+      (node) => node.id === "subtitle-stress-srt",
+    );
+    const vttTrack = entry!.scene.nodes.find(
+      (node) => node.id === "subtitle-stress-vtt",
+    );
+    const manualTrack = entry!.scene.nodes.find(
+      (node) => node.id === "subtitle-stress-manual",
+    );
+
+    expect(entry).toBeDefined();
+    expect(validateScene(entry!.scene)).toMatchObject({ ok: true });
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        "subtitle-stress-srt",
+        "subtitle-stress-vtt",
+        "subtitle-stress-manual",
+      ]),
+    );
+    expect(srtTrack?.children).toHaveLength(2);
+    expect(vttTrack?.children).toHaveLength(2);
+    expect(manualTrack?.children).toHaveLength(6);
+    expect(serialized).toContain("SRT multiline cue");
+    expect(serialized).toContain("WebVTT cue settings");
+    expect(serialized).toContain("https://motionforge.dev");
+    expect(serialized).toContain("这是一段没有空格的中文字幕");
+    expect(serialized).toContain("🚀");
+    expect(serialized).toContain("FAST 3");
   });
 });
 

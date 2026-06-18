@@ -103,7 +103,7 @@ Done:
 - template overrides still win
 - preset patch/examples remain valid
 
-## Slice SX5 - Subtitle Stress Gallery
+## Slice SX5 - Subtitle Stress Gallery ✅
 
 **Goal:** subtitle regressions become visible before they reach chat/editor users.
 
@@ -114,7 +114,7 @@ Targets:
 - golden harness
 - docs assets
 
-Done when:
+Done:
 
 - generated stress scene covers SRT-style multiline captions, WebVTT-style cue text, long Latin, CJK, emoji, URLs, and fast cue changes
 - generated JSON and poster image are committed

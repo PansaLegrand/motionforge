@@ -1,0 +1,1177 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 540,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "subtitle-stress-background",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #0b1220 0%, #172033 48%, #102a43 100%)"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "subtitle-stress-title",
+      "type": "text",
+      "text": "Subtitle Stress Gallery",
+      "from": 0,
+      "style": {
+        "height": 86,
+        "position": "absolute",
+        "left": 72,
+        "right": 72,
+        "top": 78,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 62,
+        "fontWeight": 900,
+        "color": "#ffffff",
+        "textAlign": "center",
+        "textShadow": "0 14 38 rgba(0,0,0,0.45)",
+        "maxLines": 1,
+        "minFontSize": 34,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "subtitle-stress-subtitle",
+      "type": "text",
+      "text": "SRT, WebVTT, long Latin, URLs, CJK, emoji, and fast cue changes compiled into ordinary timed subtitle nodes.",
+      "from": 0,
+      "style": {
+        "height": 90,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 174,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 28,
+        "fontWeight": 720,
+        "color": "#bae6fd",
+        "lineHeight": 1.2,
+        "textAlign": "center",
+        "maxLines": 2,
+        "minFontSize": 18,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "subtitle-stress-panel",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "display": "flex",
+        "flexDirection": "column",
+        "gap": 18,
+        "width": 936,
+        "height": 760,
+        "padding": 32,
+        "position": "absolute",
+        "left": 72,
+        "top": 304,
+        "backgroundColor": "rgba(15,23,42,0.76)",
+        "border": "2px solid rgba(125,211,252,0.46)",
+        "borderRadius": 26,
+        "boxShadow": "0 28 70 rgba(2,6,23,0.42)",
+        "overflow": "hidden"
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "subtitle-stress-row-0",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": 20,
+            "width": "100%",
+            "height": 88,
+            "padding": 18,
+            "backgroundColor": "rgba(255,255,255,0.08)",
+            "borderRadius": 16,
+            "overflow": "hidden"
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-row-0-label",
+              "type": "text",
+              "text": "SRT",
+              "from": 0,
+              "style": {
+                "width": 150,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#7dd3fc",
+                "letterSpacing": 2,
+                "textAlign": "left",
+                "maxLines": 1,
+                "minFontSize": 18,
+                "textFit": "truncate",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            },
+            {
+              "id": "subtitle-stress-row-0-value",
+              "type": "text",
+              "text": "multiline cues",
+              "from": 0,
+              "style": {
+                "width": 680,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 780,
+                "color": "#f8fafc",
+                "lineHeight": 1.1,
+                "textAlign": "left",
+                "maxLines": 2,
+                "minFontSize": 20,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-row-1",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": 20,
+            "width": "100%",
+            "height": 88,
+            "padding": 18,
+            "backgroundColor": "rgba(56,189,248,0.1)",
+            "borderRadius": 16,
+            "overflow": "hidden"
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-row-1-label",
+              "type": "text",
+              "text": "VTT",
+              "from": 0,
+              "style": {
+                "width": 150,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#7dd3fc",
+                "letterSpacing": 2,
+                "textAlign": "left",
+                "maxLines": 1,
+                "minFontSize": 18,
+                "textFit": "truncate",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            },
+            {
+              "id": "subtitle-stress-row-1-value",
+              "type": "text",
+              "text": "cue settings + notes",
+              "from": 0,
+              "style": {
+                "width": 680,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 780,
+                "color": "#f8fafc",
+                "lineHeight": 1.1,
+                "textAlign": "left",
+                "maxLines": 2,
+                "minFontSize": 20,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-row-2",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": 20,
+            "width": "100%",
+            "height": 88,
+            "padding": 18,
+            "backgroundColor": "rgba(255,255,255,0.08)",
+            "borderRadius": 16,
+            "overflow": "hidden"
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-row-2-label",
+              "type": "text",
+              "text": "LONG",
+              "from": 0,
+              "style": {
+                "width": 150,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#7dd3fc",
+                "letterSpacing": 2,
+                "textAlign": "left",
+                "maxLines": 1,
+                "minFontSize": 18,
+                "textFit": "truncate",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            },
+            {
+              "id": "subtitle-stress-row-2-value",
+              "type": "text",
+              "text": "Latin + URL overflow",
+              "from": 0,
+              "style": {
+                "width": 680,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 780,
+                "color": "#f8fafc",
+                "lineHeight": 1.1,
+                "textAlign": "left",
+                "maxLines": 2,
+                "minFontSize": 20,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-row-3",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": 20,
+            "width": "100%",
+            "height": 88,
+            "padding": 18,
+            "backgroundColor": "rgba(56,189,248,0.1)",
+            "borderRadius": 16,
+            "overflow": "hidden"
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-row-3-label",
+              "type": "text",
+              "text": "CJK",
+              "from": 0,
+              "style": {
+                "width": 150,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#7dd3fc",
+                "letterSpacing": 2,
+                "textAlign": "left",
+                "maxLines": 1,
+                "minFontSize": 18,
+                "textFit": "truncate",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            },
+            {
+              "id": "subtitle-stress-row-3-value",
+              "type": "text",
+              "text": "no-space wrapping",
+              "from": 0,
+              "style": {
+                "width": 680,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 780,
+                "color": "#f8fafc",
+                "lineHeight": 1.1,
+                "textAlign": "left",
+                "maxLines": 2,
+                "minFontSize": 20,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-row-4",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": 20,
+            "width": "100%",
+            "height": 88,
+            "padding": 18,
+            "backgroundColor": "rgba(255,255,255,0.08)",
+            "borderRadius": 16,
+            "overflow": "hidden"
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-row-4-label",
+              "type": "text",
+              "text": "EMOJI",
+              "from": 0,
+              "style": {
+                "width": 150,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#7dd3fc",
+                "letterSpacing": 2,
+                "textAlign": "left",
+                "maxLines": 1,
+                "minFontSize": 18,
+                "textFit": "truncate",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            },
+            {
+              "id": "subtitle-stress-row-4-value",
+              "type": "text",
+              "text": "clusters + flags",
+              "from": 0,
+              "style": {
+                "width": 680,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 780,
+                "color": "#f8fafc",
+                "lineHeight": 1.1,
+                "textAlign": "left",
+                "maxLines": 2,
+                "minFontSize": 20,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-row-5",
+          "type": "div",
+          "from": 0,
+          "style": {
+            "display": "flex",
+            "alignItems": "center",
+            "gap": 20,
+            "width": "100%",
+            "height": 88,
+            "padding": 18,
+            "backgroundColor": "rgba(56,189,248,0.1)",
+            "borderRadius": 16,
+            "overflow": "hidden"
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-row-5-label",
+              "type": "text",
+              "text": "FAST",
+              "from": 0,
+              "style": {
+                "width": 150,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "ui-monospace, SFMono-Regular, Menlo, monospace",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#7dd3fc",
+                "letterSpacing": 2,
+                "textAlign": "left",
+                "maxLines": 1,
+                "minFontSize": 18,
+                "textFit": "truncate",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            },
+            {
+              "id": "subtitle-stress-row-5-value",
+              "type": "text",
+              "text": "rapid cue changes",
+              "from": 0,
+              "style": {
+                "width": 680,
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 780,
+                "color": "#f8fafc",
+                "lineHeight": 1.1,
+                "textAlign": "left",
+                "maxLines": 2,
+                "minFontSize": 20,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subtitle-stress-footer",
+      "type": "text",
+      "text": "Refresh: pnpm showcase:generate then render examples/generated/subtitle-stress-gallery.json with @motionforge/golden.",
+      "from": 0,
+      "style": {
+        "height": 72,
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 1118,
+        "overflow": "hidden",
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 24,
+        "fontWeight": 720,
+        "color": "#dbeafe",
+        "lineHeight": 1.18,
+        "textAlign": "center",
+        "maxLines": 2,
+        "minFontSize": 16,
+        "textFit": "shrink",
+        "textOverflow": "ellipsis"
+      },
+      "animations": [],
+      "children": []
+    },
+    {
+      "id": "subtitle-stress-srt",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 936,
+        "height": 230,
+        "position": "absolute",
+        "left": 72,
+        "top": 1316
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "subtitle-stress-srt-s0",
+          "type": "div",
+          "from": 0,
+          "duration": 84,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-srt-s0-text",
+              "type": "text",
+              "text": "SRT multiline cue:\nfirst line stays visible\nsecond line is intentionally longer",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Inter, system-ui, Arial, sans-serif",
+                "fontSize": 68,
+                "fontWeight": 700,
+                "color": "#ffffff",
+                "lineHeight": 1.18,
+                "letterSpacing": 2,
+                "textAlign": "center",
+                "textShadow": "0px 2px 8px rgba(0,0,0,0.34)",
+                "maxLines": 3,
+                "minFontSize": 34,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis",
+                "textBackgroundColor": "rgba(17,24,39,0.74)",
+                "textBackgroundPaddingX": 30,
+                "textBackgroundPaddingY": 16,
+                "textBackgroundRadius": 999
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-srt-s1",
+          "type": "div",
+          "from": 84,
+          "duration": 78,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-srt-s1-text",
+              "type": "text",
+              "text": "Long Latin subtitle text should shrink, clamp, and keep its ending readable inside the safe subtitle band without crossing into the proof panel.",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Inter, system-ui, Arial, sans-serif",
+                "fontSize": 68,
+                "fontWeight": 700,
+                "color": "#ffffff",
+                "lineHeight": 1.18,
+                "letterSpacing": 2,
+                "textAlign": "center",
+                "textShadow": "0px 2px 8px rgba(0,0,0,0.34)",
+                "maxLines": 3,
+                "minFontSize": 34,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis",
+                "textBackgroundColor": "rgba(17,24,39,0.74)",
+                "textBackgroundPaddingX": 30,
+                "textBackgroundPaddingY": 16,
+                "textBackgroundRadius": 999
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subtitle-stress-vtt",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 936,
+        "height": 230,
+        "position": "absolute",
+        "left": 72,
+        "top": 1316
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "subtitle-stress-vtt-s0",
+          "type": "div",
+          "from": 162,
+          "duration": 75,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-vtt-s0-text",
+              "type": "text",
+              "text": "WebVTT cue settings are ignored while the cue text stays deterministic.",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Space Grotesk, Inter, system-ui, sans-serif",
+                "fontSize": 72,
+                "fontWeight": 800,
+                "color": "#e2e8f0",
+                "lineHeight": 1.14,
+                "letterSpacing": 2.2,
+                "textAlign": "center",
+                "textShadow": "0px 0px 15px rgba(148,163,184,0.35)",
+                "textStroke": "2px rgba(56,189,248,0.55)",
+                "maxLines": 2,
+                "minFontSize": 36,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis",
+                "textBackgroundColor": "rgba(15,23,42,0.74)",
+                "textBackgroundPaddingX": 28,
+                "textBackgroundPaddingY": 13,
+                "textBackgroundRadius": 10
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-vtt-s1",
+          "type": "div",
+          "from": 237,
+          "duration": 69,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-vtt-s1-text",
+              "type": "text",
+              "text": "https://motionforge.dev/docs/examples/generated/subtitle-stress-gallery.json?source=subtitle-overlay-roadmap&case=url",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Space Grotesk, Inter, system-ui, sans-serif",
+                "fontSize": 72,
+                "fontWeight": 800,
+                "color": "#e2e8f0",
+                "lineHeight": 1.14,
+                "letterSpacing": 2.2,
+                "textAlign": "center",
+                "textShadow": "0px 0px 15px rgba(148,163,184,0.35)",
+                "textStroke": "2px rgba(56,189,248,0.55)",
+                "maxLines": 2,
+                "minFontSize": 36,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis",
+                "textBackgroundColor": "rgba(15,23,42,0.74)",
+                "textBackgroundPaddingX": 28,
+                "textBackgroundPaddingY": 13,
+                "textBackgroundRadius": 10
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "subtitle-stress-manual",
+      "type": "div",
+      "from": 0,
+      "style": {
+        "width": 936,
+        "height": 230,
+        "position": "absolute",
+        "left": 72,
+        "top": 1316
+      },
+      "animations": [],
+      "children": [
+        {
+          "id": "subtitle-stress-manual-s0",
+          "type": "div",
+          "from": 306,
+          "duration": 75,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-manual-s0-text",
+              "type": "text",
+              "text": "这是一段没有空格的中文字幕，用来确认 CJK 文本可以稳定换行并保持在安全区域内。",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Poppins, Inter, system-ui, sans-serif",
+                "fontSize": 88,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "lineHeight": 1.08,
+                "textAlign": "center",
+                "textShadow": "0px 6px 18px rgba(0,0,0,0.35)",
+                "textStroke": "7px rgba(15,23,42,0.92)",
+                "maxLines": 2,
+                "minFontSize": 44,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-manual-s1",
+          "type": "div",
+          "from": 381,
+          "duration": 66,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-manual-s1-text",
+              "type": "text",
+              "text": "Emoji clusters stay calm 🚀✨🎬 with flags 🇫🇷🇯🇵 and expressive punctuation!!!",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Poppins, Inter, system-ui, sans-serif",
+                "fontSize": 88,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "lineHeight": 1.08,
+                "textAlign": "center",
+                "textShadow": "0px 6px 18px rgba(0,0,0,0.35)",
+                "textStroke": "7px rgba(15,23,42,0.92)",
+                "maxLines": 2,
+                "minFontSize": 44,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-manual-s2",
+          "type": "div",
+          "from": 447,
+          "duration": 14,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-manual-s2-text",
+              "type": "text",
+              "text": "FAST 1",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Poppins, Inter, system-ui, sans-serif",
+                "fontSize": 88,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "lineHeight": 1.08,
+                "textAlign": "center",
+                "textShadow": "0px 6px 18px rgba(0,0,0,0.35)",
+                "textStroke": "7px rgba(15,23,42,0.92)",
+                "maxLines": 2,
+                "minFontSize": 44,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-manual-s3",
+          "type": "div",
+          "from": 461,
+          "duration": 13,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-manual-s3-text",
+              "type": "text",
+              "text": "FAST 2",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Poppins, Inter, system-ui, sans-serif",
+                "fontSize": 88,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "lineHeight": 1.08,
+                "textAlign": "center",
+                "textShadow": "0px 6px 18px rgba(0,0,0,0.35)",
+                "textStroke": "7px rgba(15,23,42,0.92)",
+                "maxLines": 2,
+                "minFontSize": 44,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-manual-s4",
+          "type": "div",
+          "from": 474,
+          "duration": 14,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-manual-s4-text",
+              "type": "text",
+              "text": "FAST 3",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Poppins, Inter, system-ui, sans-serif",
+                "fontSize": 88,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "lineHeight": 1.08,
+                "textAlign": "center",
+                "textShadow": "0px 6px 18px rgba(0,0,0,0.35)",
+                "textStroke": "7px rgba(15,23,42,0.92)",
+                "maxLines": 2,
+                "minFontSize": 44,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        },
+        {
+          "id": "subtitle-stress-manual-s5",
+          "type": "div",
+          "from": 488,
+          "duration": 52,
+          "style": {
+            "display": "flex",
+            "justifyContent": "center",
+            "alignItems": "center",
+            "width": "100%",
+            "height": "100%",
+            "position": "absolute",
+            "left": 0,
+            "top": 0
+          },
+          "animations": [],
+          "children": [
+            {
+              "id": "subtitle-stress-manual-s5-text",
+              "type": "text",
+              "text": "Final cue: every subtitle here is just schema-valid scene data.",
+              "from": 0,
+              "style": {
+                "width": "100%",
+                "height": "100%",
+                "overflow": "hidden",
+                "fontFamily": "Poppins, Inter, system-ui, sans-serif",
+                "fontSize": 88,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "lineHeight": 1.08,
+                "textAlign": "center",
+                "textShadow": "0px 6px 18px rgba(0,0,0,0.35)",
+                "textStroke": "7px rgba(15,23,42,0.92)",
+                "maxLines": 2,
+                "minFontSize": 44,
+                "textFit": "shrink",
+                "textOverflow": "ellipsis"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "opacity",
+                  "frames": [
+                    {
+                      "frame": 0,
+                      "value": 0
+                    },
+                    {
+                      "frame": 5,
+                      "value": 1,
+                      "easing": "easeOut"
+                    }
+                  ]
+                }
+              ],
+              "children": []
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
