@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (preset explorer PX3: executable patch examples)
+
+### Changed
+
+- Added preset-backed patch generation to the playground catalog.
+- Media look and clip layout presets now generate `setStyle` patch examples against the first compatible image/video node in the current scene.
+- Text overlay and transition presets now generate schema-valid `insertNode` examples with unique ids.
+- Added a playground patch panel with copy/apply actions that runs through the same `applyScenePatch` API as the agent console.
+- Added explicit unavailable states for subtitle presets and scenes without compatible media targets.
+- Marked PX3 complete in the preset explorer roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/playground typecheck`
+- `pnpm --filter @motionforge/playground test`
+- `pnpm --filter @motionforge/playground build`
+- Browser smoke at `http://localhost:5173/`: selected Text, confirmed an `insertNode` patch, applied it, confirmed the next patch refreshed to a unique id, selected Media Looks, confirmed a `setStyle` patch, and checked console error logs were empty.
+
+### Notes
+
+- PX3 infers a known compatible media node instead of adding a full node-selection model. Selection-aware targeting remains a natural future UI improvement.
+
 ## 2026-06-17 (preset explorer PX2: gallery preview loading)
 
 ### Changed

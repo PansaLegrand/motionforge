@@ -12,8 +12,10 @@ import {
   type ShowcaseScene,
 } from "@motionforge/showcase";
 import {
+  buildPresetPatchExample,
   presetCatalog,
   presetFamilyLabels,
+  type PresetPatchExample,
   type PresetCatalogItem,
   type PresetFamily,
 } from "./preset-catalog.js";
@@ -46,6 +48,20 @@ const presetCopy = requiredElement<HTMLButtonElement>("#preset-copy");
 const presetCopyStatus = requiredElement<HTMLOutputElement>(
   "#preset-copy-status",
 );
+const presetPatchTitle = requiredElement<HTMLElement>("#preset-patch-title");
+const presetPatchDescription = requiredElement<HTMLParagraphElement>(
+  "#preset-patch-description",
+);
+const presetPatch = requiredElement<HTMLPreElement>("#preset-patch");
+const presetPatchApply = requiredElement<HTMLButtonElement>(
+  "#preset-patch-apply",
+);
+const presetPatchCopy = requiredElement<HTMLButtonElement>(
+  "#preset-patch-copy",
+);
+const presetPatchStatus = requiredElement<HTMLOutputElement>(
+  "#preset-patch-status",
+);
 const slider = requiredElement<HTMLInputElement>("#frame");
 const readout = requiredElement<HTMLOutputElement>("#frame-readout");
 const playButton = requiredElement<HTMLButtonElement>("#play");
@@ -76,6 +92,7 @@ let player: Player | undefined;
 let loadVersion = 0;
 let selectedPresetFamily: PresetFamily = "subtitles";
 let selectedPreset = presetCatalog[0] as PresetCatalogItem;
+let selectedPatchExample: PresetPatchExample | undefined;
 
 capability.textContent = JSON.stringify(capabilityResult, null, 2);
 
@@ -178,6 +195,7 @@ async function loadScene(entry: ShowcaseScene): Promise<void> {
       return li;
     }),
   );
+  renderPresetSnippet();
 
   await loadSceneDoc(entry.scene, entry.posterFrame);
 }
@@ -289,6 +307,7 @@ agentApply.addEventListener("click", () => {
   currentDoc = result.scene;
   const ops = Array.isArray(patch) ? patch.length : 0;
   agentReport([`✓ patch applied (${ops} op${ops === 1 ? "" : "s"})`], false);
+  renderPresetSnippet();
   void loadSceneDoc(result.scene);
 });
 
@@ -311,6 +330,7 @@ agentLoad.addEventListener("click", () => {
   sceneDescription.textContent = "Loaded from the agent console.";
   sceneProves.replaceChildren();
   agentReport(["✓ scene is valid — loaded"], false);
+  renderPresetSnippet();
   void loadSceneDoc(result.scene, 0);
 });
 
@@ -401,6 +421,28 @@ function renderPresetSnippet(): void {
   presetCopyStatus.value = "";
   presetPreview.disabled =
     findPresetGalleryScene(selectedPresetFamily) === undefined;
+  renderPresetPatchExample();
+}
+
+function renderPresetPatchExample(): void {
+  selectedPatchExample = buildPresetPatchExample(selectedPreset, currentDoc);
+  presetPatchStatus.value = "";
+  presetPatchTitle.textContent = selectedPatchExample.title;
+
+  if (selectedPatchExample.ok) {
+    presetPatchDescription.textContent = selectedPatchExample.description;
+    presetPatch.textContent = JSON.stringify(selectedPatchExample.patch, null, 2);
+    presetPatch.dataset.available = "true";
+    presetPatchApply.disabled = false;
+    presetPatchCopy.disabled = false;
+    return;
+  }
+
+  presetPatchDescription.textContent = selectedPatchExample.reason;
+  presetPatch.textContent = "";
+  presetPatch.dataset.available = "false";
+  presetPatchApply.disabled = true;
+  presetPatchCopy.disabled = true;
 }
 
 presetPreview.addEventListener("click", () => {
@@ -430,6 +472,7 @@ presetPreview.addEventListener("click", () => {
       return li;
     }),
   );
+  renderPresetSnippet();
   presetCopyStatus.value = `Previewing ${presetFamilyLabels[selectedPresetFamily]}`;
   void loadSceneDoc(gallery.scene, gallery.posterFrame);
 });
@@ -445,6 +488,47 @@ presetCopy.addEventListener("click", () => {
       presetCopyStatus.value =
         "Clipboard unavailable; snippet placed in the agent box.";
     });
+});
+
+presetPatchCopy.addEventListener("click", () => {
+  if (!selectedPatchExample?.ok) {
+    return;
+  }
+
+  const json = JSON.stringify(selectedPatchExample.patch, null, 2);
+
+  void navigator.clipboard
+    .writeText(json)
+    .then(() => {
+      presetPatchStatus.value = `Copied ${selectedPreset.key} patch`;
+    })
+    .catch(() => {
+      agentInput.value = json;
+      presetPatchStatus.value =
+        "Clipboard unavailable; patch placed in the agent box.";
+    });
+});
+
+presetPatchApply.addEventListener("click", () => {
+  if (!selectedPatchExample?.ok) {
+    return;
+  }
+
+  const result = applyScenePatch(currentDoc, selectedPatchExample.patch);
+
+  if (!result.ok) {
+    presetPatchStatus.value = result.errors.map((error) => error.message).join("\n");
+    return;
+  }
+
+  currentDoc = result.scene;
+  agentReport(
+    [`✓ preset patch applied (${selectedPatchExample.patch.length} op)`],
+    false,
+  );
+  renderPresetSnippet();
+  presetPatchStatus.value = `Applied ${selectedPreset.key}`;
+  void loadSceneDoc(result.scene);
 });
 
 void loadScene(current);

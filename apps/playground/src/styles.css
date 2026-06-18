@@ -225,7 +225,9 @@ h2 {
 }
 
 #preset-preview,
-#preset-copy {
+#preset-copy,
+#preset-patch-apply,
+#preset-patch-copy {
   min-height: 32px;
   padding: 0 12px;
   font-size: 12px;
@@ -239,6 +241,32 @@ h2 {
 #preset-copy-status {
   min-height: 1.2em;
   color: #53625d;
+  font-size: 12px;
+}
+
+.preset-patch {
+  padding-top: 12px;
+  border-top: 1px solid #c7d0ca;
+}
+
+.preset-patch-description {
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+#preset-patch {
+  max-height: 220px;
+  white-space: pre;
+}
+
+#preset-patch[data-available="false"] {
+  display: none;
+}
+
+#preset-patch-status {
+  min-height: 1.2em;
+  color: #53625d;
+  white-space: pre-wrap;
   font-size: 12px;
 }
 

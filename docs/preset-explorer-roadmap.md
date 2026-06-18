@@ -46,7 +46,7 @@ Done:
 - each preset family can be previewed from the explorer
 - docs gallery and playground gallery share the same generated scene source through `@motionforge/showcase`
 
-## Slice PX3 - Insert-Or-Patch Snippets
+## Slice PX3 - Insert-Or-Patch Snippets ✅
 
 **Goal:** The explorer becomes a practical scene-authoring helper, not only a catalog.
 
@@ -55,10 +55,10 @@ Targets:
 - copy patch examples for selected node ids
 - optional "apply example patch" action when a compatible node is selected or known
 
-Done when:
+Done:
 
 - layout/look presets can generate `setStyle` patch examples
-- text/transition presets can generate add-node examples
+- text/transition presets can generate `insertNode` examples
 - failures explain why a preset cannot be applied to the current scene
 
 ## Slice PX4 - CLI Studio Adoption
