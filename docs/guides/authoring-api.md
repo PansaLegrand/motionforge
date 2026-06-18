@@ -279,6 +279,56 @@ imageOverlay("avatar", {
 
 Template keys are listed in the [Preset Catalog](preset-catalog.md). `style` controls the wrapper box; `imageStyle`, `objectFit`, and `objectPosition` control the inner `img` node.
 
+## Video Overlays
+
+Use `videoOverlay()` when a clip is part of the composition UI rather than the main sequence: picture-in-picture demos, reaction cameras, screen recordings, muted background loops, b-roll strips, and compact video badges. Passing a video asset object auto-adds it to `scene.assets`.
+
+```ts
+import {
+  makeScene,
+  publicAsset,
+  seconds,
+  videoAsset,
+  videoOverlay,
+} from "@motionforge/authoring";
+
+const demo = videoAsset("demo", publicAsset("assets/demo.mp4"));
+const reaction = videoAsset("reaction", publicAsset("assets/reaction.mp4"));
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(8),
+  children: [
+    videoOverlay(demo, {
+      id: "demo-pip",
+      template: "pictureInPicture",
+      trimStart: seconds(4),
+      duration: seconds(5),
+    }),
+    videoOverlay(reaction, {
+      id: "reaction-cam",
+      template: "reactionCam",
+      volume: 0.65,
+      at: seconds(1),
+      duration: seconds(6),
+    }),
+  ],
+});
+```
+
+You can also pass an existing video asset id when assets are defined elsewhere:
+
+```ts
+videoOverlay("screen", {
+  template: "screenDemo",
+  objectFit: "contain",
+  playbackRate: 1.25,
+});
+```
+
+Decorative templates default to muted output (`volume: 0`); `reactionCam` keeps clip audio unless you pass `muted: true`. Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at` and `duration` compile from authoring time values to frame integers.
+
 ## Media Nodes
 
 ```ts

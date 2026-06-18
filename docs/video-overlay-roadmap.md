@@ -56,7 +56,7 @@ Done:
 - default placement uses shared safe-area anchors for portrait, square, and landscape
 - tests cover schema validity, timing/source fields, safe-area placement, template defaults, and override behavior
 
-## Slice VX2 - Authoring Video Overlay Helper
+## Slice VX2 - Authoring Video Overlay Helper ✅
 
 **Goal:** `@motionforge/authoring` makes video overlays as easy as image overlays and video clips.
 
@@ -65,7 +65,7 @@ Targets:
 - `packages/authoring`
 - docs/guides
 
-Done when:
+Done:
 
 - `videoOverlay(asset, options)` accepts a video asset object or existing asset id
 - passing a video asset object auto-adds it to `scene.assets`

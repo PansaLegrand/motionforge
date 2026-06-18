@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (video overlay VX2: authoring helper)
+
+### Changed
+
+- Added authoring-level `videoOverlay(asset, options)` that accepts a video asset object or existing asset id.
+- Passing a video asset object now auto-adds it to `scene.assets`, matching `videoClip()` and `imageOverlay()`.
+- Re-exported video overlay template metadata and types from `@motionforge/authoring`.
+- Preserved `volume` when adapting preset-generated video nodes through authoring builders.
+- Documented picture-in-picture, reaction cam, and screen demo overlay workflows in the authoring guide and package README.
+- Marked VX2 complete in the video overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- `videoOverlay()` accepts seconds-first `trimStart`, `at`, and `duration` options, then emits ordinary frame-timed `video` scene nodes.
+
 ## 2026-06-18 (video overlay VX1: preset helper)
 
 ### Changed

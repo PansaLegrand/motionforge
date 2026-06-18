@@ -23,6 +23,7 @@ import {
   safeAreaBox,
   styledCaptions as presetStyledCaptions,
   subtitleTrack as presetSubtitleTrack,
+  videoOverlay as presetVideoOverlay,
   type CaptionWord,
   type ImageOverlayOptions as PresetImageOverlayOptions,
   type StyledCaptionOptions as PresetStyledCaptionOptions,
@@ -30,6 +31,7 @@ import {
   type SafeAreaInput,
   type SubtitleSegment,
   type SubtitleTrackOptions as PresetSubtitleTrackOptions,
+  type VideoOverlayOptions as PresetVideoOverlayOptions,
 } from "@motionforge/presets";
 export {
   fadeUp,
@@ -44,6 +46,7 @@ export {
   safeAreaProfiles,
   slideIn,
   subtitleTemplates,
+  videoOverlayTemplates,
 } from "@motionforge/presets";
 export type {
   CaptionRenderMode,
@@ -59,6 +62,8 @@ export type {
   SafeAreaProfileKey,
   SubtitleSegment,
   SubtitleTemplateKey,
+  VideoOverlayPlacement,
+  VideoOverlayTemplateKey,
 } from "@motionforge/presets";
 
 export type TimeValue = {
@@ -138,6 +143,15 @@ export type ImageOverlayOptions = Omit<
 > &
   AuthorTimingOptions & {
     composition?: PresetImageOverlayOptions["composition"];
+  };
+
+export type VideoOverlayOptions = Omit<
+  PresetVideoOverlayOptions,
+  "assetId" | "from" | "duration" | "trimStart" | "composition"
+> &
+  AuthorTimingOptions & {
+    trimStart?: TimeValue;
+    composition?: PresetVideoOverlayOptions["composition"];
   };
 
 export type SubtitleTrackOptions = Omit<
@@ -483,6 +497,38 @@ export function imageOverlay(
   };
 }
 
+export function videoOverlay(
+  asset: AssetReference<"video">,
+  options: VideoOverlayOptions = {},
+): AuthorNode {
+  return {
+    assets: assetsFromReference(asset),
+    toNode(fps, scene) {
+      const {
+        at,
+        duration,
+        trimStart,
+        composition: requestedComposition,
+        ...presetOptions
+      } = options;
+
+      return builderFromSceneNode(
+        presetVideoOverlay({
+          ...presetOptions,
+          assetId: assetIdFromReference(asset),
+          from: toFrames(at, fps),
+          duration:
+            duration === undefined ? undefined : toFrames(duration, fps),
+          ...(trimStart === undefined
+            ? {}
+            : { trimStart: toSeconds(trimStart, fps) }),
+          composition: requestedComposition ?? scene,
+        }),
+      );
+    },
+  };
+}
+
 export function subtitleTrack(
   segments: SubtitleSegment[],
   options: SubtitleTrackOptions = {},
@@ -564,7 +610,8 @@ function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
         ...baseOptions,
         videoStartTime: node.videoStartTime,
         playbackRate: node.playbackRate,
-      });
+        volume: node.volume,
+      } as VideoNodeOptions & { volume?: number });
       break;
     case "audio":
       builder = audio(requiredAssetId(node), {

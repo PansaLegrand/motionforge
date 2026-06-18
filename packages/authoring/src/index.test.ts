@@ -24,6 +24,7 @@ import {
   toSeconds,
   videoAsset,
   videoClip,
+  videoOverlay,
 } from "./index.js";
 
 describe("@motionforge/authoring", () => {
@@ -221,6 +222,85 @@ describe("@motionforge/authoring", () => {
           },
         },
       ],
+    });
+  });
+
+  it("builds video overlays with asset registration and source controls", () => {
+    const clip = videoAsset("clip", publicAsset("assets/demo.mp4"));
+
+    const scene = makeScene({
+      size: "portrait",
+      fps: 30,
+      duration: seconds(5),
+      children: [
+        videoOverlay(clip, {
+          id: "pip",
+          template: "pictureInPicture",
+          at: seconds(0.5),
+          duration: seconds(3),
+          trimStart: seconds(4),
+          playbackRate: 1.25,
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.assets).toMatchObject({
+      clip: { id: "clip", type: "video", src: "/assets/demo.mp4" },
+    });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "pip",
+      type: "video",
+      assetId: "clip",
+      from: 15,
+      duration: 90,
+      videoStartTime: 4,
+      playbackRate: 1.25,
+      volume: 0,
+      style: {
+        left: 708,
+        top: 144,
+        width: 300,
+        height: 290,
+        borderRadius: 24,
+        objectFit: "cover",
+      },
+    });
+  });
+
+  it("builds video overlays from existing asset ids with manual overrides", () => {
+    const scene = makeScene({
+      size: "landscape",
+      fps: 24,
+      duration: seconds(3),
+      assets: defineAssets(videoAsset("screen", "/assets/screen.mp4")),
+      children: [
+        videoOverlay("screen", {
+          id: "screen-demo",
+          template: "screenDemo",
+          volume: 0.4,
+          objectFit: "cover",
+          enter: false,
+          style: { left: 200, top: 120, width: 760, height: 420 },
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "screen-demo",
+      type: "video",
+      assetId: "screen",
+      volume: 0.4,
+      animations: [],
+      style: {
+        left: 200,
+        top: 120,
+        width: 760,
+        height: 420,
+        borderRadius: 30,
+        objectFit: "cover",
+      },
     });
   });
 

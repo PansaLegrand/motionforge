@@ -126,6 +126,37 @@ export default makeScene({
 
 The helper emits normal scene nodes and auto-registers image asset objects in `scene.assets`.
 
+## Video Overlays
+
+Use `videoOverlay()` for picture-in-picture clips, reaction cams, screen demos, muted b-roll, and background loops:
+
+```ts
+import {
+  makeScene,
+  publicAsset,
+  seconds,
+  videoAsset,
+  videoOverlay,
+} from "@motionforge/authoring";
+
+const clip = videoAsset("clip", publicAsset("assets/demo.mp4"));
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(6),
+  children: [
+    videoOverlay(clip, {
+      template: "pictureInPicture",
+      trimStart: seconds(4),
+      duration: seconds(4),
+    }),
+  ],
+});
+```
+
+The helper emits a normal `video` node and auto-registers video asset objects in `scene.assets`. Decorative templates are muted by default; pass `volume` or `muted: false` when the overlay should contribute audio.
+
 ## Subtitles
 
 Use `subtitleTrack()` for SRT/VTT-style sentence cues, or `captionTrack()` for word-timed ASR output:
