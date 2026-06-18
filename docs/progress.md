@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (image overlay IX2: authoring helper)
+
+### Changed
+
+- Added authoring-level `imageOverlay(asset, options)` that accepts an image asset object or existing asset id.
+- Passing an image asset object now auto-adds it to `scene.assets`, matching existing `image()` and `videoClip()` behavior.
+- Re-exported image overlay template metadata and types from `@motionforge/authoring`.
+- Added authoring tests for safe-area placement, timing conversion, asset registration, string asset ids, and manual overrides.
+- Documented logo/product/avatar overlay workflows in the authoring guide and package README.
+- Marked IX2 complete in the image overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- The helper wraps the preset `imageOverlay()` and adapts generated scene nodes back into authoring builders, so the emitted JSON remains the same data shape used by lower-level presets.
+
 ## 2026-06-18 (image overlay IX1: preset helper)
 
 ### Changed

@@ -53,7 +53,7 @@ Done:
 - default placement uses shared safe-area anchors for portrait, square, and landscape
 - tests cover schema validity, safe-area placement, template defaults, and override behavior
 
-## Slice IX2 - Authoring Image Overlay Helper
+## Slice IX2 - Authoring Image Overlay Helper ✅
 
 **Goal:** `@motionforge/authoring` makes image overlays as easy as text boxes and subtitle tracks.
 
@@ -62,7 +62,7 @@ Targets:
 - `packages/authoring`
 - docs/guides
 
-Done when:
+Done:
 
 - `imageOverlay(asset, options)` accepts an asset object or asset id
 - passing an asset object auto-adds it to `scene.assets`

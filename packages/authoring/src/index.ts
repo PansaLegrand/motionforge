@@ -17,12 +17,14 @@ import {
   type VideoNodeOptions,
 } from "@motionforge/core";
 import {
+  imageOverlay as presetImageOverlay,
   parseSrt,
   parseVtt,
   safeAreaBox,
   styledCaptions as presetStyledCaptions,
   subtitleTrack as presetSubtitleTrack,
   type CaptionWord,
+  type ImageOverlayOptions as PresetImageOverlayOptions,
   type StyledCaptionOptions as PresetStyledCaptionOptions,
   type SafeAreaAnchor,
   type SafeAreaInput,
@@ -31,6 +33,7 @@ import {
 } from "@motionforge/presets";
 export {
   fadeUp,
+  imageOverlayTemplates,
   inferSafeAreaProfile,
   parseSrt,
   parseVtt,
@@ -46,6 +49,8 @@ export type {
   CaptionRenderMode,
   CaptionTemplateKey,
   CaptionWord,
+  ImageOverlayPlacement,
+  ImageOverlayTemplateKey,
   SafeAreaAnchor,
   SafeAreaBox,
   SafeAreaBoxOptions,
@@ -126,6 +131,14 @@ export type AudioTrackOptions = AuthorTimingOptions & {
   trimStart?: TimeValue;
   volume?: number;
 };
+
+export type ImageOverlayOptions = Omit<
+  PresetImageOverlayOptions,
+  "assetId" | "from" | "duration" | "composition"
+> &
+  AuthorTimingOptions & {
+    composition?: PresetImageOverlayOptions["composition"];
+  };
 
 export type SubtitleTrackOptions = Omit<
   PresetSubtitleTrackOptions,
@@ -320,7 +333,10 @@ export function title(value: string, options: TextOptions = {}): AuthorNode {
   };
 }
 
-export function textBlock(value: string, options: TextOptions = {}): AuthorNode {
+export function textBlock(
+  value: string,
+  options: TextOptions = {},
+): AuthorNode {
   return {
     toNode(fps, scene) {
       return textNode(value, {
@@ -339,7 +355,10 @@ export function textBlock(value: string, options: TextOptions = {}): AuthorNode 
   };
 }
 
-export function textBox(value: string, options: TextBoxOptions = {}): AuthorNode {
+export function textBox(
+  value: string,
+  options: TextBoxOptions = {},
+): AuthorNode {
   return {
     toNode(fps, scene) {
       return textNode(value, {
@@ -432,6 +451,34 @@ export function audioTrack(
       };
 
       return audio(assetIdFromReference(asset), nodeOptions);
+    },
+  };
+}
+
+export function imageOverlay(
+  asset: AssetReference<"image">,
+  options: ImageOverlayOptions = {},
+): AuthorNode {
+  return {
+    assets: assetsFromReference(asset),
+    toNode(fps, scene) {
+      const {
+        at,
+        duration,
+        composition: requestedComposition,
+        ...presetOptions
+      } = options;
+
+      return builderFromSceneNode(
+        presetImageOverlay({
+          ...presetOptions,
+          assetId: assetIdFromReference(asset),
+          from: toFrames(at, fps),
+          duration:
+            duration === undefined ? undefined : toFrames(duration, fps),
+          composition: requestedComposition ?? scene,
+        }),
+      );
     },
   };
 }
@@ -533,7 +580,9 @@ function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
         "Authoring cannot adapt lottie preset nodes until core exposes a lottie builder.",
       );
     default:
-      throw new Error(`Unsupported scene node type: ${node.type satisfies never}`);
+      throw new Error(
+        `Unsupported scene node type: ${node.type satisfies never}`,
+      );
   }
 
   for (const animation of node.animations ?? []) {
@@ -549,7 +598,9 @@ function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
 
 function requiredAssetId(node: SceneNode): string {
   if (!node.assetId) {
-    throw new Error(`Cannot author ${node.type} node "${node.id}" without assetId.`);
+    throw new Error(
+      `Cannot author ${node.type} node "${node.id}" without assetId.`,
+    );
   }
 
   return node.assetId;
@@ -567,7 +618,9 @@ function timedNodeOptions(
     id: options.id,
     from: toFrames(options.at, fps),
     duration:
-      options.duration === undefined ? undefined : toFrames(options.duration, fps),
+      options.duration === undefined
+        ? undefined
+        : toFrames(options.duration, fps),
   };
 }
 
@@ -639,7 +692,8 @@ function textBoxStyle(
     overflow: "hidden",
     textFit: options.fit ?? "shrink",
     textOverflow: "ellipsis",
-    minFontSize: options.minFontSize ?? Math.max(14, Math.round(fontSize * 0.55)),
+    minFontSize:
+      options.minFontSize ?? Math.max(14, Math.round(fontSize * 0.55)),
     maxLines: options.maxLines ?? placementDefaults.maxLines,
     ...placementDefaults.box,
     textAlign: placementDefaults.textAlign,
@@ -736,9 +790,7 @@ function resolveSceneSize(size: SceneSize): { width: number; height: number } {
   }
 }
 
-function normalizeAssets(
-  assets: MakeSceneOptions["assets"],
-): SceneAsset[] {
+function normalizeAssets(assets: MakeSceneOptions["assets"]): SceneAsset[] {
   if (!assets) {
     return [];
   }

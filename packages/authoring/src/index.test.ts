@@ -10,6 +10,7 @@ import {
   frames,
   image,
   imageAsset,
+  imageOverlay,
   makeScene,
   parseSrt,
   parseVtt,
@@ -134,6 +135,93 @@ describe("@motionforge/authoring", () => {
       "https://cdn.example.com/logo.svg",
     );
     expect(() => publicAsset("../secret.mov")).toThrow("public");
+  });
+
+  it("builds image overlays with asset registration and safe-area placement", () => {
+    const logo = imageAsset("logo", publicAsset("assets/logo.svg"));
+
+    const scene = makeScene({
+      size: "portrait",
+      fps: 30,
+      duration: seconds(4),
+      children: [
+        imageOverlay(logo, {
+          id: "logo-bug",
+          template: "logoBug",
+          at: seconds(0.5),
+          duration: seconds(2.5),
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.assets).toMatchObject({
+      logo: { id: "logo", type: "image", src: "/assets/logo.svg" },
+    });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "logo-bug",
+      type: "div",
+      from: 15,
+      duration: 75,
+      style: {
+        left: 858,
+        top: 144,
+        width: 150,
+        height: 145,
+        opacity: 0.92,
+      },
+      children: [
+        {
+          id: "logo-bug-image",
+          type: "img",
+          assetId: "logo",
+          style: {
+            width: "100%",
+            height: "100%",
+            objectFit: "contain",
+          },
+        },
+      ],
+    });
+  });
+
+  it("builds image overlays from existing asset ids with manual overrides", () => {
+    const scene = makeScene({
+      size: "landscape",
+      fps: 24,
+      duration: seconds(3),
+      assets: defineAssets(imageAsset("product", "/assets/product.png")),
+      children: [
+        imageOverlay("product", {
+          id: "product-shot",
+          template: "productShot",
+          objectFit: "cover",
+          enter: false,
+          style: { left: 200, top: 120, width: 760, height: 420 },
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "product-shot",
+      animations: [],
+      style: {
+        left: 200,
+        top: 120,
+        width: 760,
+        height: 420,
+        borderRadius: 28,
+      },
+      children: [
+        {
+          assetId: "product",
+          style: {
+            objectFit: "cover",
+          },
+        },
+      ],
+    });
   });
 
   it("uses scene-relative text defaults across aspect ratios", () => {

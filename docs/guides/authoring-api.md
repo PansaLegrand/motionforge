@@ -231,6 +231,54 @@ captionTrack(
 
 Subtitle templates share the preset names from the [Preset Catalog](preset-catalog.md), including `"classic"`, `"minimalBar"`, `"cinematic"`, `"spotlight"`, `"karaoke"`, `"future"`, and `"terminal"`. `area` can manually place the track, while the default uses the scene size and safe-area subtitle band.
 
+## Image Overlays
+
+Use `imageOverlay()` when an image is part of the composition UI rather than the full background: logos, watermarks, stickers, product shots, corner badges, and avatars. Passing an image asset object auto-adds it to `scene.assets`.
+
+```ts
+import {
+  imageAsset,
+  imageOverlay,
+  makeScene,
+  publicAsset,
+  seconds,
+} from "@motionforge/authoring";
+
+const logo = imageAsset("logo", publicAsset("assets/logo.svg"));
+const product = imageAsset("product", publicAsset("assets/product.png"));
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(6),
+  children: [
+    imageOverlay(logo, {
+      id: "logo-bug",
+      template: "logoBug",
+    }),
+    imageOverlay(product, {
+      id: "product-card",
+      template: "productShot",
+      at: seconds(0.4),
+      duration: seconds(5),
+      objectFit: "contain",
+    }),
+  ],
+});
+```
+
+You can also pass an existing image asset id when assets are defined elsewhere:
+
+```ts
+imageOverlay("avatar", {
+  template: "avatarBadge",
+  placement: "lowerThird",
+  objectPosition: "center top",
+});
+```
+
+Template keys are listed in the [Preset Catalog](preset-catalog.md). `style` controls the wrapper box; `imageStyle`, `objectFit`, and `objectPosition` control the inner `img` node.
+
 ## Media Nodes
 
 ```ts

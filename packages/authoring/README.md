@@ -48,9 +48,9 @@ export default makeScene({
 Use seconds in authoring code and let the package compile to integer frames:
 
 ```ts
-seconds(2.5)        // authoring time value
-toFrames(seconds(2.5), 30) // 75
-frames(12)          // explicit frame value
+seconds(2.5); // authoring time value
+toFrames(seconds(2.5), 30); // 75
+frames(12); // explicit frame value
 ```
 
 Bare numbers are intentionally not accepted as timing values. Use `seconds(n)` for authoring readability or `frames(n)` when you need exact frame control.
@@ -94,6 +94,37 @@ You can still pass an existing asset id when assets are defined elsewhere:
 ```ts
 videoClip("clip", { trimStart: seconds(5) });
 ```
+
+## Image Overlays
+
+Use `imageOverlay()` for logos, stickers, watermarks, product shots, and avatars:
+
+```ts
+import {
+  imageAsset,
+  imageOverlay,
+  makeScene,
+  publicAsset,
+  seconds,
+} from "@motionforge/authoring";
+
+const logo = imageAsset("logo", publicAsset("assets/logo.svg"));
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    imageOverlay(logo, {
+      template: "logoBug",
+      at: seconds(0.4),
+      duration: seconds(4),
+    }),
+  ],
+});
+```
+
+The helper emits normal scene nodes and auto-registers image asset objects in `scene.assets`.
 
 ## Subtitles
 
