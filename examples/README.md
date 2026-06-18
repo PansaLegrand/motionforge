@@ -59,6 +59,12 @@ pnpm showcase:generate
 pnpm --filter @motionforge/golden run example examples/generated/text-stress-gallery.json out/text-stress-gallery.mp4 30
 ```
 
+## Assets And Transcript Files
+
+For browser-served examples, put video, image, audio, subtitle, and transcript assets under the app or project `public/assets` directory. Reference media with `publicAsset("assets/clip.mp4")`, which emits `/assets/clip.mp4` in the scene JSON.
+
+Subtitle text can also live beside the TypeScript scene source when it is read at build time. Parse `.srt` or `.vtt` text with `parseSrt()` or `parseVtt()`, pass the resulting segments to `subtitleTrack()`, and commit the emitted scene JSON. After parsing, subtitles are ordinary timed scene nodes; the renderer does not need a separate subtitle file.
+
 ## tiktok-captions.json
 
 The one-word-at-a-time caption style (1080x1920, 30 fps, 5 s): each word is a

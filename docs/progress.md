@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (subtitle overlay SX3: authoring workflow)
+
+### Changed
+
+- Added authoring-level `subtitleTrack()` and `subtitles()` helpers that compile SRT/VTT-style segments into validated scene nodes with scene-aware safe-area placement.
+- Added authoring-level `captionTrack()` and `captions()` helpers for word-timed ASR caption templates.
+- Re-exported `parseSrt()`, `parseVtt()`, `subtitleTemplates`, and subtitle/caption types from `@motionforge/authoring`.
+- Added authoring tests for parsed SRT, parsed WebVTT, and word-timed caption tracks.
+- Documented paste-SRT, paste-VTT, manual segment, and ASR word-timing workflows in the authoring guide and package README.
+- Documented where transcript/subtitle assets belong in example projects.
+- Marked SX3 complete in the subtitle overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- The authoring helpers wrap the preset subtitle engine and still emit ordinary scene nodes, so Studio, Playground, chat, validators, and renderers all see the same data shape.
+- The internal adapter intentionally rejects preset `lottie` nodes until `@motionforge/core` exposes a matching builder; subtitle and caption presets currently emit `div`/`text` trees.
+
 ## 2026-06-18 (subtitle overlay SX2: SRT and VTT parsing)
 
 ### Changed

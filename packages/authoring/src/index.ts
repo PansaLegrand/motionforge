@@ -2,6 +2,7 @@ import type {
   Scene,
   SceneAnimation,
   SceneAsset,
+  SceneNode,
   SceneStyle,
 } from "@motionforge/schema";
 import {
@@ -16,27 +17,43 @@ import {
   type VideoNodeOptions,
 } from "@motionforge/core";
 import {
+  parseSrt,
+  parseVtt,
   safeAreaBox,
+  styledCaptions as presetStyledCaptions,
+  subtitleTrack as presetSubtitleTrack,
+  type CaptionWord,
+  type StyledCaptionOptions as PresetStyledCaptionOptions,
   type SafeAreaAnchor,
   type SafeAreaInput,
+  type SubtitleSegment,
+  type SubtitleTrackOptions as PresetSubtitleTrackOptions,
 } from "@motionforge/presets";
 export {
   fadeUp,
   inferSafeAreaProfile,
+  parseSrt,
+  parseVtt,
   popIn,
   pulse,
   resolveSafeArea,
   safeAreaBox,
   safeAreaProfiles,
   slideIn,
+  subtitleTemplates,
 } from "@motionforge/presets";
 export type {
+  CaptionRenderMode,
+  CaptionTemplateKey,
+  CaptionWord,
   SafeAreaAnchor,
   SafeAreaBox,
   SafeAreaBoxOptions,
   SafeAreaInput,
   SafeAreaInsets,
   SafeAreaProfileKey,
+  SubtitleSegment,
+  SubtitleTemplateKey,
 } from "@motionforge/presets";
 
 export type TimeValue = {
@@ -109,6 +126,15 @@ export type AudioTrackOptions = AuthorTimingOptions & {
   trimStart?: TimeValue;
   volume?: number;
 };
+
+export type SubtitleTrackOptions = Omit<
+  PresetSubtitleTrackOptions,
+  "fps" | "composition"
+> & {
+  composition?: PresetSubtitleTrackOptions["composition"];
+};
+
+export type CaptionTrackOptions = Omit<PresetStyledCaptionOptions, "fps">;
 
 export type AuthorAsset<T extends SceneAsset["type"] = SceneAsset["type"]> =
   SceneAsset & {
@@ -410,6 +436,45 @@ export function audioTrack(
   };
 }
 
+export function subtitleTrack(
+  segments: SubtitleSegment[],
+  options: SubtitleTrackOptions = {},
+): AuthorNode {
+  return {
+    toNode(fps, scene) {
+      const { composition: requestedComposition, ...presetOptions } = options;
+
+      return builderFromSceneNode(
+        presetSubtitleTrack(segments, {
+          ...presetOptions,
+          fps,
+          composition: requestedComposition ?? scene,
+        }),
+      );
+    },
+  };
+}
+
+export const subtitles = subtitleTrack;
+
+export function captionTrack(
+  words: CaptionWord[],
+  options: CaptionTrackOptions = {},
+): AuthorNode {
+  return {
+    toNode(fps) {
+      return builderFromSceneNode(
+        presetStyledCaptions(words, {
+          ...options,
+          fps,
+        }),
+      );
+    },
+  };
+}
+
+export const captions = captionTrack;
+
 function makeAsset<T extends SceneAsset["type"]>(
   id: string,
   type: T,
@@ -426,6 +491,68 @@ function assetsFromReference(
   asset: AssetReference<SceneAsset["type"]>,
 ): readonly SceneAsset[] {
   return typeof asset === "string" ? [] : [asset];
+}
+
+function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
+  const baseOptions = {
+    id: node.id,
+    from: node.from,
+    duration: node.duration,
+    style: node.style,
+  };
+  let builder: ReturnType<typeof div>;
+
+  switch (node.type) {
+    case "div":
+      builder = div(baseOptions);
+      break;
+    case "text":
+      builder = text(node.text ?? "", baseOptions);
+      break;
+    case "img":
+      builder = img(requiredAssetId(node), baseOptions);
+      break;
+    case "video":
+      builder = video(requiredAssetId(node), {
+        ...baseOptions,
+        videoStartTime: node.videoStartTime,
+        playbackRate: node.playbackRate,
+      });
+      break;
+    case "audio":
+      builder = audio(requiredAssetId(node), {
+        id: node.id,
+        from: node.from,
+        duration: node.duration,
+        audioStartTime: node.audioStartTime,
+        volume: node.volume,
+      });
+      break;
+    case "lottie":
+      throw new Error(
+        "Authoring cannot adapt lottie preset nodes until core exposes a lottie builder.",
+      );
+    default:
+      throw new Error(`Unsupported scene node type: ${node.type satisfies never}`);
+  }
+
+  for (const animation of node.animations ?? []) {
+    builder.animate(animation.property, animation.frames);
+  }
+
+  if (node.children?.length) {
+    builder.children(...node.children.map(builderFromSceneNode));
+  }
+
+  return builder;
+}
+
+function requiredAssetId(node: SceneNode): string {
+  if (!node.assetId) {
+    throw new Error(`Cannot author ${node.type} node "${node.id}" without assetId.`);
+  }
+
+  return node.assetId;
 }
 
 function collectAuthorNodeAssets(nodes: readonly AuthorNode[] = []) {

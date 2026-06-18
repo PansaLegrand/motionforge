@@ -70,7 +70,7 @@ Done:
 - parsers reject malformed ranges with helpful messages
 - parsed segments feed directly into `subtitleTrack()`
 
-## Slice SX3 - Authoring And Docs Workflow
+## Slice SX3 - Authoring And Docs Workflow ✅
 
 **Goal:** MotionForge developers can discover the simplest subtitle workflow from the authoring layer.
 
@@ -80,7 +80,7 @@ Targets:
 - docs/guides
 - examples
 
-Done when:
+Done:
 
 - authoring re-exports segment subtitle helpers
 - docs show paste-SRT, paste-VTT, manual segments, and word-timed ASR paths

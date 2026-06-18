@@ -4,14 +4,18 @@ import {
   audioTrack,
   audioAsset,
   bg,
+  captionTrack,
   defineAssets,
   fadeUp,
   frames,
   image,
   imageAsset,
   makeScene,
+  parseSrt,
+  parseVtt,
   publicAsset,
   seconds,
+  subtitleTrack,
   textBlock,
   textBox,
   title,
@@ -247,6 +251,124 @@ describe("@motionforge/authoring", () => {
       textFit: "wrap",
       textOverflow: "clip",
       maxLines: 1,
+    });
+  });
+
+  it("builds safe subtitle tracks from parsed SRT cues", () => {
+    const scene = makeScene({
+      size: "portrait",
+      fps: 30,
+      duration: seconds(5),
+      children: [
+        bg("#111827"),
+        subtitleTrack(
+          parseSrt(`1
+00:00:00,500 --> 00:00:02,000
+Hello from SRT
+
+2
+00:00:02,250 --> 00:00:04,500
+Second subtitle line
+with an intentional break`),
+          {
+            idPrefix: "subs",
+            template: "minimalBar",
+            maxLines: 2,
+          },
+        ),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[1]).toMatchObject({
+      id: "subs",
+      type: "div",
+      style: {
+        left: 72,
+        top: 1316,
+        width: 936,
+        height: 230,
+      },
+    });
+    expect(scene.nodes[1]?.children?.[0]).toMatchObject({
+      id: "subs-s0",
+      from: 15,
+      duration: 45,
+    });
+    expect(scene.nodes[1]?.children?.[0]?.children?.[0]).toMatchObject({
+      type: "text",
+      text: "Hello from SRT",
+      style: {
+        overflow: "hidden",
+        textFit: "shrink",
+        textOverflow: "ellipsis",
+        maxLines: 2,
+      },
+    });
+  });
+
+  it("builds subtitle tracks from parsed VTT cues with manual placement", () => {
+    const scene = makeScene({
+      size: "landscape",
+      fps: 24,
+      duration: seconds(4),
+      children: [
+        subtitleTrack(
+          parseVtt(`WEBVTT
+
+00:00:00.000 --> 00:00:01.500 align:center
+Hello from VTT`),
+          {
+            idPrefix: "manual-vtt",
+            area: { top: "66%", height: "18%" },
+            style: { fontSize: 44 },
+          },
+        ),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "manual-vtt",
+      style: {
+        top: "66%",
+        height: "18%",
+      },
+    });
+  });
+
+  it("builds word-timed caption tracks for ASR output", () => {
+    const scene = makeScene({
+      size: "portrait",
+      fps: 30,
+      duration: seconds(3),
+      children: [
+        captionTrack(
+          [
+            { word: "Fast", startMs: 0, endMs: 400 },
+            { word: "caption", startMs: 420, endMs: 920 },
+            { word: "track", startMs: 940, endMs: 1320 },
+          ],
+          {
+            idPrefix: "asr-captions",
+            template: "spotlight",
+            renderMode: "word",
+          },
+        ),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "asr-captions",
+      type: "div",
+    });
+    expect(scene.nodes[0]?.children).toHaveLength(3);
+    expect(scene.nodes[0]?.children?.[0]).toMatchObject({
+      id: "asr-captions-w0",
+      from: 0,
+      duration: 13,
+      children: [{ type: "text", text: "Fast" }],
     });
   });
 

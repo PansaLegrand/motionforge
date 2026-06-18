@@ -95,6 +95,47 @@ You can still pass an existing asset id when assets are defined elsewhere:
 videoClip("clip", { trimStart: seconds(5) });
 ```
 
+## Subtitles
+
+Use `subtitleTrack()` for SRT/VTT-style sentence cues, or `captionTrack()` for word-timed ASR output:
+
+```ts
+import {
+  captionTrack,
+  makeScene,
+  parseSrt,
+  seconds,
+  subtitleTrack,
+} from "@motionforge/authoring";
+
+const subtitles = parseSrt(`1
+00:00:00,500 --> 00:00:02,100
+I love this
+
+2
+00:00:02,300 --> 00:00:04,400
+Keep the second line readable`);
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(5),
+  children: [
+    subtitleTrack(subtitles, { template: "minimalBar" }),
+    captionTrack(
+      [
+        { word: "Fast", startMs: 0, endMs: 300 },
+        { word: "word", startMs: 320, endMs: 620 },
+        { word: "captions", startMs: 640, endMs: 1100 },
+      ],
+      { template: "spotlight", renderMode: "word" },
+    ),
+  ],
+});
+```
+
+For larger `.srt`, `.vtt`, or transcript files, keep them beside your source code if you load them at build time, or under `public/assets` if an app or browser workflow fetches them by URL. Parsed subtitles become normal scene nodes; the renderer does not need to fetch subtitle files during export.
+
 ## License
 
 MIT

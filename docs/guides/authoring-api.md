@@ -123,6 +123,98 @@ The defaults are intentionally production-safe:
 - `overflow: "hidden"` prevents accidental bleed into neighboring overlays.
 - `style` remains an escape hatch and overrides all generated defaults.
 
+## Subtitle Tracks
+
+Use `subtitleTrack()` for sentence- or line-timed subtitles such as SRT, WebVTT, transcript segments, or chat-generated cue lists. It emits a timed container with bounded text nodes, safe-area subtitle placement, shrink-to-fit, `maxLines`, and ellipsis defaults.
+
+Paste SRT directly when the subtitle file is small or generated with the scene:
+
+```ts
+import {
+  makeScene,
+  parseSrt,
+  seconds,
+  subtitleTrack,
+  videoAsset,
+  videoClip,
+} from "@motionforge/authoring";
+
+const clip = videoAsset("clip", "/assets/interview.mp4");
+const subtitles = parseSrt(`1
+00:00:00,500 --> 00:00:02,100
+Welcome to MotionForge
+
+2
+00:00:02,400 --> 00:00:04,600
+Programmatic video, plain TypeScript`);
+
+export default makeScene({
+  size: "portrait",
+  fps: 30,
+  duration: seconds(6),
+  children: [
+    videoClip(clip, { duration: seconds(6) }),
+    subtitleTrack(subtitles, {
+      template: "minimalBar",
+      maxLines: 2,
+    }),
+  ],
+});
+```
+
+Paste WebVTT the same way:
+
+```ts
+import { parseVtt, subtitleTrack } from "@motionforge/authoring";
+
+subtitleTrack(
+  parseVtt(`WEBVTT
+
+00:00:00.000 --> 00:00:01.500 align:center
+First cue
+
+00:00:01.800 --> 00:00:03.200
+Second cue`),
+  { template: "cinematic" },
+);
+```
+
+Manual segments are useful when chat, a CMS, or your own code already has cue timing:
+
+```ts
+subtitleTrack(
+  [
+    { text: "Keep only the strong opening.", startSeconds: 0.5, endSeconds: 2.2 },
+    { text: "Then let the full second thought land.", startSeconds: 2.5, endSeconds: 5.8 },
+  ],
+  {
+    idPrefix: "story-subs",
+    template: "classic",
+    style: { fontSize: 62 },
+  },
+);
+```
+
+Use `captionTrack()` when ASR gives word-level timings and you want TikTok/karaoke-style templates:
+
+```ts
+import { captionTrack } from "@motionforge/authoring";
+
+captionTrack(
+  [
+    { word: "Natural", startMs: 0, endMs: 360 },
+    { word: "language", startMs: 380, endMs: 820 },
+    { word: "video", startMs: 840, endMs: 1240 },
+  ],
+  {
+    template: "spotlight",
+    renderMode: "word",
+  },
+);
+```
+
+Subtitle templates share the preset names from the [Preset Catalog](preset-catalog.md), including `"classic"`, `"minimalBar"`, `"cinematic"`, `"spotlight"`, `"karaoke"`, `"future"`, and `"terminal"`. `area` can manually place the track, while the default uses the scene size and safe-area subtitle band.
+
 ## Media Nodes
 
 ```ts
