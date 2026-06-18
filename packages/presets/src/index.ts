@@ -267,6 +267,318 @@ export function mediaLook(
   };
 }
 
+export type CompositionSize = {
+  width: number;
+  height: number;
+};
+
+export type SafeAreaProfileKey = "vertical" | "square" | "landscape";
+
+export type SafeAreaProfile = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+  horizontalBasis: "shortSide" | "width";
+  verticalBasis: "shortSide" | "height";
+};
+
+export const safeAreaProfiles = {
+  vertical: {
+    top: 0.075,
+    right: 0.067,
+    bottom: 0.085,
+    left: 0.067,
+    horizontalBasis: "shortSide",
+    verticalBasis: "height",
+  },
+  square: {
+    top: 0.067,
+    right: 0.067,
+    bottom: 0.067,
+    left: 0.067,
+    horizontalBasis: "shortSide",
+    verticalBasis: "shortSide",
+  },
+  landscape: {
+    top: 0.06,
+    right: 0.05,
+    bottom: 0.06,
+    left: 0.05,
+    horizontalBasis: "width",
+    verticalBasis: "height",
+  },
+} satisfies Record<SafeAreaProfileKey, SafeAreaProfile>;
+
+export type SafeAreaInsets = {
+  top: number;
+  right: number;
+  bottom: number;
+  left: number;
+};
+
+export type SafeAreaInput =
+  | "auto"
+  | SafeAreaProfileKey
+  | boolean
+  | number
+  | {
+      x?: number;
+      y?: number;
+      top?: number;
+      right?: number;
+      bottom?: number;
+      left?: number;
+    };
+
+export type SafeAreaAnchor =
+  | "center"
+  | "top"
+  | "bottom"
+  | "title"
+  | "subtitle"
+  | "lowerThird"
+  | "statCallout";
+
+export type SafeAreaBoxOptions = {
+  safeArea?: SafeAreaInput;
+  width?: number;
+  height?: number;
+  widthRatio?: number;
+  heightRatio?: number;
+  align?: "left" | "center" | "right";
+  offsetX?: number;
+  offsetY?: number;
+};
+
+export type SafeAreaBox = Required<
+  Pick<SceneStyle, "position" | "left" | "top" | "width" | "height">
+>;
+
+type SafeAreaAnchorDefaults = {
+  width: number;
+  height: number;
+  top: number;
+  align: "left" | "center" | "right";
+};
+
+export function inferSafeAreaProfile(
+  size: CompositionSize,
+): SafeAreaProfileKey {
+  const aspect = size.width / size.height;
+
+  if (aspect < 0.85) {
+    return "vertical";
+  }
+
+  if (aspect > 1.25) {
+    return "landscape";
+  }
+
+  return "square";
+}
+
+export function resolveSafeArea(
+  size: CompositionSize,
+  input: SafeAreaInput = "auto",
+): SafeAreaInsets {
+  if (input === false) {
+    return { top: 0, right: 0, bottom: 0, left: 0 };
+  }
+
+  if (typeof input === "number") {
+    const inset = Math.round(input);
+
+    return { top: inset, right: inset, bottom: inset, left: inset };
+  }
+
+  if (typeof input === "object") {
+    const defaultInsets = resolveSafeArea(size, "auto");
+
+    return {
+      top: Math.round(input.top ?? input.y ?? defaultInsets.top),
+      right: Math.round(input.right ?? input.x ?? defaultInsets.right),
+      bottom: Math.round(input.bottom ?? input.y ?? defaultInsets.bottom),
+      left: Math.round(input.left ?? input.x ?? defaultInsets.left),
+    };
+  }
+
+  const profileKey =
+    input === "auto" || input === true ? inferSafeAreaProfile(size) : input;
+  const profile = safeAreaProfiles[profileKey];
+  const shortSide = Math.min(size.width, size.height);
+  const horizontalBasis =
+    profile.horizontalBasis === "width" ? size.width : shortSide;
+  const verticalBasis =
+    profile.verticalBasis === "height" ? size.height : shortSide;
+
+  return {
+    top: Math.round(profile.top * verticalBasis),
+    right: Math.round(profile.right * horizontalBasis),
+    bottom: Math.round(profile.bottom * verticalBasis),
+    left: Math.round(profile.left * horizontalBasis),
+  };
+}
+
+export function safeAreaBox(
+  size: CompositionSize,
+  anchor: SafeAreaAnchor,
+  options: SafeAreaBoxOptions = {},
+): SafeAreaBox {
+  const insets = resolveSafeArea(size, options.safeArea ?? "auto");
+  const availableWidth = Math.max(1, size.width - insets.left - insets.right);
+  const availableHeight = Math.max(
+    1,
+    size.height - insets.top - insets.bottom,
+  );
+  const defaults = safeAreaAnchorDefaults(size, anchor, insets);
+  const width = Math.max(
+    1,
+    Math.min(
+      availableWidth,
+      Math.round(
+        options.width ??
+          (options.widthRatio === undefined
+            ? defaults.width
+            : availableWidth * options.widthRatio),
+      ),
+    ),
+  );
+  const height = Math.max(
+    1,
+    Math.min(
+      availableHeight,
+      Math.round(
+        options.height ??
+          (options.heightRatio === undefined
+            ? defaults.height
+            : availableHeight * options.heightRatio),
+      ),
+    ),
+  );
+  const align = options.align ?? defaults.align;
+  const left =
+    align === "left"
+      ? insets.left
+      : align === "right"
+        ? size.width - insets.right - width
+        : insets.left + Math.round((availableWidth - width) / 2);
+  const top = safeAreaAnchorTop(
+    size,
+    anchor,
+    insets,
+    availableHeight,
+    height,
+    defaults.top,
+  );
+
+  return {
+    position: "absolute",
+    left: left + Math.round(options.offsetX ?? 0),
+    top: top + Math.round(options.offsetY ?? 0),
+    width,
+    height,
+  };
+}
+
+function safeAreaAnchorDefaults(
+  size: CompositionSize,
+  anchor: SafeAreaAnchor,
+  insets: SafeAreaInsets,
+): SafeAreaAnchorDefaults {
+  const availableWidth = Math.max(1, size.width - insets.left - insets.right);
+  const availableHeight = Math.max(1, size.height - insets.top - insets.bottom);
+  const centerHeight = Math.round(size.height * 0.2);
+  const titleHeight = Math.round(size.height * 0.18);
+  const captionHeight = Math.round(size.height * 0.12);
+  const lowerThirdHeight = Math.round(size.height * 0.15);
+  const statHeight = Math.round(size.height * 0.18);
+
+  switch (anchor) {
+    case "title":
+      return {
+        width: availableWidth,
+        height: titleHeight,
+        top: insets.top + Math.round(size.height * 0.05),
+        align: "center",
+      };
+    case "subtitle":
+      return {
+        width: availableWidth,
+        height: captionHeight,
+        top:
+          size.height -
+          insets.bottom -
+          Math.round(size.height * 0.11) -
+          captionHeight,
+        align: "center",
+      };
+    case "lowerThird":
+      return {
+        width: Math.round(availableWidth * 0.74),
+        height: lowerThirdHeight,
+        top:
+          size.height -
+          insets.bottom -
+          Math.round(size.height * 0.12) -
+          lowerThirdHeight,
+        align: "left",
+      };
+    case "statCallout":
+      return {
+        width: Math.round(availableWidth * 0.42),
+        height: statHeight,
+        top: insets.top + Math.round(size.height * 0.24),
+        align: "right",
+      };
+    case "top":
+      return {
+        width: availableWidth,
+        height: titleHeight,
+        top: insets.top,
+        align: "center",
+      };
+    case "bottom":
+      return {
+        width: availableWidth,
+        height: captionHeight,
+        top: size.height - insets.bottom - captionHeight,
+        align: "center",
+      };
+    case "center":
+      return {
+        width: availableWidth,
+        height: centerHeight,
+        top: insets.top + Math.round((availableHeight - centerHeight) / 2),
+        align: "center",
+      };
+  }
+}
+
+function safeAreaAnchorTop(
+  size: CompositionSize,
+  anchor: SafeAreaAnchor,
+  insets: SafeAreaInsets,
+  availableHeight: number,
+  height: number,
+  fallbackTop: number,
+): number {
+  switch (anchor) {
+    case "center":
+      return insets.top + Math.round((availableHeight - height) / 2);
+    case "bottom":
+      return size.height - insets.bottom - height;
+    case "subtitle":
+      return size.height - insets.bottom - Math.round(size.height * 0.11) - height;
+    case "lowerThird":
+      return size.height - insets.bottom - Math.round(size.height * 0.12) - height;
+    case "statCallout":
+    case "title":
+    case "top":
+      return fallbackTop;
+  }
+}
+
 export type ClipLayoutCategory =
   | "single"
   | "pip"
@@ -659,6 +971,8 @@ export type TextOverlayOptions = {
   id?: string;
   from?: number;
   duration?: number;
+  composition?: CompositionSize;
+  safeArea?: SafeAreaInput;
   kicker?: string;
   title?: string;
   subtitle?: string;
@@ -709,18 +1023,25 @@ function titleCardOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      left: 96,
-      right: 96,
-      top: 560,
-      height: 560,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 24,
-    },
+    textOverlayContainerStyle(
+      options,
+      "center",
+      {
+        position: "absolute",
+        left: 96,
+        right: 96,
+        top: 560,
+        height: 560,
+      },
+      { heightRatio: 0.29 },
+      {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 24,
+      },
+    ),
     [
       maybeTextNode(id, "kicker", options.kicker, {
         ...eyebrowStyle(options.accentColor ?? "#38bdf8"),
@@ -758,22 +1079,29 @@ function lowerThirdOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      left: 72,
-      bottom: 132,
-      width: 820,
-      minHeight: 190,
-      padding: 28,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      gap: 10,
-      backgroundColor: "rgba(15,23,42,0.78)",
-      borderRadius: 18,
-      border: `2px solid ${accent}`,
-      boxShadow: "0px 18px 48px rgba(0,0,0,0.32)",
-    },
+    textOverlayContainerStyle(
+      options,
+      "lowerThird",
+      {
+        position: "absolute",
+        left: 72,
+        bottom: 132,
+        width: 820,
+        minHeight: 190,
+      },
+      {},
+      {
+        padding: 28,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 10,
+        backgroundColor: "rgba(15,23,42,0.78)",
+        borderRadius: 18,
+        border: `2px solid ${accent}`,
+        boxShadow: "0px 18px 48px rgba(0,0,0,0.32)",
+      },
+    ),
     [
       maybeTextNode(id, "kicker", options.kicker, {
         ...eyebrowStyle(accent),
@@ -807,21 +1135,28 @@ function quoteCardOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      left: 90,
-      top: 610,
-      width: 900,
-      minHeight: 520,
-      padding: 54,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      gap: 28,
-      backgroundColor: "rgba(248,250,252,0.92)",
-      borderRadius: 28,
-      boxShadow: "0px 28px 70px rgba(15,23,42,0.28)",
-    },
+    textOverlayContainerStyle(
+      options,
+      "center",
+      {
+        position: "absolute",
+        left: 90,
+        top: 610,
+        width: 900,
+        minHeight: 520,
+      },
+      { widthRatio: 0.82, heightRatio: 0.27 },
+      {
+        padding: 54,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 28,
+        backgroundColor: "rgba(248,250,252,0.92)",
+        borderRadius: 28,
+        boxShadow: "0px 28px 70px rgba(15,23,42,0.28)",
+      },
+    ),
     [
       maybeTextNode(id, "kicker", options.kicker, {
         ...eyebrowStyle(options.accentColor ?? "#2563eb"),
@@ -857,22 +1192,29 @@ function statCalloutOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      right: 72,
-      top: 1030,
-      width: 430,
-      minHeight: 320,
-      padding: 34,
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "center",
-      gap: 12,
-      backgroundColor: "rgba(2,6,23,0.84)",
-      borderRadius: 24,
-      border: `2px solid ${accent}`,
-      boxShadow: "0px 22px 60px rgba(0,0,0,0.34)",
-    },
+    textOverlayContainerStyle(
+      options,
+      "statCallout",
+      {
+        position: "absolute",
+        right: 72,
+        top: 1030,
+        width: 430,
+        minHeight: 320,
+      },
+      { widthRatio: 0.4, align: "right" },
+      {
+        padding: 34,
+        display: "flex",
+        flexDirection: "column",
+        justifyContent: "center",
+        gap: 12,
+        backgroundColor: "rgba(2,6,23,0.84)",
+        borderRadius: 24,
+        border: `2px solid ${accent}`,
+        boxShadow: "0px 22px 60px rgba(0,0,0,0.34)",
+      },
+    ),
     [
       textNode(id, "value", requiredSlot(options, "value"), {
         width: "100%",
@@ -913,21 +1255,28 @@ function announcementBannerOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      left: 0,
-      top: 220,
-      width: "100%",
-      minHeight: 190,
-      padding: 36,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 10,
-      backgroundColor: accent,
-      boxShadow: "0px 20px 50px rgba(0,0,0,0.28)",
-    },
+    textOverlayContainerStyle(
+      options,
+      "top",
+      {
+        position: "absolute",
+        left: 0,
+        top: 220,
+        width: "100%",
+        minHeight: 190,
+      },
+      { safeArea: false, widthRatio: 1, heightRatio: 0.12 },
+      {
+        padding: 36,
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 10,
+        backgroundColor: accent,
+        boxShadow: "0px 20px 50px rgba(0,0,0,0.28)",
+      },
+    ),
     [
       maybeTextNode(id, "kicker", options.kicker, {
         width: "100%",
@@ -970,18 +1319,25 @@ function socialHookOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      left: 72,
-      right: 72,
-      top: 500,
-      minHeight: 520,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 22,
-    },
+    textOverlayContainerStyle(
+      options,
+      "center",
+      {
+        position: "absolute",
+        left: 72,
+        right: 72,
+        top: 500,
+        minHeight: 520,
+      },
+      { heightRatio: 0.27 },
+      {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 22,
+      },
+    ),
     [
       textNode(id, "title", requiredSlot(options, "title"), {
         width: "100%",
@@ -1021,18 +1377,25 @@ function chapterTitleOverlay(options: TextOverlayOptions): SceneNode {
   return overlayContainer(
     id,
     options,
-    {
-      position: "absolute",
-      left: 96,
-      right: 96,
-      top: 720,
-      minHeight: 340,
-      display: "flex",
-      flexDirection: "column",
-      alignItems: "center",
-      justifyContent: "center",
-      gap: 24,
-    },
+    textOverlayContainerStyle(
+      options,
+      "center",
+      {
+        position: "absolute",
+        left: 96,
+        right: 96,
+        top: 720,
+        minHeight: 340,
+      },
+      { heightRatio: 0.18 },
+      {
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: 24,
+      },
+    ),
     [
       {
         id: `${id}-rule`,
@@ -1094,6 +1457,29 @@ function overlayContainer(
     children: children.filter(
       (child): child is SceneNode => child !== undefined,
     ),
+  };
+}
+
+function textOverlayContainerStyle(
+  options: TextOverlayOptions,
+  anchor: SafeAreaAnchor,
+  fallback: SceneStyle,
+  boxOptions: SafeAreaBoxOptions,
+  style: SceneStyle,
+): SceneStyle {
+  if (!options.composition) {
+    return {
+      ...fallback,
+      ...style,
+    };
+  }
+
+  return {
+    ...safeAreaBox(options.composition, anchor, {
+      ...boxOptions,
+      safeArea: boxOptions.safeArea ?? options.safeArea,
+    }),
+    ...style,
   };
 }
 

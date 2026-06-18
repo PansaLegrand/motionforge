@@ -89,7 +89,7 @@ Done:
 - generated nodes validate through `@motionforge/schema`
 - docs show common title, lower-third, subtitle, and stat-callout cases
 
-## Slice TX4 - Safe-Area Placement Primitives
+## Slice TX4 - Safe-Area Placement Primitives ✅
 
 **Goal:** overlay placement can avoid edges and platform UI without hand-coded pixel math.
 
@@ -98,7 +98,7 @@ Targets:
 - `packages/authoring`
 - `@motionforge/presets`
 
-Done when:
+Done:
 
 - named safe areas exist for vertical, square, and landscape compositions
 - text overlay presets can opt into safe-area anchors

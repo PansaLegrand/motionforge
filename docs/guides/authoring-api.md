@@ -103,7 +103,18 @@ export default makeScene({
 });
 ```
 
-`placement` accepts `"center"`, `"top"`, `"bottom"`, `"title"`, `"subtitle"`, `"lowerThird"`, and `"statCallout"`. `safeArea` defaults to scene-relative insets; pass a number for equal padding, `{ x, y }` for axis padding, edge-specific values, or `false` for full-frame placement.
+`placement` accepts `"center"`, `"top"`, `"bottom"`, `"title"`, `"subtitle"`, `"lowerThird"`, and `"statCallout"`. `safeArea` defaults to the named profile inferred from composition aspect ratio: `"vertical"`, `"square"`, or `"landscape"`. Pass one of those names, a number for equal padding, `{ x, y }` for axis padding, edge-specific values, or `false` for full-frame placement.
+
+When you need the placement box without creating a text node, use the same primitives directly:
+
+```ts
+import { resolveSafeArea, safeAreaBox } from "@motionforge/authoring";
+
+const size = { width: 1080, height: 1920 };
+
+resolveSafeArea(size, "vertical");
+safeAreaBox(size, "lowerThird", { widthRatio: 0.72 });
+```
 
 The defaults are intentionally production-safe:
 

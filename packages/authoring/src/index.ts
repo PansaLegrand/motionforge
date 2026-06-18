@@ -15,7 +15,29 @@ import {
   type NodeOptions,
   type VideoNodeOptions,
 } from "@motionforge/core";
-export { fadeUp, popIn, pulse, slideIn } from "@motionforge/presets";
+import {
+  safeAreaBox,
+  type SafeAreaAnchor,
+  type SafeAreaInput,
+} from "@motionforge/presets";
+export {
+  fadeUp,
+  inferSafeAreaProfile,
+  popIn,
+  pulse,
+  resolveSafeArea,
+  safeAreaBox,
+  safeAreaProfiles,
+  slideIn,
+} from "@motionforge/presets";
+export type {
+  SafeAreaAnchor,
+  SafeAreaBox,
+  SafeAreaBoxOptions,
+  SafeAreaInput,
+  SafeAreaInsets,
+  SafeAreaProfileKey,
+} from "@motionforge/presets";
 
 export type TimeValue = {
   unit: "frames" | "seconds";
@@ -61,26 +83,8 @@ export type BoxOptions = VisualOptions & {
 
 export type TextOptions = VisualOptions;
 
-export type TextBoxPlacement =
-  | "center"
-  | "top"
-  | "bottom"
-  | "title"
-  | "subtitle"
-  | "lowerThird"
-  | "statCallout";
-
-export type TextBoxSafeArea =
-  | boolean
-  | number
-  | {
-      x?: number;
-      y?: number;
-      top?: number;
-      right?: number;
-      bottom?: number;
-      left?: number;
-    };
+export type TextBoxPlacement = SafeAreaAnchor;
+export type TextBoxSafeArea = SafeAreaInput;
 
 export type TextBoxOptions = TextOptions & {
   placement?: TextBoxPlacement;
@@ -481,13 +485,6 @@ function centeredTextStyle(scene: ResolvedSceneOptions): SceneStyle {
   };
 }
 
-type ResolvedSafeArea = {
-  top: number;
-  right: number;
-  bottom: number;
-  left: number;
-};
-
 type TextBoxPlacementDefaults = {
   box: Required<Pick<SceneStyle, "left" | "top" | "width" | "height">>;
   textAlign: NonNullable<SceneStyle["textAlign"]>;
@@ -505,7 +502,7 @@ function textBoxStyle(
   const placementDefaults = textBoxPlacementDefaults(
     scene,
     placement,
-    resolveTextBoxSafeArea(scene, options.safeArea),
+    options.safeArea,
   );
   const fontSize = placementDefaults.fontSize;
 
@@ -528,28 +525,12 @@ function textBoxStyle(
 function textBoxPlacementDefaults(
   scene: ResolvedSceneOptions,
   placement: TextBoxPlacement,
-  safeArea: ResolvedSafeArea,
+  safeArea: TextBoxSafeArea | undefined,
 ): TextBoxPlacementDefaults {
-  const availableWidth = Math.max(1, scene.width - safeArea.left - safeArea.right);
-  const availableHeight = Math.max(
-    1,
-    scene.height - safeArea.top - safeArea.bottom,
-  );
-  const centerHeight = Math.round(scene.height * 0.2);
-  const titleHeight = Math.round(scene.height * 0.18);
-  const captionHeight = Math.round(scene.height * 0.12);
-  const lowerThirdHeight = Math.round(scene.height * 0.15);
-  const statHeight = Math.round(scene.height * 0.18);
-
   switch (placement) {
     case "title":
       return {
-        box: {
-          left: safeArea.left,
-          top: safeArea.top + Math.round(scene.height * 0.05),
-          width: availableWidth,
-          height: titleHeight,
-        },
+        box: safeAreaBox(scene, "title", { safeArea }),
         textAlign: "center",
         fontSize: Math.max(36, Math.round(scene.height * 0.052)),
         fontWeight: 900,
@@ -558,16 +539,7 @@ function textBoxPlacementDefaults(
       };
     case "subtitle":
       return {
-        box: {
-          left: safeArea.left,
-          top:
-            scene.height -
-            safeArea.bottom -
-            Math.round(scene.height * 0.11) -
-            captionHeight,
-          width: availableWidth,
-          height: captionHeight,
-        },
+        box: safeAreaBox(scene, "subtitle", { safeArea }),
         textAlign: "center",
         fontSize: Math.max(24, Math.round(scene.height * 0.028)),
         fontWeight: 700,
@@ -576,16 +548,7 @@ function textBoxPlacementDefaults(
       };
     case "lowerThird":
       return {
-        box: {
-          left: safeArea.left,
-          top:
-            scene.height -
-            safeArea.bottom -
-            Math.round(scene.height * 0.12) -
-            lowerThirdHeight,
-          width: Math.max(1, Math.round(availableWidth * 0.74)),
-          height: lowerThirdHeight,
-        },
+        box: safeAreaBox(scene, "lowerThird", { safeArea }),
         textAlign: "left",
         fontSize: Math.max(28, Math.round(scene.height * 0.036)),
         fontWeight: 800,
@@ -594,12 +557,7 @@ function textBoxPlacementDefaults(
       };
     case "statCallout":
       return {
-        box: {
-          left: safeArea.left,
-          top: safeArea.top + Math.round(scene.height * 0.24),
-          width: Math.max(1, Math.round(availableWidth * 0.5)),
-          height: statHeight,
-        },
+        box: safeAreaBox(scene, "statCallout", { safeArea }),
         textAlign: "left",
         fontSize: Math.max(42, Math.round(scene.height * 0.06)),
         fontWeight: 900,
@@ -608,12 +566,7 @@ function textBoxPlacementDefaults(
       };
     case "top":
       return {
-        box: {
-          left: safeArea.left,
-          top: safeArea.top,
-          width: availableWidth,
-          height: titleHeight,
-        },
+        box: safeAreaBox(scene, "top", { safeArea }),
         textAlign: "center",
         fontSize: Math.max(32, Math.round(scene.height * 0.04)),
         fontWeight: 800,
@@ -622,12 +575,7 @@ function textBoxPlacementDefaults(
       };
     case "bottom":
       return {
-        box: {
-          left: safeArea.left,
-          top: scene.height - safeArea.bottom - captionHeight,
-          width: availableWidth,
-          height: captionHeight,
-        },
+        box: safeAreaBox(scene, "bottom", { safeArea }),
         textAlign: "center",
         fontSize: Math.max(24, Math.round(scene.height * 0.03)),
         fontWeight: 700,
@@ -636,12 +584,7 @@ function textBoxPlacementDefaults(
       };
     case "center":
       return {
-        box: {
-          left: safeArea.left,
-          top: safeArea.top + Math.round((availableHeight - centerHeight) / 2),
-          width: availableWidth,
-          height: centerHeight,
-        },
+        box: safeAreaBox(scene, "center", { safeArea }),
         textAlign: "center",
         fontSize: Math.max(32, Math.round(scene.height * 0.044)),
         fontWeight: 800,
@@ -649,43 +592,6 @@ function textBoxPlacementDefaults(
         maxLines: 3,
       };
   }
-}
-
-function resolveTextBoxSafeArea(
-  scene: ResolvedSceneOptions,
-  safeArea: TextBoxSafeArea | undefined,
-): ResolvedSafeArea {
-  const defaultX = Math.round(Math.min(scene.width, scene.height) * 0.067);
-  const defaultY = Math.round(scene.height * 0.06);
-
-  if (safeArea === false) {
-    return { top: 0, right: 0, bottom: 0, left: 0 };
-  }
-
-  if (typeof safeArea === "number") {
-    return {
-      top: safeArea,
-      right: safeArea,
-      bottom: safeArea,
-      left: safeArea,
-    };
-  }
-
-  if (typeof safeArea === "object") {
-    return {
-      top: safeArea.top ?? safeArea.y ?? defaultY,
-      right: safeArea.right ?? safeArea.x ?? defaultX,
-      bottom: safeArea.bottom ?? safeArea.y ?? defaultY,
-      left: safeArea.left ?? safeArea.x ?? defaultX,
-    };
-  }
-
-  return {
-    top: defaultY,
-    right: defaultX,
-    bottom: defaultY,
-    left: defaultX,
-  };
 }
 
 function resolveSceneSize(size: SceneSize): { width: number; height: number } {

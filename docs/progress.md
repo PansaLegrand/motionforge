@@ -2,6 +2,30 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text robustness TX4: safe-area placement primitives)
+
+### Changed
+
+- Added named safe-area profiles in `@motionforge/presets` for vertical, square, and landscape compositions.
+- Added `inferSafeAreaProfile()`, `resolveSafeArea()`, and `safeAreaBox()` as reusable style primitives.
+- Rewired authoring `textBox()` to consume the shared safe-area primitive and re-export the helper API.
+- Added `composition` and `safeArea` options to `textOverlay()` so preset templates can opt into safe-area anchors while preserving legacy fixed placement by default.
+- Documented direct safe-area helper usage in the authoring guide.
+- Marked TX4 complete in the text overlay robustness roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- Text overlay presets keep their historical fixed coordinates unless callers pass `composition`. That avoids surprising existing scenes while giving chat, Studio, and programmer APIs a shared safe placement path.
+
 ## 2026-06-18 (text robustness TX3: authoring text box helper)
 
 ### Changed

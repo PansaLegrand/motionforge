@@ -186,7 +186,7 @@ describe("@motionforge/authoring", () => {
       text: "A very long title that should stay readable in a safe box",
       style: {
         left: 72,
-        top: 211,
+        top: 240,
         width: 936,
         height: 346,
         overflow: "hidden",

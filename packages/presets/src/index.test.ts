@@ -12,6 +12,9 @@ import {
   mediaLookEntries,
   mediaLooks,
   popIn,
+  resolveSafeArea,
+  safeAreaBox,
+  safeAreaProfiles,
   pulse,
   slideIn,
   styledCaptions,
@@ -151,6 +154,82 @@ describe("media look presets", () => {
     ).toEqual({
       filter: "brightness(0.8) blur(12px)",
       opacity: 0.82,
+    });
+  });
+});
+
+describe("safe-area placement primitives", () => {
+  it("exposes named safe-area profiles for common aspect ratios", () => {
+    expect(Object.keys(safeAreaProfiles)).toEqual([
+      "vertical",
+      "square",
+      "landscape",
+    ]);
+    expect(resolveSafeArea({ width: 1080, height: 1920 }, "auto")).toEqual({
+      top: 144,
+      right: 72,
+      bottom: 163,
+      left: 72,
+    });
+    expect(resolveSafeArea({ width: 1080, height: 1080 }, "auto")).toEqual({
+      top: 72,
+      right: 72,
+      bottom: 72,
+      left: 72,
+    });
+    expect(resolveSafeArea({ width: 1920, height: 1080 }, "auto")).toEqual({
+      top: 65,
+      right: 96,
+      bottom: 65,
+      left: 96,
+    });
+  });
+
+  it("builds anchored boxes from safe areas", () => {
+    expect(safeAreaBox({ width: 1080, height: 1920 }, "lowerThird")).toEqual({
+      position: "absolute",
+      left: 72,
+      top: 1239,
+      width: 693,
+      height: 288,
+    });
+    expect(
+      safeAreaBox({ width: 1920, height: 1080 }, "statCallout"),
+    ).toEqual({
+      position: "absolute",
+      left: 1098,
+      top: 324,
+      width: 726,
+      height: 194,
+    });
+    expect(
+      safeAreaBox({ width: 1080, height: 1080 }, "bottom", {
+        safeArea: false,
+        widthRatio: 0.5,
+        align: "right",
+      }),
+    ).toEqual({
+      position: "absolute",
+      left: 540,
+      top: 950,
+      width: 540,
+      height: 130,
+    });
+  });
+
+  it("allows explicit safe-area insets and offsets", () => {
+    expect(
+      safeAreaBox({ width: 1080, height: 1920 }, "title", {
+        safeArea: { x: 96, y: 120 },
+        widthRatio: 0.5,
+        offsetY: 12,
+      }),
+    ).toEqual({
+      position: "absolute",
+      left: 318,
+      top: 228,
+      width: 444,
+      height: 346,
     });
   });
 });
@@ -523,6 +602,26 @@ describe("text overlay template catalog", () => {
     expect(overlay.children?.[0]?.style).toMatchObject({
       fontSize: 64,
       color: "#f8fafc",
+    });
+  });
+
+  it("lets text overlay templates opt into safe-area anchors", () => {
+    const overlay = textOverlay({
+      template: "lowerThird",
+      id: "safe-speaker",
+      title: "Margaret Hamilton",
+      subtitle: "Software engineer",
+      composition: { width: 1080, height: 1920 },
+    });
+
+    expect(validateScene(sceneWith(overlay))).toMatchObject({ ok: true });
+    expect(overlay.style).toMatchObject({
+      position: "absolute",
+      left: 72,
+      top: 1239,
+      width: 693,
+      height: 288,
+      padding: 28,
     });
   });
 
