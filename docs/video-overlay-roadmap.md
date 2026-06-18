@@ -73,7 +73,7 @@ Done:
 - docs show picture-in-picture, reaction cam, background loop, and muted b-roll workflows
 - generated nodes validate through `@motionforge/schema`
 
-## Slice VX3 - Preset Catalog And Patch Examples
+## Slice VX3 - Preset Catalog And Patch Examples ✅
 
 **Goal:** video overlay templates become discoverable by programmers, agents, and app UIs.
 
@@ -83,7 +83,7 @@ Targets:
 - playground preset catalog
 - docs/guides
 
-Done when:
+Done:
 
 - preset catalog lists video overlay template keys and best-use descriptions
 - patch examples can insert video overlay nodes against an existing scene video asset

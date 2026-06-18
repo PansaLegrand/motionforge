@@ -15,6 +15,11 @@ function sceneWithMedia(): Scene {
         type: "image",
         src: "data:image/png;base64,AAAA",
       },
+      clipAsset: {
+        id: "clipAsset",
+        type: "video",
+        src: "clip.mp4",
+      },
     },
     nodes: [
       {
@@ -28,7 +33,25 @@ function sceneWithMedia(): Scene {
         assetId: "shotAsset",
         style: { width: "100%", height: "100%", objectFit: "cover" },
       },
+      {
+        id: "clip",
+        type: "video",
+        assetId: "clipAsset",
+        style: { width: "100%", height: "100%", objectFit: "cover" },
+      },
     ],
+  };
+}
+
+function sceneWithoutVideoAsset(): Scene {
+  const scene = sceneWithMedia();
+
+  return {
+    ...scene,
+    assets: {
+      shotAsset: scene.assets.shotAsset!,
+    },
+    nodes: scene.nodes.filter((node) => node.id !== "clip"),
   };
 }
 
@@ -125,6 +148,27 @@ describe("preset patch examples", () => {
     expect(applyScenePatch(sceneWithMedia(), example.patch).ok).toBe(true);
   });
 
+  it("builds insertNode examples for video overlays", () => {
+    const example = buildPresetPatchExample(
+      catalogItem("video", "pictureInPicture"),
+      sceneWithMedia(),
+    );
+
+    expect(example.ok).toBe(true);
+    if (!example.ok) return;
+
+    expect(example.patch[0]).toMatchObject({
+      op: "insertNode",
+      node: {
+        id: "pictureInPicture-overlay",
+        type: "video",
+        assetId: "clipAsset",
+        volume: 0,
+      },
+    });
+    expect(applyScenePatch(sceneWithMedia(), example.patch).ok).toBe(true);
+  });
+
   it("builds insertNode examples for transitions", () => {
     const example = buildPresetPatchExample(
       catalogItem("transition", "fade"),
@@ -154,6 +198,10 @@ describe("preset patch examples", () => {
       catalogItem("image", "logoBug"),
       sceneWithoutMedia(),
     );
+    const video = buildPresetPatchExample(
+      catalogItem("video", "pictureInPicture"),
+      sceneWithoutVideoAsset(),
+    );
 
     expect(noTarget).toMatchObject({
       ok: false,
@@ -166,6 +214,10 @@ describe("preset patch examples", () => {
     expect(image).toMatchObject({
       ok: false,
       reason: expect.stringContaining("image asset"),
+    });
+    expect(video).toMatchObject({
+      ok: false,
+      reason: expect.stringContaining("video asset"),
     });
   });
 });

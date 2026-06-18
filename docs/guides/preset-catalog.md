@@ -134,6 +134,8 @@ scene.nodes.push(
 
 Decorative templates default to muted output (`volume: 0`); `reactionCam` keeps clip audio unless muted. Pass `volume`, `muted`, `trimStart`, `playbackRate`, `placement`, `style`, `videoStyle`, `objectFit`, `objectPosition`, `opacity`, `borderRadius`, `shadow`, or `enter` for stricter control.
 
+The preset catalog can also generate a patch example for video overlays when the current scene already defines a video asset.
+
 ## Media Looks
 
 Use with `mediaLook(key)` inside an image or video style.

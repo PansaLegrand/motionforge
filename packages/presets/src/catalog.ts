@@ -10,12 +10,15 @@ import {
   textOverlayTemplateEntries,
   transitionOverlay,
   transitionTemplateEntries,
+  videoOverlay,
+  videoOverlayTemplateEntries,
   type ClipLayoutKey,
   type ImageOverlayTemplateKey,
   type MediaLookKey,
   type TextOverlaySlot,
   type TextOverlayTemplateKey,
   type TransitionTemplateKey,
+  type VideoOverlayTemplateKey,
 } from "./index.js";
 import {
   validateScene,
@@ -29,6 +32,7 @@ export type PresetFamily =
   | "subtitles"
   | "text"
   | "image"
+  | "video"
   | "media"
   | "layout"
   | "transition";
@@ -64,6 +68,7 @@ export const presetFamilyLabels: Record<PresetFamily, string> = {
   subtitles: "Subtitles",
   text: "Text",
   image: "Image Overlays",
+  video: "Video Overlays",
   media: "Media Looks",
   layout: "Clip Layouts",
   transition: "Transitions",
@@ -106,6 +111,24 @@ scene.nodes.push(
     assetId: "logo",
     template: "${key}",
     composition: { width: scene.width, height: scene.height },
+  }),
+);`,
+  })),
+  ...videoOverlayTemplateEntries.map(([key, preset]) => ({
+    family: "video" as const,
+    key,
+    name: preset.name,
+    category: preset.category,
+    description: preset.description,
+    snippet: `import { videoOverlay } from "@motionforge/presets";
+
+scene.nodes.push(
+  videoOverlay({
+    assetId: "clip",
+    template: "${key}",
+    composition: { width: scene.width, height: scene.height },
+    trimStart: 4,
+    duration: 120,
   }),
 );`,
   })),
@@ -215,6 +238,9 @@ export function buildPresetPatchExample(
     case "image":
       return buildImageInsertPatch(item, parsed.scene);
 
+    case "video":
+      return buildVideoInsertPatch(item, parsed.scene);
+
     case "transition":
       return buildTransitionInsertPatch(item, parsed.scene);
 
@@ -318,6 +344,40 @@ function buildImageInsertPatch(
     ok: true,
     title: `${item.name} patch`,
     description: `Inserts a ${item.key} overlay using image asset ${asset.id}.`,
+    patch: [{ op: "insertNode", node }],
+  };
+}
+
+function buildVideoInsertPatch(
+  item: PresetCatalogItem,
+  scene: Scene,
+): PresetPatchExample {
+  const asset = Object.values(scene.assets).find(
+    (entry) => entry.type === "video",
+  );
+
+  if (!asset) {
+    return {
+      ok: false,
+      title: "Patch unavailable",
+      reason:
+        "The current scene does not define a video asset. Add a video to scene.assets before inserting a video overlay.",
+    };
+  }
+
+  const node = videoOverlay({
+    template: item.key as VideoOverlayTemplateKey,
+    id: uniqueNodeId(scene, `${item.key}-overlay`),
+    assetId: asset.id,
+    from: recommendedOverlayStart(scene),
+    duration: recommendedOverlayDuration(scene),
+    composition: { width: scene.width, height: scene.height },
+  });
+
+  return {
+    ok: true,
+    title: `${item.name} patch`,
+    description: `Inserts a ${item.key} overlay using video asset ${asset.id}.`,
     patch: [{ op: "insertNode", node }],
   };
 }

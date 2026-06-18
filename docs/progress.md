@@ -2,6 +2,32 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (video overlay VX3: catalog and patch examples)
+
+### Changed
+
+- Added a `video` preset family to the shared preset catalog.
+- Added catalog entries and TypeScript snippets for all video overlay templates.
+- Added video overlay patch examples that insert overlay nodes using the first video asset in the current scene.
+- Added unavailable-state messaging when a scene has no video assets.
+- Updated Playground preset catalog tests through the shared catalog re-export path.
+- Widened preset gallery lookup to accept catalog families without preview scenes, returning `undefined` for families that do not yet have a gallery.
+- Marked VX3 complete in the video overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets test -- catalog.test.ts`
+- `pnpm --filter @motionforge/playground test -- preset-catalog.test.ts`
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm --filter @motionforge/playground typecheck`
+
+### Notes
+
+- Video overlay previews intentionally wait for the VX5 stress gallery; the Playground explorer can still show snippets and insert patch examples immediately.
+
 ## 2026-06-18 (video overlay VX2: authoring helper)
 
 ### Changed

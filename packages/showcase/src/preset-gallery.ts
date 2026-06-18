@@ -38,7 +38,7 @@ export const presetGalleryScenes: PresetGalleryScene[] = [
 ];
 
 export function findPresetGalleryScene(
-  family: PresetGalleryScene["family"],
+  family: string,
 ): PresetGalleryScene | undefined {
   return presetGalleryScenes.find((entry) => entry.family === family);
 }
