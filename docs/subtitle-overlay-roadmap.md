@@ -37,7 +37,7 @@ Known gaps:
 - word-timed caption templates do not yet expose a clean segment-timed API
 - no subtitle-specific stress gallery for long, multilingual, multiline subtitle tracks
 
-## Slice SX1 - Segment Subtitle Track
+## Slice SX1 - Segment Subtitle Track ✅
 
 **Goal:** programmers can create production-safe subtitles from sentence/line segments, without ASR word timing.
 
@@ -46,7 +46,7 @@ Targets:
 - `@motionforge/presets`
 - docs/tests
 
-Done when:
+Done:
 
 - `SubtitleSegment` data shape exists
 - `subtitleTrack()` emits a schema-valid timed container from segments

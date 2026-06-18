@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (subtitle overlay SX1: segment subtitle track)
+
+### Changed
+
+- Added `SubtitleSegment` and `subtitleTrack()` to `@motionforge/presets` for SRT/VTT-style cue workflows without ASR word timing.
+- Added robust subtitle text defaults: shrink fit, ellipsis, hidden overflow, `maxLines`, and `minFontSize`.
+- Added composition-aware safe-area subtitle placement through the shared `safeAreaBox()` primitive.
+- Kept `area`, style, fit, line-count, minimum font-size, and entrance-motion overrides available.
+- Documented segment-timed subtitle usage in the preset catalog guide.
+- Marked SX1 complete in the subtitle overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+
+### Notes
+
+- `subtitleTrack()` intentionally emits ordinary timed scene nodes so chat, Studio, Playground, and validators can inspect and patch subtitles like any other layer.
+
 ## 2026-06-18 (subtitle overlay roadmap)
 
 ### Changed

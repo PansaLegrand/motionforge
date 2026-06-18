@@ -2352,6 +2352,14 @@ export const captionTemplateEntries = Object.entries(captionTemplates) as Array<
 export const subtitleTemplates = captionTemplates;
 export type SubtitleTemplateKey = CaptionTemplateKey;
 
+export type SubtitleSegment = {
+  text: string;
+  startMs?: number;
+  endMs?: number;
+  startSeconds?: number;
+  endSeconds?: number;
+};
+
 export type StyledCaptionOptions = {
   fps: number;
   idPrefix?: string;
@@ -2364,6 +2372,21 @@ export type StyledCaptionOptions = {
   maxSegmentDurationMs?: number;
   gapMs?: number;
   rampFrames?: number;
+};
+
+export type SubtitleTrackOptions = {
+  fps: number;
+  idPrefix?: string;
+  template?: CaptionTemplateKey;
+  composition?: CompositionSize;
+  safeArea?: SafeAreaInput;
+  area?: CaptionArea;
+  style?: Partial<CaptionTemplateStyle>;
+  maxLines?: number;
+  minFontSize?: number;
+  textFit?: SceneStyle["textFit"];
+  textOverflow?: SceneStyle["textOverflow"];
+  enter?: SceneAnimation[] | false;
 };
 
 type CaptionSegment = {
@@ -2446,6 +2469,212 @@ export function styledCaptions(
 }
 
 export const styledSubtitles = styledCaptions;
+
+/**
+ * Segment-timed subtitles for SRT/VTT-style workflows. Each segment is a
+ * timed child window containing one bounded text node.
+ */
+export function subtitleTrack(
+  segments: SubtitleSegment[],
+  options: SubtitleTrackOptions,
+): SceneNode {
+  const key = options.template ?? "classic";
+  const template: CaptionTemplate = captionTemplates[key];
+  const prefix = options.idPrefix ?? `${key}-subtitles`;
+  const style = { ...template.style, ...options.style };
+  const normalized = normalizeSubtitleSegments(segments);
+
+  if (normalized.length === 0) {
+    throw new Error("subtitleTrack() requires at least one non-empty segment.");
+  }
+
+  return {
+    id: prefix,
+    type: "div",
+    style: subtitleTrackStyle(options),
+    children: normalized.map((segment, index) =>
+      subtitleTrackSegment(segment, index, {
+        fps: options.fps,
+        prefix,
+        style,
+        maxLines: options.maxLines,
+        minFontSize: options.minFontSize,
+        textFit: options.textFit,
+        textOverflow: options.textOverflow,
+        enter: options.enter,
+      }),
+    ),
+  };
+}
+
+export const subtitles = subtitleTrack;
+
+type NormalizedSubtitleSegment = {
+  text: string;
+  startMs: number;
+  endMs: number;
+};
+
+function normalizeSubtitleSegments(
+  segments: SubtitleSegment[],
+): NormalizedSubtitleSegment[] {
+  return segments
+    .map((segment, index) => {
+      const text = segment.text.trim();
+
+      if (text === "") {
+        return null;
+      }
+
+      const startMs = subtitleSegmentTimeMs(segment, "start", index);
+      const endMs = subtitleSegmentTimeMs(segment, "end", index);
+
+      if (endMs <= startMs) {
+        throw new Error(
+          `subtitle segment ${index + 1} must end after it starts.`,
+        );
+      }
+
+      return { text, startMs, endMs };
+    })
+    .filter((segment): segment is NormalizedSubtitleSegment => segment !== null);
+}
+
+function subtitleSegmentTimeMs(
+  segment: SubtitleSegment,
+  boundary: "start" | "end",
+  index: number,
+): number {
+  const ms = boundary === "start" ? segment.startMs : segment.endMs;
+  const seconds =
+    boundary === "start" ? segment.startSeconds : segment.endSeconds;
+
+  if (ms !== undefined && seconds !== undefined) {
+    throw new Error(
+      `subtitle segment ${index + 1} cannot define both ${boundary}Ms and ${boundary}Seconds.`,
+    );
+  }
+
+  const value = ms ?? (seconds === undefined ? undefined : seconds * 1000);
+
+  if (value === undefined || !Number.isFinite(value) || value < 0) {
+    throw new Error(
+      `subtitle segment ${index + 1} needs a non-negative ${boundary} time.`,
+    );
+  }
+
+  return value;
+}
+
+function subtitleTrackStyle(options: SubtitleTrackOptions): SceneStyle {
+  if (options.area) {
+    return {
+      position: "absolute",
+      left: 0,
+      width: "100%",
+      top: options.area.top ?? "72%",
+      height: options.area.height ?? "16%",
+    };
+  }
+
+  if (options.composition) {
+    return safeAreaBox(options.composition, "subtitle", {
+      safeArea: options.safeArea,
+    });
+  }
+
+  return {
+    position: "absolute",
+    left: 0,
+    width: "100%",
+    top: "72%",
+    height: "16%",
+  };
+}
+
+function subtitleTrackSegment(
+  segment: NormalizedSubtitleSegment,
+  index: number,
+  options: {
+    fps: number;
+    prefix: string;
+    style: CaptionTemplateStyle;
+    maxLines?: number;
+    minFontSize?: number;
+    textFit?: SceneStyle["textFit"];
+    textOverflow?: SceneStyle["textOverflow"];
+    enter?: SceneAnimation[] | false;
+  },
+): SceneNode {
+  const from = msToFrame(segment.startMs, options.fps);
+  const duration = Math.max(1, msToFrame(segment.endMs, options.fps) - from);
+
+  return {
+    id: `${options.prefix}-s${index}`,
+    type: "div",
+    from,
+    duration,
+    style: {
+      position: "absolute",
+      left: 0,
+      top: 0,
+      width: "100%",
+      height: "100%",
+      display: "flex",
+      alignItems: "center",
+      justifyContent: "center",
+    },
+    children: [
+      {
+        id: `${options.prefix}-s${index}-text`,
+        type: "text",
+        text: segment.text,
+        style: subtitleTextStyle(options.style, {
+          maxLines: options.maxLines,
+          minFontSize: options.minFontSize,
+          textFit: options.textFit,
+          textOverflow: options.textOverflow,
+        }),
+        animations:
+          options.enter === false
+            ? []
+            : (options.enter ?? [
+                animation("opacity", [
+                  { frame: 0, value: 0 },
+                  {
+                    frame: Math.min(5, Math.max(1, duration - 1)),
+                    value: 1,
+                    easing: "easeOut",
+                  },
+                ]),
+              ]),
+      },
+    ],
+  };
+}
+
+function subtitleTextStyle(
+  style: CaptionTemplateStyle,
+  options: {
+    maxLines?: number;
+    minFontSize?: number;
+    textFit?: SceneStyle["textFit"];
+    textOverflow?: SceneStyle["textOverflow"];
+  },
+): SceneStyle {
+  const fontSize = style.fontSize ?? captionStyleDefaults.fontSize;
+  const subtitleStyle: SceneStyle = {
+    width: "100%",
+    height: "100%",
+    overflow: "hidden",
+    textFit: options.textFit ?? "shrink",
+    textOverflow: options.textOverflow ?? "ellipsis",
+    maxLines: options.maxLines ?? 2,
+    minFontSize: options.minFontSize ?? Math.max(16, Math.round(fontSize * 0.5)),
+  };
+
+  return captionTextStyle(style, subtitleStyle) ?? subtitleStyle;
+}
 
 function wordTemplateCaptions(
   words: CaptionWord[],

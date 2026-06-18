@@ -4,7 +4,7 @@ MotionForge presets are stable names that compile to normal scene data. Use this
 
 ## Subtitle Templates
 
-Use with `styledCaptions(words, { fps, template })`.
+Use `styledCaptions(words, { fps, template })` for ASR word timings, or `subtitleTrack(segments, { fps, template })` for SRT/VTT-style subtitle cues.
 
 ![Subtitle template gallery](../assets/presets/preset-subtitles-f45.png)
 
@@ -30,6 +30,22 @@ scene.nodes.push(
     fps: 30,
     template: "spotlight",
   }),
+);
+```
+
+```ts
+scene.nodes.push(
+  subtitleTrack(
+    [
+      { text: "First subtitle.", startSeconds: 0.4, endSeconds: 2.1 },
+      { text: "Second subtitle.", startSeconds: 2.4, endSeconds: 4.2 },
+    ],
+    {
+      fps: 30,
+      template: "minimalBar",
+      composition: { width: scene.width, height: scene.height },
+    },
+  ),
 );
 ```
 

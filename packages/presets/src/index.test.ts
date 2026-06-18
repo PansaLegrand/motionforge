@@ -19,6 +19,7 @@ import {
   slideIn,
   styledCaptions,
   styledSubtitles,
+  subtitleTrack,
   subtitleTemplates,
   textOverlay,
   textOverlayTemplateEntries,
@@ -488,6 +489,123 @@ describe("caption template catalog", () => {
     expect(
       firstText?.animations?.some((entry) => entry.property === "transform"),
     ).toBe(true);
+  });
+
+  it("builds schema-valid segment subtitle tracks", () => {
+    const track = subtitleTrack(
+      [
+        {
+          text: "First subtitle line",
+          startSeconds: 0.5,
+          endSeconds: 1.7,
+        },
+        {
+          text: "Second subtitle line\nwith an explicit break",
+          startMs: 1800,
+          endMs: 3200,
+        },
+      ],
+      {
+        fps: 30,
+        idPrefix: "manual-subtitles",
+        template: "minimalBar",
+      },
+    );
+
+    expect(validateScene(sceneWith(track))).toMatchObject({ ok: true });
+    expect(track).toMatchObject({
+      id: "manual-subtitles",
+      style: {
+        position: "absolute",
+        left: 0,
+        width: "100%",
+        top: "72%",
+        height: "16%",
+      },
+    });
+    expect(track.children?.[0]).toMatchObject({ from: 15, duration: 36 });
+    expect(track.children?.[1]).toMatchObject({ from: 54, duration: 42 });
+    expect(track.children?.[1]?.children?.[0]).toMatchObject({
+      id: "manual-subtitles-s1-text",
+      text: "Second subtitle line\nwith an explicit break",
+      style: {
+        overflow: "hidden",
+        textFit: "shrink",
+        textOverflow: "ellipsis",
+        maxLines: 2,
+        minFontSize: 34,
+        textBackgroundColor: "rgba(17,24,39,0.74)",
+      },
+    });
+  });
+
+  it("places subtitle tracks in composition safe areas", () => {
+    const track = subtitleTrack(
+      [
+        {
+          text: "Safe lower subtitle",
+          startMs: 0,
+          endMs: 1000,
+        },
+      ],
+      {
+        fps: 30,
+        composition: { width: 1080, height: 1920 },
+        safeArea: "vertical",
+      },
+    );
+
+    expect(validateScene(sceneWith(track))).toMatchObject({ ok: true });
+    expect(track.style).toMatchObject({
+      position: "absolute",
+      left: 72,
+      top: 1316,
+      width: 936,
+      height: 230,
+    });
+  });
+
+  it("lets subtitle track style and motion overrides win", () => {
+    const track = subtitleTrack(
+      [{ text: "Manual subtitle", startMs: 0, endMs: 1000 }],
+      {
+        fps: 30,
+        area: { top: 800, height: 180 },
+        style: { fontSize: 44, color: "#fde68a" },
+        maxLines: 3,
+        minFontSize: 22,
+        textFit: "wrap",
+        textOverflow: "clip",
+        enter: false,
+      },
+    );
+    const text = track.children?.[0]?.children?.[0];
+
+    expect(validateScene(sceneWith(track))).toMatchObject({ ok: true });
+    expect(track.style).toMatchObject({ top: 800, height: 180 });
+    expect(text?.animations).toEqual([]);
+    expect(text?.style).toMatchObject({
+      fontSize: 44,
+      color: "#fde68a",
+      maxLines: 3,
+      minFontSize: 22,
+      textFit: "wrap",
+      textOverflow: "clip",
+    });
+  });
+
+  it("rejects malformed subtitle segments", () => {
+    expect(() =>
+      subtitleTrack([{ text: "oops", startMs: 1200, endMs: 900 }], {
+        fps: 30,
+      }),
+    ).toThrow("end after");
+    expect(() =>
+      subtitleTrack(
+        [{ text: "oops", startMs: 0, startSeconds: 0, endMs: 1000 }],
+        { fps: 30 },
+      ),
+    ).toThrow("both startMs and startSeconds");
   });
 });
 
