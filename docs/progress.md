@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (image overlay roadmap)
+
+### Changed
+
+- Added `docs/image-overlay-roadmap.md` as the next overlay theme after robust text and subtitle overlays.
+- Scoped the theme around data-first image overlay helpers, authoring convenience, preset catalog discovery, chat/app refresh, and visual stress galleries.
+- Recorded the current image baseline: schema-backed `img` nodes, `objectFit`/`objectPosition`, image assets, authoring media helpers, and shared safe-area primitives.
+- Linked the roadmap from `docs/roadmap.md`.
+
+### Tested
+
+- Documentation-only change.
+
+### Notes
+
+- First implementation slice is IX1: an `imageOverlay()` preset helper for common overlays such as logos, watermarks, stickers, product shots, corner badges, and avatar badges.
+
 ## 2026-06-18 (subtitle overlay SX5: stress gallery)
 
 ### Changed
