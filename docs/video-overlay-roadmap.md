@@ -106,7 +106,7 @@ Done:
 - uploaded `@Video` overlay instructions prefer overlay nodes over generic sequencing
 - tests cover video overlay prompt examples and local patch compilation paths
 
-## Slice VX5 - Video Overlay Stress Gallery
+## Slice VX5 - Video Overlay Stress Gallery ✅
 
 **Goal:** video overlay regressions become visible before they reach app users.
 
@@ -117,7 +117,7 @@ Targets:
 - golden harness
 - docs assets
 
-Done when:
+Done:
 
 - generated stress scene covers picture-in-picture, reaction cam, muted background loop, b-roll strip, rounded crop, object-fit cover/contain, trim start, playback rate, and volume semantics
 - generated JSON and poster image are committed

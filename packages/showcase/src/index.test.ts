@@ -13,6 +13,7 @@ describe("showcase scenes", () => {
       "text-stress-gallery",
       "subtitle-stress-gallery",
       "image-overlay-stress-gallery",
+      "video-overlay-stress-gallery",
       "audio-sync-pulse",
       "lottie-sticker",
     ]);
@@ -170,6 +171,76 @@ describe("showcase scenes", () => {
       entry!.scene.nodes.find((node) => node.id === "image-stress-watermark")
         ?.style?.opacity,
     ).toBe(0.42);
+  });
+
+  it("includes video overlay stress coverage cases", () => {
+    const entry = showcaseScenes.find(
+      (scene) => scene.id === "video-overlay-stress-gallery",
+    );
+    const ids = entry!.scene.nodes.map((node) => node.id);
+    const videoOverlayNodes = entry!.scene.nodes.filter(
+      (node) => node.type === "video",
+    );
+    const pip = entry!.scene.nodes.find(
+      (node) => node.id === "video-stress-pip",
+    );
+    const reaction = entry!.scene.nodes.find(
+      (node) => node.id === "video-stress-reaction-cam",
+    );
+    const screenDemo = entry!.scene.nodes.find(
+      (node) => node.id === "video-stress-screen-demo",
+    );
+    const backgroundLoop = entry!.scene.nodes.find(
+      (node) => node.id === "video-stress-background-loop",
+    );
+    const broll = entry!.scene.nodes.find(
+      (node) => node.id === "video-stress-broll-strip",
+    );
+
+    expect(entry).toBeDefined();
+    expect(validateScene(entry!.scene)).toMatchObject({ ok: true });
+    expect(Object.values(entry!.scene.assets).map((asset) => asset.type)).toEqual([
+      "video",
+    ]);
+    expect(entry!.scene.assets["video-overlay-source"]?.src).toContain(
+      "data:video/mp4;base64,",
+    );
+    expect(ids).toEqual(
+      expect.arrayContaining([
+        "video-stress-background-loop",
+        "video-stress-pip",
+        "video-stress-reaction-cam",
+        "video-stress-screen-demo",
+        "video-stress-broll-strip",
+        "video-stress-video-badge",
+      ]),
+    );
+    expect(videoOverlayNodes).toHaveLength(6);
+    expect(pip).toMatchObject({
+      type: "video",
+      videoStartTime: 1,
+      playbackRate: 1.25,
+      volume: 0,
+    });
+    expect(reaction).toMatchObject({
+      type: "video",
+      videoStartTime: 1.5,
+      playbackRate: 0.9,
+      volume: 0.45,
+    });
+    expect(screenDemo?.style?.objectFit).toBe("contain");
+    expect(backgroundLoop).toMatchObject({
+      type: "video",
+      playbackRate: 0.65,
+      volume: 0,
+    });
+    expect(broll).toMatchObject({
+      type: "video",
+      videoStartTime: 0.75,
+      playbackRate: 1.5,
+      volume: 0,
+    });
+    expect(broll?.style?.objectPosition).toBe("left center");
   });
 });
 

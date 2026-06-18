@@ -50,6 +50,7 @@ The generated showcase now includes two use-case demos aimed at agent and editor
 - `text-stress-gallery.json` — long Latin, URLs, CJK, emoji, long single-token text, and multiline captions in bounded overlay cards.
 - `subtitle-stress-gallery.json` — parsed SRT, parsed WebVTT, manual subtitle segments, long Latin, URLs, CJK, emoji, and fast cue changes in timed subtitle tracks.
 - `image-overlay-stress-gallery.json` — logo bug, watermark, transparent sticker, product shot, avatar badge, and oversized corner badge presets in one self-contained scene.
+- `video-overlay-stress-gallery.json` — picture-in-picture, reaction cam, screen demo, muted background loop, b-roll strip, and video badge presets backed by one embedded MP4 asset.
 
 These examples prove the scene contract is ready for prompt-generated videos. The repository does not yet ship a natural-language compiler; today an agent, app, or preset layer writes the scene JSON and motionforge validates, previews, and exports it.
 
@@ -75,6 +76,14 @@ Render the image overlay stress gallery when changing image assets, object-fit b
 pnpm build
 pnpm showcase:generate
 pnpm --filter @motionforge/golden run example examples/generated/image-overlay-stress-gallery.json out/image-overlay-stress-gallery.mp4 45
+```
+
+Render the video overlay stress gallery when changing video trim, playback rate, clip volume, object-fit behavior, rounded crop, or overlay presets:
+
+```sh
+pnpm build
+pnpm showcase:generate
+pnpm --filter @motionforge/golden run example examples/generated/video-overlay-stress-gallery.json out/video-overlay-stress-gallery.mp4 45
 ```
 
 ## Assets And Transcript Files

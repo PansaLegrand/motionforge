@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (video overlay VX5: stress gallery)
+
+### Changed
+
+- Added a self-contained video overlay stress gallery to `@motionforge/showcase`.
+- Embedded a tiny deterministic MP4 data URL so generated JSON can render without external media files.
+- Covered picture-in-picture, reaction cam, screen demo, muted background loop, b-roll strip, and video badge overlay presets in one scene.
+- Added showcase tests for trim start, playback rate, clip volume, object-fit contain, object position, and muted defaults.
+- Documented the generated example and docs poster refresh command.
+- Marked VX5 complete in the video overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase test`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm showcase:generate`
+- `pnpm --filter @motionforge/golden run example examples/generated/video-overlay-stress-gallery.json docs/assets/showcase/video-overlay-stress-gallery.mp4 45`
+
+### Notes
+
+- The fixture intentionally uses ordinary `video` nodes, so app UIs and agents can patch the same `assetId`, `videoStartTime`, `playbackRate`, `volume`, and style fields they already understand.
+
 ## 2026-06-18 (video overlay VX4: chat/app refresh)
 
 ### Changed
