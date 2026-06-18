@@ -4,6 +4,7 @@ import type {
   SceneAsset,
   SceneNode,
   SceneStyle,
+  VolumeEnvelope,
 } from "@motionforge/schema";
 import {
   audio,
@@ -17,6 +18,7 @@ import {
   type VideoNodeOptions,
 } from "@motionforge/core";
 import {
+  audioFadeEnvelope,
   audioOverlay as presetAudioOverlay,
   imageOverlay as presetImageOverlay,
   parseSrt,
@@ -36,6 +38,7 @@ import {
   type VideoOverlayOptions as PresetVideoOverlayOptions,
 } from "@motionforge/presets";
 export {
+  audioFadeEnvelope,
   audioOverlayTemplates,
   fadeUp,
   imageOverlayTemplates,
@@ -139,14 +142,26 @@ export type VideoClipOptions = MediaOptions & {
 export type AudioTrackOptions = AuthorTimingOptions & {
   trimStart?: TimeValue;
   volume?: number;
+  volumeEnvelope?: VolumeEnvelope;
+  fadeIn?: TimeValue;
+  fadeOut?: TimeValue;
+  fadeInEasing?: string;
+  fadeOutEasing?: string;
 };
 
 export type AudioOverlayOptions = Omit<
   PresetAudioOverlayOptions,
-  "assetId" | "from" | "duration" | "trimStart"
+  | "assetId"
+  | "from"
+  | "duration"
+  | "trimStart"
+  | "fadeInDuration"
+  | "fadeOutDuration"
 > &
   AuthorTimingOptions & {
     trimStart?: TimeValue;
+    fadeIn?: TimeValue;
+    fadeOut?: TimeValue;
   };
 
 export type ImageOverlayOptions = Omit<
@@ -470,10 +485,20 @@ export function audioTrack(
   return {
     assets: assetsFromReference(asset),
     toNode(fps) {
+      const timing = timedNodeOptions(options, fps);
       const nodeOptions: AudioNodeOptions = {
-        ...timedNodeOptions(options, fps),
+        ...timing,
         audioStartTime: toSeconds(options.trimStart, fps),
         volume: options.volume,
+        volumeEnvelope:
+          options.volumeEnvelope ??
+          audioFadeEnvelope({
+            duration: timing.duration,
+            fadeInDuration: toOptionalFrames(options.fadeIn, fps),
+            fadeOutDuration: toOptionalFrames(options.fadeOut, fps),
+            fadeInEasing: options.fadeInEasing,
+            fadeOutEasing: options.fadeOutEasing,
+          }),
       };
 
       return audio(assetIdFromReference(asset), nodeOptions);
@@ -488,7 +513,8 @@ export function audioOverlay(
   return {
     assets: assetsFromReference(asset),
     toNode(fps) {
-      const { at, duration, trimStart, ...presetOptions } = options;
+      const { at, duration, trimStart, fadeIn, fadeOut, ...presetOptions } =
+        options;
 
       return builderFromSceneNode(
         presetAudioOverlay({
@@ -497,6 +523,8 @@ export function audioOverlay(
           from: toFrames(at, fps),
           duration:
             duration === undefined ? undefined : toFrames(duration, fps),
+          fadeInDuration: toOptionalFrames(fadeIn, fps),
+          fadeOutDuration: toOptionalFrames(fadeOut, fps),
           ...(trimStart === undefined
             ? {}
             : { trimStart: toSeconds(trimStart, fps) }),
@@ -648,6 +676,7 @@ function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
         videoStartTime: node.videoStartTime,
         playbackRate: node.playbackRate,
         volume: node.volume,
+        volumeEnvelope: node.volumeEnvelope,
       } as VideoNodeOptions & { volume?: number });
       break;
     case "audio":
@@ -657,6 +686,7 @@ function builderFromSceneNode(node: SceneNode): ReturnType<typeof div> {
         duration: node.duration,
         audioStartTime: node.audioStartTime,
         volume: node.volume,
+        volumeEnvelope: node.volumeEnvelope,
       });
       break;
     case "lottie":
@@ -706,6 +736,10 @@ function timedNodeOptions(
         ? undefined
         : toFrames(options.duration, fps),
   };
+}
+
+function toOptionalFrames(value: TimeValue | undefined, fps: number) {
+  return value === undefined ? undefined : toFrames(value, fps);
 }
 
 function mediaStyle(scene: ResolvedSceneOptions, options: MediaOptions) {

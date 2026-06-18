@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { validateScene, type Scene, type SceneNode } from "@motionforge/schema";
 import {
+  audioFadeEnvelope,
   fadeUp,
   clipLayout,
   clipLayoutEntries,
@@ -1261,6 +1262,64 @@ describe("audio overlay template catalog", () => {
       volume: 0.4,
     });
     expect(muted.volume).toBe(0);
+  });
+
+  it("compiles audio overlay fades to volume envelopes", () => {
+    const overlay = audioOverlay({
+      template: "backgroundMusic",
+      id: "music-bed",
+      assetId: "track",
+      duration: 150,
+      fadeInDuration: 30,
+      fadeOutDuration: 45,
+    });
+
+    expect(overlay.volumeEnvelope).toEqual([
+      { frame: 0, value: 0 },
+      { frame: 30, value: 1, easing: "easeOut" },
+      { frame: 105, value: 1 },
+      { frame: 150, value: 0, easing: "easeIn" },
+    ]);
+    expect(validateScene(sceneWith(overlay)).ok).toBe(true);
+  });
+
+  it("lets explicit audio overlay volume envelopes override generated fades", () => {
+    const overlay = audioOverlay({
+      assetId: "track",
+      duration: 90,
+      fadeInDuration: 30,
+      volumeEnvelope: [
+        { frame: 0, value: 0.2 },
+        { frame: 10, value: 0.8, easing: "linear" },
+      ],
+    });
+
+    expect(overlay.volumeEnvelope).toEqual([
+      { frame: 0, value: 0.2 },
+      { frame: 10, value: 0.8, easing: "linear" },
+    ]);
+  });
+
+  it("validates audio fade envelope inputs", () => {
+    expect(
+      audioFadeEnvelope({ duration: 100, fadeInDuration: 12 }),
+    ).toEqual([
+      { frame: 0, value: 0 },
+      { frame: 12, value: 1, easing: "easeOut" },
+    ]);
+    expect(() => audioFadeEnvelope({ fadeOutDuration: 12 })).toThrow(
+      "requires duration",
+    );
+    expect(() =>
+      audioFadeEnvelope({
+        duration: 30,
+        fadeInDuration: 20,
+        fadeOutDuration: 20,
+      }),
+    ).toThrow("overlap");
+    expect(() => audioFadeEnvelope({ fadeInDuration: 1.5 })).toThrow(
+      "non-negative integer",
+    );
   });
 
   it("rejects empty audio overlay asset ids", () => {

@@ -355,6 +355,8 @@ export default makeScene({
       id: "music-bed",
       template: "backgroundMusic",
       duration: seconds(8),
+      fadeIn: seconds(0.75),
+      fadeOut: seconds(1),
       volume: 0.22,
     }),
     audioOverlay(voice, {
@@ -383,7 +385,7 @@ audioOverlay("ambience", {
 });
 ```
 
-Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at` and `duration` compile from authoring time values to frame integers. Fades, looping, and ducking are not authoring options yet because the current scene contract exposes static `volume`; those controls will arrive with mixer-visible automation.
+Template keys are listed in the [Preset Catalog](preset-catalog.md). `trimStart` is in source seconds, while `at`, `duration`, `fadeIn`, and `fadeOut` compile from authoring time values to frame integers. Fades emit `volumeEnvelope` data on the audio node. Looping and ducking are still future engine work.
 
 ## Media Nodes
 

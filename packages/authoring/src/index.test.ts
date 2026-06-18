@@ -143,6 +143,8 @@ describe("@motionforge/authoring", () => {
           template: "backgroundMusic",
           duration: seconds(8),
           trimStart: seconds(12),
+          fadeIn: seconds(1),
+          fadeOut: frames(12),
         }),
         audioOverlay(ping, {
           id: "ping-cue",
@@ -164,6 +166,12 @@ describe("@motionforge/authoring", () => {
       duration: 192,
       audioStartTime: 12,
       volume: 0.28,
+      volumeEnvelope: [
+        { frame: 0, value: 0 },
+        { frame: 24, value: 1, easing: "easeOut" },
+        { frame: 180, value: 1 },
+        { frame: 192, value: 0, easing: "easeIn" },
+      ],
     });
     expect(scene.nodes[1]).toMatchObject({
       id: "ping-cue",
@@ -189,6 +197,10 @@ describe("@motionforge/authoring", () => {
           duration: seconds(4),
           trimStart: seconds(2.5),
           volume: 0.72,
+          volumeEnvelope: [
+            { frame: 0, value: 0.1 },
+            { frame: 15, value: 1, easing: "linear" },
+          ],
         }),
       ],
     });
@@ -202,6 +214,42 @@ describe("@motionforge/authoring", () => {
       duration: 120,
       audioStartTime: 2.5,
       volume: 0.72,
+      volumeEnvelope: [
+        { frame: 0, value: 0.1 },
+        { frame: 15, value: 1, easing: "linear" },
+      ],
+    });
+  });
+
+  it("builds audio tracks with seconds-friendly fades", () => {
+    const scene = makeScene({
+      size: "landscape",
+      fps: 30,
+      duration: seconds(5),
+      assets: defineAssets(audioAsset("music", "/assets/music.mp3")),
+      children: [
+        audioTrack("music", {
+          id: "music",
+          duration: seconds(5),
+          fadeIn: seconds(0.5),
+          fadeOut: seconds(1),
+          volume: 0.4,
+        }),
+      ],
+    });
+
+    expect(validateScene(scene)).toMatchObject({ ok: true });
+    expect(scene.nodes[0]).toMatchObject({
+      id: "music",
+      type: "audio",
+      duration: 150,
+      volume: 0.4,
+      volumeEnvelope: [
+        { frame: 0, value: 0 },
+        { frame: 15, value: 1, easing: "easeOut" },
+        { frame: 120, value: 1 },
+        { frame: 150, value: 0, easing: "easeIn" },
+      ],
     });
   });
 

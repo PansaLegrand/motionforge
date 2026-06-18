@@ -14,8 +14,9 @@ Audio overlays must stay data-first:
 - local files use explicit `scene.assets` entries and fetchable `src` strings
 - timing uses frame `from` / `duration`; source trim uses `audioStartTime` in seconds
 - static volume uses the existing `volume` field
+- fades use `volumeEnvelope` points on ordinary audio/video nodes
 - helpers expose named roles and sensible defaults, but every output is patchable scene data
-- fade, loop, and ducking behavior must be represented in schema and mixer code before presets claim to support it
+- loop and ducking behavior must be represented in schema and mixer code before presets claim to support it
 - generated examples must prove preview/export semantics, not just TypeScript helper shapes
 
 ## Current Baseline
@@ -29,16 +30,13 @@ Already shipped:
 - player audio preview from the exact export mix
 - authoring helper `audioTrack()`
 - chat asset shelf visibility and manual insert support for audio assets
+- mixer-visible `volumeEnvelope` support for audio/video nodes
+- audio overlay preset and authoring helpers with fade-in/fade-out options
 
 Known gaps:
 
-- no named audio overlay helper for music beds, voiceover, sound effects, ambience, or cue sounds
-- no audio overlay template catalog
-- no authoring-level `audioOverlay()` convenience with role defaults
-- no preset patch examples for audio insertion
-- deterministic chat/local instructions still focus on visual sequencing, not sound design commands
-- audio nodes reject animations, so fades and ducking do not have a truthful scene representation yet
 - no audio loop primitive for long music/ambience beds
+- no deterministic ducking compiler for lowering beds under voice/video audio windows
 - no audio stress gallery proving trim, volume, fades, looping, ducking, and export mix behavior together
 
 ## Slice AX1 - Audio Overlay Roadmap ✅
@@ -132,7 +130,8 @@ Done when:
 Progress:
 
 - AX5a complete: schema/core/export now carry `volumeEnvelope` on audio/video nodes and the mixer samples it in node-local frames, including clipped chunks.
-- Still remaining in AX5: preset/authoring fade helpers, looping, ducking compilation, player/UI affordances, and browser-level audible regression checks.
+- AX5b complete: preset and authoring audio helpers compile fade-in/fade-out options to `volumeEnvelope`.
+- Still remaining in AX5: looping, ducking compilation, player/UI affordances, and browser-level audible regression checks.
 
 ## Slice AX6 - Audio Overlay Stress Gallery
 

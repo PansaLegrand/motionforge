@@ -2,6 +2,29 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX5b: fade helpers)
+
+### Changed
+
+- Added `audioFadeEnvelope()` to `@motionforge/presets` for deterministic gain curves.
+- Added `fadeInDuration` and `fadeOutDuration` options to preset-level `audioOverlay()`.
+- Added seconds-friendly `fadeIn` and `fadeOut` options to authoring `audioOverlay()` and `audioTrack()`.
+- Preserved explicit `volumeEnvelope` values when adapting preset nodes through the authoring API.
+- Updated authoring and preset docs to show fades as supported mixer-visible data.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test -- index.test.ts`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/authoring typecheck`
+- `pnpm --filter @motionforge/authoring test`
+- `pnpm --filter @motionforge/authoring build`
+
+### Notes
+
+- Fades now compile to ordinary `volumeEnvelope` points. Looping and ducking remain separate AX5 work.
+
 ## 2026-06-19 (audio overlay AX5a: volume envelopes)
 
 ### Changed

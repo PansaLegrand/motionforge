@@ -138,7 +138,7 @@ The preset catalog can also generate a patch example for video overlays when the
 
 ## Audio Overlay Templates
 
-Use with `audioOverlay({ assetId, template })`. Audio overlays emit ordinary `audio` nodes, so apps and agents can patch timing, source trim, and static volume by id.
+Use with `audioOverlay({ assetId, template })`. Audio overlays emit ordinary `audio` nodes, so apps and agents can patch timing, source trim, static volume, and `volumeEnvelope` by id.
 
 | Key                | Best For                                      |
 | ------------------ | --------------------------------------------- |
@@ -157,13 +157,15 @@ scene.nodes.push(
     from: 0,
     duration: scene.duration,
     trimStart: 8,
+    fadeInDuration: 30,
+    fadeOutDuration: 45,
   }),
 );
 ```
 
-Role templates choose conservative default volumes: music and ambience sit quietly, voiceover stays full-level, and short cues get bounded default durations. Pass `volume`, `muted`, `trimStart`, `from`, or `duration` for stricter control.
+Role templates choose conservative default volumes: music and ambience sit quietly, voiceover stays full-level, and short cues get bounded default durations. Pass `volume`, `muted`, `trimStart`, `from`, `duration`, `fadeInDuration`, `fadeOutDuration`, or an explicit `volumeEnvelope` for stricter control.
 
-Fades, looping beds, and ducking are intentionally not preset options yet. Audio nodes currently support static `volume`; production fades/ducking will land with mixer-visible schema support so preview and export stay identical.
+Fades compile to mixer-visible `volumeEnvelope` points, so preview and export use the same gain curve. Looping beds and ducking are still future engine work.
 
 ## Media Looks
 

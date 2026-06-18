@@ -2,6 +2,7 @@ import type {
   SceneAnimation,
   SceneNode,
   SceneStyle,
+  VolumeEnvelope,
 } from "@motionforge/schema";
 
 export type MotionPresetOptions = {
@@ -2334,13 +2335,30 @@ export type AudioOverlayOptions = {
   duration?: number;
   trimStart?: number;
   volume?: number;
+  volumeEnvelope?: VolumeEnvelope;
+  fadeInDuration?: number;
+  fadeOutDuration?: number;
+  fadeInEasing?: string;
+  fadeOutEasing?: string;
   muted?: boolean;
+};
+
+export type AudioFadeEnvelopeOptions = {
+  /** Total node duration in frames. Required when fadeOutDuration is set. */
+  duration?: number;
+  /** Fade in length in node-local frames. */
+  fadeInDuration?: number;
+  /** Fade out length in node-local frames. */
+  fadeOutDuration?: number;
+  fadeInEasing?: string;
+  fadeOutEasing?: string;
 };
 
 export function audioOverlay(options: AudioOverlayOptions): SceneNode {
   const key = options.template ?? "backgroundMusic";
   const template: AudioOverlayTemplate = audioOverlayTemplates[key];
   const id = options.id ?? `${key}-audio-overlay`;
+  const duration = options.duration ?? template.defaultDuration;
 
   if (options.assetId.trim() === "") {
     throw new Error("audioOverlay() requires a non-empty assetId.");
@@ -2351,13 +2369,123 @@ export function audioOverlay(options: AudioOverlayOptions): SceneNode {
     type: "audio",
     assetId: options.assetId,
     from: options.from,
-    duration: options.duration ?? template.defaultDuration,
+    duration,
     audioStartTime: options.trimStart,
     volume: options.volume ?? (options.muted ? 0 : template.defaultVolume),
+    volumeEnvelope:
+      options.volumeEnvelope ??
+      audioFadeEnvelope({
+        duration,
+        fadeInDuration: options.fadeInDuration,
+        fadeOutDuration: options.fadeOutDuration,
+        fadeInEasing: options.fadeInEasing,
+        fadeOutEasing: options.fadeOutEasing,
+      }),
     style: {},
     animations: [],
     children: [],
   };
+}
+
+export function audioFadeEnvelope(
+  options: AudioFadeEnvelopeOptions,
+): VolumeEnvelope | undefined {
+  const fadeInDuration = normalizedFrameDuration(
+    options.fadeInDuration,
+    "fadeInDuration",
+  );
+  const fadeOutDuration = normalizedFrameDuration(
+    options.fadeOutDuration,
+    "fadeOutDuration",
+  );
+  const duration =
+    options.duration === undefined
+      ? undefined
+      : normalizedFrameDuration(options.duration, "duration");
+
+  if (fadeInDuration === 0 && fadeOutDuration === 0) {
+    return undefined;
+  }
+
+  if (fadeOutDuration > 0 && duration === undefined) {
+    throw new Error(
+      "audioFadeEnvelope() requires duration when fadeOutDuration is set.",
+    );
+  }
+
+  if (duration !== undefined && fadeOutDuration > duration) {
+    throw new Error(
+      "audioFadeEnvelope() fadeOutDuration cannot be longer than duration.",
+    );
+  }
+
+  if (
+    duration !== undefined &&
+    fadeInDuration > 0 &&
+    fadeOutDuration > 0 &&
+    fadeInDuration > duration - fadeOutDuration
+  ) {
+    throw new Error(
+      "audioFadeEnvelope() fadeInDuration and fadeOutDuration overlap; shorten the fades or pass an explicit volumeEnvelope.",
+    );
+  }
+
+  const points: VolumeEnvelope = [];
+
+  if (fadeInDuration > 0) {
+    pushVolumePoint(points, { frame: 0, value: 0 });
+    pushVolumePoint(points, {
+      frame: fadeInDuration,
+      value: 1,
+      easing: options.fadeInEasing ?? "easeOut",
+    });
+  }
+
+  if (fadeOutDuration > 0 && duration !== undefined) {
+    pushVolumePoint(points, {
+      frame: duration - fadeOutDuration,
+      value: 1,
+    });
+    pushVolumePoint(points, {
+      frame: duration,
+      value: 0,
+      easing: options.fadeOutEasing ?? "easeIn",
+    });
+  }
+
+  return points;
+}
+
+function normalizedFrameDuration(value: number | undefined, name: string) {
+  if (value === undefined) {
+    return 0;
+  }
+
+  if (!Number.isInteger(value) || value < 0) {
+    throw new Error(`${name} must be a non-negative integer frame count.`);
+  }
+
+  return value;
+}
+
+function pushVolumePoint(
+  points: VolumeEnvelope,
+  point: VolumeEnvelope[number],
+) {
+  const previous = points[points.length - 1];
+
+  if (previous && previous.frame === point.frame) {
+    if (previous.value !== point.value) {
+      throw new Error(
+        `audioFadeEnvelope() generated conflicting volume values at frame ${point.frame}.`,
+      );
+    }
+
+    points[points.length - 1] = { ...point, easing: previous.easing };
+    return;
+  }
+
+  points.push(point);
 }
 
 /** One spoken word with millisecond timestamps (ASR output shape). */
