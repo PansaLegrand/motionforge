@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (image overlay IX4: chat/app refresh)
+
+### Changed
+
+- Added chat prompt chips for logo bugs, watermarks, stickers, and product shots using `@` asset mentions.
+- Added local image-overlay intent handling for logo, watermark, sticker, product, avatar, and badge instructions.
+- Made uploaded image mentions produce `setAsset` plus preset-backed overlay nodes, including first-draft scenes.
+- Kept existing scene image assets usable through plain-language instructions like “put the logo top-right”.
+- Marked IX4 complete in the image overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat test -- local-agent.test.ts`
+- `pnpm --filter @motionforge/chat test -- examples.test.ts`
+
+### Notes
+
+- Image-overlay-like instructions now prefer overlay nodes over the generic image sequencing path when an image asset is available. Full-frame image sequencing still owns ordinary “use this image first, then...” media edits.
+
 ## 2026-06-18 (image overlay IX3: catalog and patch examples)
 
 ### Changed

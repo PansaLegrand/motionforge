@@ -72,6 +72,12 @@ describe("starter template examples", () => {
       "Add minimal bar subtitles from this transcript.",
     );
     expect(promptChips).toContain(
+      "Put @Logo in the top-right corner as a logo bug.",
+    );
+    expect(promptChips).toContain(
+      "Place @Sticker as a playful sticker in the top-left corner.",
+    );
+    expect(promptChips).toContain(
       "Show a subtitle template gallery previewing all caption styles.",
     );
   });

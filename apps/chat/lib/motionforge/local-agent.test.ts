@@ -132,6 +132,88 @@ describe("local motionforge agent", () => {
     );
   });
 
+  it("inserts image overlay presets for existing scene image assets", () => {
+    const scene: Scene = {
+      ...createSceneFromInstruction("Make a calm founder update."),
+      assets: {
+        logo: { id: "logo", type: "image", src: "logo.png" },
+      },
+    };
+    const result = applyInstructionLocally(
+      scene,
+      "Put the logo in the top-right corner as a logo bug.",
+    );
+    const inserted = nodeById(result.scene, "logoBug-overlay");
+
+    expect(result.mode).toBe("patch");
+    expect(result.patch).toHaveLength(1);
+    expect(result.patch?.[0]).toMatchObject({
+      op: "insertNode",
+      node: {
+        id: "logoBug-overlay",
+        type: "div",
+        duration: scene.duration,
+        children: [{ id: "logoBug-overlay-image", type: "img", assetId: "logo" }],
+      },
+    });
+    expect(inserted?.style).toMatchObject({
+      left: 858,
+      top: 144,
+      width: 150,
+      height: 145,
+      opacity: 0.92,
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("uses uploaded image mentions for first-draft image overlays", () => {
+    const result = applyInstructionLocally(
+      null,
+      "Add @Logo as a subtle watermark in the bottom-right corner.",
+      [
+        {
+          id: "logo-upload",
+          sceneAssetId: "image_1",
+          type: "image",
+          src: "blob:logo",
+          label: "Logo",
+          aliases: ["logo"],
+          fileName: "logo.png",
+          width: 512,
+          height: 256,
+          alreadyInScene: false,
+        },
+      ],
+    );
+    const inserted = nodeById(result.scene, "watermark-overlay");
+
+    expect(result.mode).toBe("scene");
+    expect(result.patch).toMatchObject([
+      { op: "setAsset", asset: { id: "image_1", type: "image", src: "blob:logo" } },
+      {
+        op: "insertNode",
+        node: {
+          id: "watermark-overlay",
+          type: "div",
+          children: [{ id: "watermark-overlay-image", assetId: "image_1" }],
+        },
+      },
+    ]);
+    expect(result.scene.assets.image_1).toMatchObject({
+      id: "image_1",
+      type: "image",
+      src: "blob:logo",
+    });
+    expect(inserted?.style).toMatchObject({
+      left: 821,
+      top: 1628,
+      width: 187,
+      height: 129,
+      opacity: 0.42,
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
   it("compiles local media instructions when uploaded assets are available", () => {
     const result = applyInstructionLocally(
       null,

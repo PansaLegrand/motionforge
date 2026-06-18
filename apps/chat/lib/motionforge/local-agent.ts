@@ -12,6 +12,7 @@ import {
 } from "@motionforge/schema";
 import {
   fadeUp,
+  imageOverlay,
   popIn,
   slideIn,
   styledSubtitles,
@@ -19,9 +20,12 @@ import {
   timeline,
   type CaptionTemplateKey,
   type CaptionWord,
+  type ImageOverlayPlacement,
+  type ImageOverlayTemplateKey,
 } from "@motionforge/presets";
 import type { ChatMediaAssetManifestItem } from "../media/assets";
 import { compileMediaInstruction } from "../media/instruction-compiler";
+import { parseMediaMentions } from "../media/mentions";
 import { repairMediaPatch } from "../media/patch-repair";
 import type { MediaOperationPlan } from "../media/plan";
 
@@ -280,6 +284,7 @@ function createFirstDraftChoreography(): Record<
 export function createPatchFromInstruction(
   scene: Scene,
   instruction: string,
+  mediaAssets: ChatMediaAssetManifestItem[] = [],
 ): ScenePatch {
   const normalized = instruction.toLowerCase();
   const ops: SceneOp[] = [];
@@ -289,6 +294,39 @@ export function createPatchFromInstruction(
     ids.find((id) => /subtitle|caption/i.test(id)) ?? firstTextId(scene);
   const bgId = ids.find((id) => /bg|background/i.test(id));
   const panelId = ids.find((id) => /panel|card|accent/i.test(id));
+  const imageOverlayIntent = selectImageOverlayIntent(normalized);
+
+  if (imageOverlayIntent) {
+    const imageAsset = selectImageAssetForInstruction(
+      scene,
+      instruction,
+      mediaAssets,
+    );
+
+    if (imageAsset) {
+      if (!scene.assets[imageAsset.assetId]) {
+        ops.push({
+          op: "setAsset",
+          asset: imageAsset.asset,
+        });
+      }
+
+      ops.push({
+        op: "insertNode",
+        node: imageOverlay({
+          template: imageOverlayIntent.template,
+          id: uniqueNodeId(scene, `${imageOverlayIntent.template}-overlay`),
+          assetId: imageAsset.assetId,
+          composition: { width: scene.width, height: scene.height },
+          from: 0,
+          duration: scene.duration,
+          ...(imageOverlayIntent.placement
+            ? { placement: imageOverlayIntent.placement }
+            : {}),
+        }),
+      });
+    }
+  }
 
   if (
     normalized.includes("bigger") ||
@@ -422,7 +460,7 @@ export function createPatchFromInstruction(
     });
   }
 
-  if (ops.length === 0 && titleId) {
+  if (ops.length === 0 && titleId && !imageOverlayIntent) {
     ops.push({
       op: "setText",
       id: titleId,
@@ -799,7 +837,196 @@ function selectCaptionTemplate(instruction: string): CaptionTemplateKey | null {
     : null;
 }
 
+function selectImageOverlayIntent(
+  instruction: string,
+): { template: ImageOverlayTemplateKey; placement?: ImageOverlayPlacement } | null {
+  const mentionsImageOverlay =
+    /\b(logo|watermark|sticker|product shot|product image|product|avatar|portrait|badge|image overlay|overlay image)\b/.test(
+      instruction,
+    ) &&
+    /\b(add|put|place|use|show|insert|overlay)\b/.test(instruction);
+
+  if (!mentionsImageOverlay) {
+    return null;
+  }
+
+  const placement = selectImageOverlayPlacement(instruction);
+
+  if (instruction.includes("watermark")) {
+    return { template: "watermark", placement };
+  }
+
+  if (instruction.includes("sticker")) {
+    return { template: "sticker", placement };
+  }
+
+  if (instruction.includes("product")) {
+    return { template: "productShot", placement };
+  }
+
+  if (instruction.includes("avatar") || instruction.includes("portrait")) {
+    return { template: "avatarBadge", placement };
+  }
+
+  if (instruction.includes("badge")) {
+    return { template: "cornerBadge", placement };
+  }
+
+  if (instruction.includes("logo")) {
+    return { template: "logoBug", placement };
+  }
+
+  return { template: "sticker", placement };
+}
+
+function selectImageOverlayPlacement(
+  instruction: string,
+): ImageOverlayPlacement | undefined {
+  if (
+    instruction.includes("top right") ||
+    instruction.includes("upper right") ||
+    instruction.includes("top-right") ||
+    instruction.includes("upper-right")
+  ) {
+    return "topRight";
+  }
+
+  if (
+    instruction.includes("top left") ||
+    instruction.includes("upper left") ||
+    instruction.includes("top-left") ||
+    instruction.includes("upper-left")
+  ) {
+    return "topLeft";
+  }
+
+  if (
+    instruction.includes("bottom right") ||
+    instruction.includes("lower right") ||
+    instruction.includes("bottom-right") ||
+    instruction.includes("lower-right")
+  ) {
+    return "bottomRight";
+  }
+
+  if (
+    instruction.includes("bottom left") ||
+    instruction.includes("lower left") ||
+    instruction.includes("bottom-left") ||
+    instruction.includes("lower-left")
+  ) {
+    return "bottomLeft";
+  }
+
+  if (instruction.includes("center") || instruction.includes("middle")) {
+    return "center";
+  }
+
+  if (instruction.includes("lower third") || instruction.includes("lower-third")) {
+    return "lowerThird";
+  }
+
+  return undefined;
+}
+
+function selectImageAssetForInstruction(
+  scene: Scene,
+  instruction: string,
+  mediaAssets: ChatMediaAssetManifestItem[],
+):
+  | {
+      assetId: string;
+      asset: { id: string; type: "image"; src: string };
+    }
+  | null {
+  const imageMediaAssets = mediaAssets.filter((asset) => asset.type === "image");
+  const mentionedUploadId = parseMediaMentions(instruction, imageMediaAssets)[0]
+    ?.assetId;
+  const mentionedUpload = imageMediaAssets.find(
+    (asset) =>
+      asset.id === mentionedUploadId ||
+      instructionMentionsImageAsset(instruction, asset),
+  );
+
+  if (mentionedUpload) {
+    return {
+      assetId: mentionedUpload.sceneAssetId,
+      asset: {
+        id: mentionedUpload.sceneAssetId,
+        type: "image",
+        src: mentionedUpload.src,
+      },
+    };
+  }
+
+  const existingImageAsset = Object.values(scene.assets).find(
+    (asset) => asset.type === "image",
+  );
+
+  if (!existingImageAsset) {
+    return null;
+  }
+
+  return {
+    assetId: existingImageAsset.id,
+    asset: {
+      id: existingImageAsset.id,
+      type: "image",
+      src: existingImageAsset.src,
+    },
+  };
+}
+
+function instructionMentionsImageAsset(
+  instruction: string,
+  asset: ChatMediaAssetManifestItem,
+): boolean {
+  return [asset.id, asset.sceneAssetId, asset.label, asset.fileName, ...asset.aliases]
+    .filter(Boolean)
+    .some((alias) => aliasInText(instruction, alias));
+}
+
+function aliasInText(text: string, alias: string): boolean {
+  const normalizedAlias = alias
+    .trim()
+    .toLowerCase()
+    .replace(/^@/, "")
+    .replace(/\.[a-z0-9]+$/i, "")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  if (!normalizedAlias) {
+    return false;
+  }
+
+  const normalizedText = text
+    .toLowerCase()
+    .replace(/@/g, " ")
+    .replace(/[-_]+/g, " ")
+    .replace(/\s+/g, " ");
+
+  return new RegExp(`\\b${escapeRegex(normalizedAlias)}\\b`, "i").test(
+    normalizedText,
+  );
+}
+
+function escapeRegex(value: string) {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function isImageOverlayInsertOp(op: SceneOp): boolean {
+  return (
+    op.op === "insertNode" &&
+    op.node.type === "div" &&
+    op.node.children?.some((child) => child.type === "img") === true
+  );
+}
+
 function uniqueCaptionPrefix(scene: Scene, base: string): string {
+  return uniqueNodeId(scene, base);
+}
+
+function uniqueNodeId(scene: Scene, base: string): string {
   const ids = new Set(collectNodeIds(scene));
   let candidate = base;
   let suffix = 2;
@@ -817,11 +1044,25 @@ export function applyInstructionLocally(
   instruction: string,
   mediaAssets: ChatMediaAssetManifestItem[] = [],
 ): MotionforgeAgentResult {
-  const mediaResult = compileMediaInstruction({
-    scene: currentScene,
-    instruction,
-    mediaAssets,
-  });
+  const patchBaseScene =
+    currentScene ??
+    (selectImageOverlayIntent(instruction.toLowerCase())
+      ? createSceneFromInstruction(instruction)
+      : null);
+  const localPatch = patchBaseScene
+    ? createPatchFromInstruction(patchBaseScene, instruction, mediaAssets)
+    : [];
+  const overlayOnlyPatch = localPatch.filter(
+    (op) => op.op === "setAsset" || isImageOverlayInsertOp(op),
+  );
+  const shouldPreferOverlayPatch = overlayOnlyPatch.length > 0;
+  const mediaResult = shouldPreferOverlayPatch
+    ? ({ ok: false, reason: "Image overlay handled by local patch." } as const)
+    : compileMediaInstruction({
+        scene: currentScene,
+        instruction,
+        mediaAssets,
+      });
 
   if (mediaResult.ok) {
     const result = applyScenePatch(mediaResult.baseScene, mediaResult.patch);
@@ -848,7 +1089,7 @@ export function applyInstructionLocally(
     };
   }
 
-  if (!currentScene) {
+  if (!patchBaseScene) {
     const scene = createSceneFromInstruction(instruction);
     return {
       mode: "scene",
@@ -859,13 +1100,15 @@ export function applyInstructionLocally(
     };
   }
 
-  const patch = createPatchFromInstruction(currentScene, instruction);
-  const result = applyScenePatch(currentScene, patch);
+  const patch = localPatch.length
+    ? localPatch
+    : createPatchFromInstruction(patchBaseScene, instruction, mediaAssets);
+  const result = applyScenePatch(patchBaseScene, patch);
 
   if (!result.ok) {
     return {
-      mode: "patch",
-      scene: currentScene,
+      mode: currentScene ? "patch" : "scene",
+      scene: patchBaseScene,
       patch,
       summary: "The local patch did not apply.",
       source: "local",
@@ -874,7 +1117,7 @@ export function applyInstructionLocally(
   }
 
   return {
-    mode: "patch",
+    mode: currentScene ? "patch" : "scene",
     scene: result.scene,
     patch,
     summary: `Applied ${patch.length} local edit${patch.length === 1 ? "" : "s"}.`,

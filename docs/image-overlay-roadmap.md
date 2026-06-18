@@ -87,7 +87,7 @@ Done:
 - docs explain how asset ids and `public/assets` paths connect to image overlays
 - tests prove generated patch examples validate after application
 
-## Slice IX4 - Chat/App Refresh
+## Slice IX4 - Chat/App Refresh ✅
 
 **Goal:** the reference apps can demonstrate image overlay instructions using the shared helper semantics.
 
@@ -97,7 +97,7 @@ Targets:
 - `apps/playground`
 - docs/examples
 
-Done when:
+Done:
 
 - chat prompt chips include logo, watermark, sticker, and product-shot examples
 - local media instruction examples can insert image overlays when image assets are available
