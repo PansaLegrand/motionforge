@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (video overlay VX4: chat/app refresh)
+
+### Changed
+
+- Added chat prompt chips for picture-in-picture, b-roll strip, and screen demo video overlay instructions using `@` asset mentions.
+- Added local video-overlay intent handling for picture-in-picture, reaction cam, screen demo, background loop, b-roll strip, and video badge instructions.
+- Made uploaded video mentions produce `setAsset` plus preset-backed overlay nodes, including first-draft scenes.
+- Kept existing scene video assets usable through plain-language instructions like “put the clip top-right as picture-in-picture”.
+- Marked VX4 complete in the video overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/chat typecheck`
+- `pnpm --filter @motionforge/chat test -- local-agent.test.ts`
+- `pnpm --filter @motionforge/chat test -- examples.test.ts`
+
+### Notes
+
+- Video-overlay-like instructions now prefer overlay nodes over the generic video sequencing path when a video asset is available. Full-frame sequencing still owns ordinary “put video one first, then video two...” edits.
+
 ## 2026-06-18 (video overlay VX3: catalog and patch examples)
 
 ### Changed

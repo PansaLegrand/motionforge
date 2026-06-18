@@ -90,7 +90,7 @@ Done:
 - docs explain how video asset ids, trims, and audio volume connect to overlays
 - tests prove generated patch examples validate after application
 
-## Slice VX4 - Chat/App Refresh
+## Slice VX4 - Chat/App Refresh ✅
 
 **Goal:** the reference apps can demonstrate video overlay instructions using shared helper semantics.
 
@@ -99,7 +99,7 @@ Targets:
 - `apps/chat`
 - docs/examples
 
-Done when:
+Done:
 
 - chat prompt chips include picture-in-picture, reaction cam, b-roll strip, and background loop examples
 - local media instruction examples can insert video overlays when video assets are available

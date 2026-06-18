@@ -18,10 +18,13 @@ import {
   styledSubtitles,
   styledCaptions,
   timeline,
+  videoOverlay,
   type CaptionTemplateKey,
   type CaptionWord,
   type ImageOverlayPlacement,
   type ImageOverlayTemplateKey,
+  type VideoOverlayPlacement,
+  type VideoOverlayTemplateKey,
 } from "@motionforge/presets";
 import type { ChatMediaAssetManifestItem } from "../media/assets";
 import { compileMediaInstruction } from "../media/instruction-compiler";
@@ -295,6 +298,7 @@ export function createPatchFromInstruction(
   const bgId = ids.find((id) => /bg|background/i.test(id));
   const panelId = ids.find((id) => /panel|card|accent/i.test(id));
   const imageOverlayIntent = selectImageOverlayIntent(normalized);
+  const videoOverlayIntent = selectVideoOverlayIntent(normalized);
 
   if (imageOverlayIntent) {
     const imageAsset = selectImageAssetForInstruction(
@@ -322,6 +326,38 @@ export function createPatchFromInstruction(
           duration: scene.duration,
           ...(imageOverlayIntent.placement
             ? { placement: imageOverlayIntent.placement }
+            : {}),
+        }),
+      });
+    }
+  }
+
+  if (videoOverlayIntent) {
+    const videoAsset = selectVideoAssetForInstruction(
+      scene,
+      instruction,
+      mediaAssets,
+    );
+
+    if (videoAsset) {
+      if (!scene.assets[videoAsset.assetId]) {
+        ops.push({
+          op: "setAsset",
+          asset: videoAsset.asset,
+        });
+      }
+
+      ops.push({
+        op: "insertNode",
+        node: videoOverlay({
+          template: videoOverlayIntent.template,
+          id: uniqueNodeId(scene, `${videoOverlayIntent.template}-overlay`),
+          assetId: videoAsset.assetId,
+          composition: { width: scene.width, height: scene.height },
+          from: 0,
+          duration: scene.duration,
+          ...(videoOverlayIntent.placement
+            ? { placement: videoOverlayIntent.placement }
             : {}),
         }),
       });
@@ -460,7 +496,7 @@ export function createPatchFromInstruction(
     });
   }
 
-  if (ops.length === 0 && titleId && !imageOverlayIntent) {
+  if (ops.length === 0 && titleId && !imageOverlayIntent && !videoOverlayIntent) {
     ops.push({
       op: "setText",
       id: titleId,
@@ -929,6 +965,60 @@ function selectImageOverlayPlacement(
   return undefined;
 }
 
+function selectVideoOverlayIntent(
+  instruction: string,
+): { template: VideoOverlayTemplateKey; placement?: VideoOverlayPlacement } | null {
+  const mentionsVideoOverlay =
+    /\b(picture in picture|picture-in-picture|pip|reaction cam|reaction camera|screen demo|screen recording|background loop|b-roll|broll|video badge|video overlay|overlay video)\b/.test(
+      instruction,
+    ) &&
+    /\b(add|put|place|use|show|insert|overlay)\b/.test(instruction);
+
+  if (!mentionsVideoOverlay) {
+    return null;
+  }
+
+  const placement = selectImageOverlayPlacement(
+    instruction,
+  ) as VideoOverlayPlacement | undefined;
+
+  if (
+    instruction.includes("picture in picture") ||
+    instruction.includes("picture-in-picture") ||
+    instruction.includes("pip")
+  ) {
+    return { template: "pictureInPicture", placement };
+  }
+
+  if (
+    instruction.includes("reaction cam") ||
+    instruction.includes("reaction camera")
+  ) {
+    return { template: "reactionCam", placement };
+  }
+
+  if (
+    instruction.includes("screen demo") ||
+    instruction.includes("screen recording")
+  ) {
+    return { template: "screenDemo", placement };
+  }
+
+  if (instruction.includes("background loop")) {
+    return { template: "backgroundLoop", placement };
+  }
+
+  if (instruction.includes("b-roll") || instruction.includes("broll")) {
+    return { template: "brollStrip", placement };
+  }
+
+  if (instruction.includes("badge")) {
+    return { template: "videoBadge", placement };
+  }
+
+  return { template: "pictureInPicture", placement };
+}
+
 function selectImageAssetForInstruction(
   scene: Scene,
   instruction: string,
@@ -977,7 +1067,62 @@ function selectImageAssetForInstruction(
   };
 }
 
+function selectVideoAssetForInstruction(
+  scene: Scene,
+  instruction: string,
+  mediaAssets: ChatMediaAssetManifestItem[],
+):
+  | {
+      assetId: string;
+      asset: { id: string; type: "video"; src: string };
+    }
+  | null {
+  const videoMediaAssets = mediaAssets.filter((asset) => asset.type === "video");
+  const mentionedUploadId = parseMediaMentions(instruction, videoMediaAssets)[0]
+    ?.assetId;
+  const mentionedUpload = videoMediaAssets.find(
+    (asset) =>
+      asset.id === mentionedUploadId ||
+      instructionMentionsMediaAsset(instruction, asset),
+  );
+
+  if (mentionedUpload) {
+    return {
+      assetId: mentionedUpload.sceneAssetId,
+      asset: {
+        id: mentionedUpload.sceneAssetId,
+        type: "video",
+        src: mentionedUpload.src,
+      },
+    };
+  }
+
+  const existingVideoAsset = Object.values(scene.assets).find(
+    (asset) => asset.type === "video",
+  );
+
+  if (!existingVideoAsset) {
+    return null;
+  }
+
+  return {
+    assetId: existingVideoAsset.id,
+    asset: {
+      id: existingVideoAsset.id,
+      type: "video",
+      src: existingVideoAsset.src,
+    },
+  };
+}
+
 function instructionMentionsImageAsset(
+  instruction: string,
+  asset: ChatMediaAssetManifestItem,
+): boolean {
+  return instructionMentionsMediaAsset(instruction, asset);
+}
+
+function instructionMentionsMediaAsset(
   instruction: string,
   asset: ChatMediaAssetManifestItem,
 ): boolean {
@@ -1022,6 +1167,10 @@ function isImageOverlayInsertOp(op: SceneOp): boolean {
   );
 }
 
+function isVideoOverlayInsertOp(op: SceneOp): boolean {
+  return op.op === "insertNode" && op.node.type === "video";
+}
+
 function uniqueCaptionPrefix(scene: Scene, base: string): string {
   return uniqueNodeId(scene, base);
 }
@@ -1046,14 +1195,18 @@ export function applyInstructionLocally(
 ): MotionforgeAgentResult {
   const patchBaseScene =
     currentScene ??
-    (selectImageOverlayIntent(instruction.toLowerCase())
+    (selectImageOverlayIntent(instruction.toLowerCase()) ||
+    selectVideoOverlayIntent(instruction.toLowerCase())
       ? createSceneFromInstruction(instruction)
       : null);
   const localPatch = patchBaseScene
     ? createPatchFromInstruction(patchBaseScene, instruction, mediaAssets)
     : [];
   const overlayOnlyPatch = localPatch.filter(
-    (op) => op.op === "setAsset" || isImageOverlayInsertOp(op),
+    (op) =>
+      op.op === "setAsset" ||
+      isImageOverlayInsertOp(op) ||
+      isVideoOverlayInsertOp(op),
   );
   const shouldPreferOverlayPatch = overlayOnlyPatch.length > 0;
   const mediaResult = shouldPreferOverlayPatch

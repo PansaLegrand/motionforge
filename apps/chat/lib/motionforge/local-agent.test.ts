@@ -214,6 +214,93 @@ describe("local motionforge agent", () => {
     expect(validateScene(result.scene)).toMatchObject({ ok: true });
   });
 
+  it("inserts video overlay presets for existing scene video assets", () => {
+    const scene: Scene = {
+      ...createSceneFromInstruction("Make a calm founder update."),
+      assets: {
+        clip: { id: "clip", type: "video", src: "clip.mp4" },
+      },
+    };
+    const result = applyInstructionLocally(
+      scene,
+      "Put the clip in the top-right as picture-in-picture.",
+    );
+    const inserted = nodeById(result.scene, "pictureInPicture-overlay");
+
+    expect(result.mode).toBe("patch");
+    expect(result.patch).toHaveLength(1);
+    expect(result.patch?.[0]).toMatchObject({
+      op: "insertNode",
+      node: {
+        id: "pictureInPicture-overlay",
+        type: "video",
+        assetId: "clip",
+        volume: 0,
+        duration: scene.duration,
+      },
+    });
+    expect(inserted?.style).toMatchObject({
+      left: 708,
+      top: 144,
+      width: 300,
+      height: 290,
+      borderRadius: 24,
+      objectFit: "cover",
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("uses uploaded video mentions for first-draft video overlays", () => {
+    const result = applyInstructionLocally(
+      null,
+      "Add @Video 1 as a muted b-roll strip near the bottom.",
+      [
+        {
+          id: "video-1",
+          sceneAssetId: "video_1",
+          type: "video",
+          src: "blob:video-1",
+          label: "Video 1",
+          aliases: ["video one", "first video"],
+          fileName: "clip.mp4",
+          durationSeconds: 8,
+          width: 1280,
+          height: 720,
+          alreadyInScene: false,
+        },
+      ],
+    );
+    const inserted = nodeById(result.scene, "brollStrip-overlay");
+
+    expect(result.mode).toBe("scene");
+    expect(result.patch).toMatchObject([
+      { op: "setAsset", asset: { id: "video_1", type: "video", src: "blob:video-1" } },
+      {
+        op: "insertNode",
+        node: {
+          id: "brollStrip-overlay",
+          type: "video",
+          assetId: "video_1",
+          volume: 0,
+        },
+      },
+    ]);
+    expect(result.scene.assets.video_1).toMatchObject({
+      id: "video_1",
+      type: "video",
+      src: "blob:video-1",
+    });
+    expect(inserted?.style).toMatchObject({
+      left: 138,
+      top: 1499,
+      width: 805,
+      height: 258,
+      borderRadius: 22,
+      objectFit: "cover",
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
   it("compiles local media instructions when uploaded assets are available", () => {
     const result = applyInstructionLocally(
       null,
