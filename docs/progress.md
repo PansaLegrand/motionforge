@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (subtitle overlay SX2: SRT and VTT parsing)
+
+### Changed
+
+- Added `parseSrt()` to `@motionforge/presets`.
+- Added `parseVtt()` to `@motionforge/presets`.
+- SRT parsing supports cue indexes, comma millisecond separators, multiline cue text, and whitespace normalization.
+- WebVTT parsing supports `WEBVTT`, cue ids, cue settings, notes, dot millisecond separators, and multiline cue text.
+- Parser output feeds directly into `subtitleTrack()`.
+- Marked SX2 complete in the subtitle overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+
+### Notes
+
+- Parsers are pure string-to-segment functions, so browser uploads, chat paste flows, and CLI code can share them.
+
 ## 2026-06-18 (subtitle overlay SX1: segment subtitle track)
 
 ### Changed

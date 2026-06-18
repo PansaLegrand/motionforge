@@ -54,7 +54,7 @@ Done:
 - track exposes template/style/fit/maxLines/minFontSize options
 - tests cover timing, safe-area placement, long text behavior, and validation
 
-## Slice SX2 - SRT And VTT Parsing
+## Slice SX2 - SRT And VTT Parsing ✅
 
 **Goal:** common subtitle files can be turned into `SubtitleSegment[]` with deterministic errors.
 
@@ -63,7 +63,7 @@ Targets:
 - `@motionforge/presets`
 - docs/tests
 
-Done when:
+Done:
 
 - `parseSrt()` parses indexes, comma millisecond separators, multiline cues, and whitespace
 - `parseVtt()` parses `WEBVTT`, dot millisecond separators, cue settings, multiline cues, and comments/notes

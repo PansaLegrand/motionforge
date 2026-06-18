@@ -2509,6 +2509,144 @@ export function subtitleTrack(
 
 export const subtitles = subtitleTrack;
 
+export function parseSrt(input: string): SubtitleSegment[] {
+  return parseSubtitleCues(input, {
+    format: "SRT",
+    headerPattern: undefined,
+    timeSeparator: "-->",
+  });
+}
+
+export function parseVtt(input: string): SubtitleSegment[] {
+  const normalized = normalizeSubtitleInput(input);
+  const withoutBom = stripBom(normalized);
+  const lines = withoutBom.split("\n");
+  const firstMeaningful = lines.find((line) => line.trim() !== "");
+
+  if (!firstMeaningful?.trim().startsWith("WEBVTT")) {
+    throw new Error("WebVTT input must start with WEBVTT.");
+  }
+
+  return parseSubtitleCues(lines.slice(1).join("\n"), {
+    format: "WebVTT",
+    headerPattern: /^(NOTE|STYLE|REGION)(\s|$)/,
+    timeSeparator: "-->",
+  });
+}
+
+type SubtitleCueParseOptions = {
+  format: "SRT" | "WebVTT";
+  headerPattern?: RegExp;
+  timeSeparator: "-->";
+};
+
+function parseSubtitleCues(
+  input: string,
+  options: SubtitleCueParseOptions,
+): SubtitleSegment[] {
+  const normalized = normalizeSubtitleInput(input);
+  const blocks = normalized
+    .split(/\n{2,}/)
+    .map((block) => block.trim())
+    .filter(Boolean);
+  const segments: SubtitleSegment[] = [];
+
+  for (const block of blocks) {
+    if (options.headerPattern?.test(block)) {
+      continue;
+    }
+
+    const lines = block.split("\n").map((line) => line.trimEnd());
+    const timingIndex = lines.findIndex((line) =>
+      line.includes(options.timeSeparator),
+    );
+
+    if (timingIndex < 0) {
+      if (options.format === "SRT" && /^\d+$/.test(lines[0]?.trim() ?? "")) {
+        throw new Error(`SRT cue ${lines[0]} is missing a time range.`);
+      }
+      continue;
+    }
+
+    const timing = lines[timingIndex];
+
+    if (!timing) {
+      continue;
+    }
+
+    const textLines = lines.slice(timingIndex + 1).filter((line) => line !== "");
+    const cueLabel =
+      timingIndex > 0 && lines[timingIndex - 1]?.trim()
+        ? lines[timingIndex - 1]?.trim()
+        : `${segments.length + 1}`;
+
+    if (textLines.length === 0) {
+      continue;
+    }
+
+    const [startRaw, endWithSettings] = timing.split(options.timeSeparator);
+    const endRaw = endWithSettings?.trim().split(/\s+/)[0];
+
+    if (!startRaw || !endRaw) {
+      throw new Error(`${options.format} cue ${cueLabel} has an invalid time range.`);
+    }
+
+    const startMs = parseSubtitleTimestamp(startRaw.trim(), options.format);
+    const endMs = parseSubtitleTimestamp(endRaw.trim(), options.format);
+
+    if (endMs <= startMs) {
+      throw new Error(`${options.format} cue ${cueLabel} must end after it starts.`);
+    }
+
+    segments.push({
+      text: textLines.join("\n"),
+      startMs,
+      endMs,
+    });
+  }
+
+  if (segments.length === 0) {
+    throw new Error(`${options.format} input did not contain any subtitle cues.`);
+  }
+
+  return segments;
+}
+
+function normalizeSubtitleInput(input: string): string {
+  return input.replace(/\r\n?/g, "\n").trim();
+}
+
+function stripBom(input: string): string {
+  return input.charCodeAt(0) === 0xfeff ? input.slice(1) : input;
+}
+
+function parseSubtitleTimestamp(
+  input: string,
+  format: "SRT" | "WebVTT",
+): number {
+  const separator = format === "SRT" ? "," : ".";
+  const escaped = separator === "." ? "\\." : ",";
+  const pattern = new RegExp(
+    `^(?:(\\d{1,2}):)?(\\d{2}):(\\d{2})${escaped}(\\d{3})$`,
+  );
+  const match = pattern.exec(input);
+
+  if (!match) {
+    throw new Error(`${format} timestamp "${input}" is invalid.`);
+  }
+
+  const hours = Number(match[1] ?? 0);
+  const minutes = Number(match[2]);
+  const seconds = Number(match[3]);
+  const milliseconds = Number(match[4]);
+
+  if (minutes > 59 || seconds > 59) {
+    throw new Error(`${format} timestamp "${input}" has invalid minutes or seconds.`);
+  }
+
+  return ((hours * 60 + minutes) * 60 + seconds) * 1000 + milliseconds;
+}
+
 type NormalizedSubtitleSegment = {
   text: string;
   startMs: number;
