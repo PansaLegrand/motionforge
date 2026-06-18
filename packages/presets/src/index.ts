@@ -1746,6 +1746,303 @@ function fullFrameTransitionStyle(color: string, zIndex: number): SceneStyle {
   };
 }
 
+export type ImageOverlayCategory =
+  | "brand"
+  | "decorative"
+  | "product"
+  | "identity";
+
+export type ImageOverlayPlacement =
+  | SafeAreaAnchor
+  | "topLeft"
+  | "topRight"
+  | "bottomLeft"
+  | "bottomRight";
+
+export type ImageOverlayTemplate = {
+  name: string;
+  description: string;
+  category: ImageOverlayCategory;
+  placement: ImageOverlayPlacement;
+  box: SafeAreaBoxOptions;
+  containerStyle?: SceneStyle;
+  imageStyle?: SceneStyle;
+};
+
+export const imageOverlayTemplates = {
+  logoBug: {
+    name: "Logo Bug",
+    description: "Small brand mark anchored in a safe corner.",
+    category: "brand",
+    placement: "topRight",
+    box: { widthRatio: 0.16, heightRatio: 0.09 },
+    containerStyle: {
+      opacity: 0.92,
+    },
+    imageStyle: {
+      objectFit: "contain",
+      objectPosition: "center center",
+    },
+  },
+  watermark: {
+    name: "Watermark",
+    description: "Subtle persistent brand image near the lower edge.",
+    category: "brand",
+    placement: "bottomRight",
+    box: { widthRatio: 0.2, heightRatio: 0.08 },
+    containerStyle: {
+      opacity: 0.42,
+    },
+    imageStyle: {
+      objectFit: "contain",
+      objectPosition: "center center",
+    },
+  },
+  sticker: {
+    name: "Sticker",
+    description: "Expressive transparent sticker or badge overlay.",
+    category: "decorative",
+    placement: "topLeft",
+    box: { widthRatio: 0.22, heightRatio: 0.16 },
+    imageStyle: {
+      objectFit: "contain",
+      objectPosition: "center center",
+    },
+  },
+  productShot: {
+    name: "Product Shot",
+    description: "Large product or app image framed for launches.",
+    category: "product",
+    placement: "center",
+    box: { widthRatio: 0.68, heightRatio: 0.46 },
+    containerStyle: {
+      borderRadius: 28,
+      boxShadow: "0px 28px 76px rgba(2,6,23,0.38)",
+      overflow: "hidden",
+    },
+    imageStyle: {
+      objectFit: "contain",
+      objectPosition: "center center",
+      backgroundColor: "rgba(15,23,42,0.18)",
+    },
+  },
+  cornerBadge: {
+    name: "Corner Badge",
+    description: "Rounded badge image for labels, awards, or calls to action.",
+    category: "decorative",
+    placement: "bottomLeft",
+    box: { widthRatio: 0.24, heightRatio: 0.12 },
+    containerStyle: {
+      borderRadius: 999,
+      boxShadow: "0px 16px 42px rgba(2,6,23,0.3)",
+      overflow: "hidden",
+    },
+    imageStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+  avatarBadge: {
+    name: "Avatar Badge",
+    description: "Circular portrait or channel avatar with a soft border.",
+    category: "identity",
+    placement: "lowerThird",
+    box: { widthRatio: 0.18, heightRatio: 0.1 },
+    containerStyle: {
+      borderRadius: 999,
+      border: "4px solid rgba(255,255,255,0.9)",
+      boxShadow: "0px 16px 44px rgba(2,6,23,0.34)",
+      overflow: "hidden",
+    },
+    imageStyle: {
+      objectFit: "cover",
+      objectPosition: "center center",
+    },
+  },
+} satisfies Record<string, ImageOverlayTemplate>;
+
+export type ImageOverlayTemplateKey = keyof typeof imageOverlayTemplates;
+
+export const imageOverlayTemplateEntries = Object.entries(
+  imageOverlayTemplates,
+) as Array<[ImageOverlayTemplateKey, ImageOverlayTemplate]>;
+
+export type ImageOverlayOptions = {
+  template?: ImageOverlayTemplateKey;
+  id?: string;
+  assetId: string;
+  from?: number;
+  duration?: number;
+  composition?: CompositionSize;
+  safeArea?: SafeAreaInput;
+  placement?: ImageOverlayPlacement;
+  style?: SceneStyle;
+  imageStyle?: SceneStyle;
+  objectFit?: NonNullable<SceneStyle["objectFit"]>;
+  objectPosition?: SceneStyle["objectPosition"];
+  opacity?: number;
+  borderRadius?: SceneStyle["borderRadius"];
+  shadow?: SceneStyle["boxShadow"];
+  enter?: SceneAnimation[] | false;
+};
+
+export function imageOverlay(options: ImageOverlayOptions): SceneNode {
+  const key = options.template ?? "logoBug";
+  const template = imageOverlayTemplates[key];
+  const id = options.id ?? `${key}-image-overlay`;
+
+  if (options.assetId.trim() === "") {
+    throw new Error("imageOverlay() requires a non-empty assetId.");
+  }
+
+  return {
+    id,
+    type: "div",
+    from: options.from,
+    duration: options.duration,
+    style: imageOverlayContainerStyle(options, template),
+    animations:
+      options.enter === false
+        ? []
+        : (options.enter ?? fadeUp({ durationInFrames: 10, distance: 20 })),
+    children: [
+      {
+        id: `${id}-image`,
+        type: "img",
+        assetId: options.assetId,
+        style: imageOverlayImageStyle(options, template),
+      },
+    ],
+  };
+}
+
+function imageOverlayContainerStyle(
+  options: ImageOverlayOptions,
+  template: ImageOverlayTemplate,
+): SceneStyle {
+  const placementDefaults = imageOverlayPlacementDefaults(
+    options.placement ?? template.placement,
+  );
+  const box = options.composition
+    ? safeAreaBox(options.composition, placementDefaults.anchor, {
+        ...template.box,
+        align: template.box.align ?? placementDefaults.align,
+        safeArea: template.box.safeArea ?? options.safeArea,
+      })
+    : imageOverlayFallbackBox(
+        placementDefaults.anchor,
+        placementDefaults.align,
+      );
+
+  return {
+    ...box,
+    overflow: "visible",
+    ...template.containerStyle,
+    ...(options.opacity === undefined ? {} : { opacity: options.opacity }),
+    ...(options.borderRadius === undefined
+      ? {}
+      : { borderRadius: options.borderRadius }),
+    ...(options.shadow === undefined ? {} : { boxShadow: options.shadow }),
+    ...options.style,
+  };
+}
+
+function imageOverlayImageStyle(
+  options: ImageOverlayOptions,
+  template: ImageOverlayTemplate,
+): SceneStyle {
+  return {
+    width: "100%",
+    height: "100%",
+    ...template.imageStyle,
+    objectFit: options.objectFit ?? template.imageStyle?.objectFit ?? "contain",
+    objectPosition:
+      options.objectPosition ??
+      template.imageStyle?.objectPosition ??
+      "center center",
+    ...options.imageStyle,
+  };
+}
+
+function imageOverlayPlacementDefaults(placement: ImageOverlayPlacement): {
+  anchor: SafeAreaAnchor;
+  align?: SafeAreaBoxOptions["align"];
+} {
+  switch (placement) {
+    case "topLeft":
+      return { anchor: "top", align: "left" };
+    case "topRight":
+      return { anchor: "top", align: "right" };
+    case "bottomLeft":
+      return { anchor: "bottom", align: "left" };
+    case "bottomRight":
+      return { anchor: "bottom", align: "right" };
+    default:
+      return { anchor: placement };
+  }
+}
+
+function imageOverlayFallbackBox(
+  anchor: SafeAreaAnchor,
+  align: SafeAreaBoxOptions["align"] = "center",
+): SceneStyle {
+  const common = {
+    position: "absolute" as const,
+    width: 180,
+    height: 120,
+  };
+
+  switch (anchor) {
+    case "top":
+    case "title":
+      return topFallbackBox(common, align);
+    case "lowerThird":
+    case "bottom":
+    case "subtitle":
+      return bottomFallbackBox(common, align);
+    case "statCallout":
+      return { ...common, left: 72, top: 960 };
+    case "center":
+      return {
+        position: "absolute",
+        left: "30%",
+        top: "35%",
+        width: "40%",
+        height: "30%",
+      };
+  }
+}
+
+function topFallbackBox(
+  common: Pick<SceneStyle, "position" | "width" | "height">,
+  align: SafeAreaBoxOptions["align"],
+): SceneStyle {
+  if (align === "left") {
+    return { ...common, left: 72, top: 72 };
+  }
+
+  if (align === "right") {
+    return { ...common, right: 72, top: 72 };
+  }
+
+  return { ...common, left: "42%", top: 72 };
+}
+
+function bottomFallbackBox(
+  common: Pick<SceneStyle, "position" | "width" | "height">,
+  align: SafeAreaBoxOptions["align"],
+): SceneStyle {
+  if (align === "left") {
+    return { ...common, left: 72, bottom: 132 };
+  }
+
+  if (align === "right") {
+    return { ...common, right: 72, bottom: 132 };
+  }
+
+  return { ...common, left: "42%", bottom: 132 };
+}
+
 /** One spoken word with millisecond timestamps (ASR output shape). */
 export type CaptionWord = {
   word: string;

@@ -82,6 +82,31 @@ scene.nodes.push(
 );
 ```
 
+## Image Overlay Templates
+
+Use with `imageOverlay({ assetId, template })`. Image overlays emit ordinary wrapper `div` nodes with one `img` child, so apps and agents can patch placement, timing, object fit, opacity, shadows, and crop styles by id.
+
+| Key           | Best For                                      |
+| ------------- | --------------------------------------------- |
+| `logoBug`     | Small brand marks in a safe top corner        |
+| `watermark`   | Subtle persistent lower-corner branding       |
+| `sticker`     | Transparent stickers, badges, and decorations |
+| `productShot` | Large product or app screenshots              |
+| `cornerBadge` | Rounded badges, awards, and CTA images        |
+| `avatarBadge` | Circular speaker or channel portraits         |
+
+```ts
+scene.nodes.push(
+  imageOverlay({
+    assetId: "logo",
+    template: "logoBug",
+    composition: { width: scene.width, height: scene.height },
+  }),
+);
+```
+
+Templates use shared safe-area placement and set conservative `objectFit` defaults. Pass `placement`, `style`, `imageStyle`, `objectFit`, `objectPosition`, `opacity`, `borderRadius`, `shadow`, or `enter` when a project needs stricter control.
+
 ## Media Looks
 
 Use with `mediaLook(key)` inside an image or video style.

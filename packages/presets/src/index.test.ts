@@ -7,6 +7,9 @@ import {
   clipLayouts,
   captionTemplateEntries,
   captionTemplates,
+  imageOverlay,
+  imageOverlayTemplateEntries,
+  imageOverlayTemplates,
   karaokeCaptions,
   mediaLook,
   mediaLookEntries,
@@ -697,9 +700,9 @@ Second cue
 00:00:02,000 --> 00:00:01,000
 Backwards`),
     ).toThrow("end after");
-    expect(() => parseVtt("00:00:00.000 --> 00:00:01.000\nMissing header")).toThrow(
-      "WEBVTT",
-    );
+    expect(() =>
+      parseVtt("00:00:00.000 --> 00:00:01.000\nMissing header"),
+    ).toThrow("WEBVTT");
     expect(() =>
       parseSrt(`1
 00:00:60,000 --> 00:00:61,000
@@ -894,5 +897,125 @@ describe("text overlay template catalog", () => {
     expect(() => textOverlay({ template: "quoteCard" })).toThrow(
       "requires body",
     );
+  });
+});
+
+describe("image overlay template catalog", () => {
+  it("exposes stable image overlay metadata", () => {
+    expect(imageOverlayTemplateEntries.map(([key]) => key)).toEqual([
+      "logoBug",
+      "watermark",
+      "sticker",
+      "productShot",
+      "cornerBadge",
+      "avatarBadge",
+    ]);
+    expect(imageOverlayTemplates.productShot.category).toBe("product");
+  });
+
+  it("generates schema-valid overlays for every template", () => {
+    for (const [template] of imageOverlayTemplateEntries) {
+      const overlay = imageOverlay({
+        template,
+        assetId: "brand-image",
+        composition: { width: 1080, height: 1920 },
+      });
+      const result = validateScene({
+        ...sceneWith(overlay),
+        assets: {
+          "brand-image": {
+            id: "brand-image",
+            type: "image",
+            src: "data:image/png;base64,x",
+          },
+        },
+      });
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+      expect(overlay.children?.[0]).toMatchObject({
+        type: "img",
+        assetId: "brand-image",
+        style: {
+          width: "100%",
+          height: "100%",
+        },
+      });
+    }
+  });
+
+  it("places image overlays with composition safe areas", () => {
+    const overlay = imageOverlay({
+      template: "logoBug",
+      id: "brand-corner",
+      assetId: "logo",
+      composition: { width: 1080, height: 1920 },
+    });
+
+    expect(overlay).toMatchObject({
+      id: "brand-corner",
+      type: "div",
+      style: {
+        position: "absolute",
+        left: 858,
+        top: 144,
+        width: 150,
+        height: 145,
+        opacity: 0.92,
+      },
+    });
+    expect(overlay.children?.[0]).toMatchObject({
+      id: "brand-corner-image",
+      type: "img",
+      assetId: "logo",
+      style: {
+        objectFit: "contain",
+        objectPosition: "center center",
+      },
+    });
+  });
+
+  it("lets image overlay placement and style overrides win", () => {
+    const overlay = imageOverlay({
+      template: "productShot",
+      id: "manual-product",
+      assetId: "product",
+      from: 12,
+      duration: 48,
+      placement: "bottomLeft",
+      composition: { width: 1920, height: 1080 },
+      opacity: 0.7,
+      borderRadius: 16,
+      shadow: "0px 8px 24px rgba(0,0,0,0.24)",
+      objectFit: "cover",
+      objectPosition: "top center",
+      enter: false,
+      style: { left: 128, top: 220, width: 640, height: 420 },
+      imageStyle: { backgroundColor: "#111827" },
+    });
+
+    expect(overlay).toMatchObject({
+      id: "manual-product",
+      from: 12,
+      duration: 48,
+      animations: [],
+      style: {
+        left: 128,
+        top: 220,
+        width: 640,
+        height: 420,
+        opacity: 0.7,
+        borderRadius: 16,
+        boxShadow: "0px 8px 24px rgba(0,0,0,0.24)",
+      },
+    });
+    expect(overlay.children?.[0]?.style).toMatchObject({
+      objectFit: "cover",
+      objectPosition: "top center",
+      backgroundColor: "#111827",
+    });
+  });
+
+  it("rejects empty image overlay asset ids", () => {
+    expect(() => imageOverlay({ assetId: " " })).toThrow("assetId");
   });
 });

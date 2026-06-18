@@ -36,7 +36,7 @@ Known gaps:
 - no image-specific preset patch examples for chat/playground-style insertion
 - no stress gallery for aspect ratio, transparent PNG/SVG, safe-area placement, and object fit behavior
 
-## Slice IX1 - Image Overlay Preset Helper
+## Slice IX1 - Image Overlay Preset Helper ✅
 
 **Goal:** programmers can create common image overlays from a stable helper instead of hand-writing absolute image styles.
 
@@ -45,7 +45,7 @@ Targets:
 - `@motionforge/presets`
 - docs/tests
 
-Done when:
+Done:
 
 - `imageOverlay()` emits schema-valid overlay nodes from an asset id
 - templates cover `logoBug`, `watermark`, `sticker`, `productShot`, `cornerBadge`, and `avatarBadge`

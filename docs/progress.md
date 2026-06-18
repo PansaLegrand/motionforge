@@ -2,6 +2,28 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (image overlay IX1: preset helper)
+
+### Changed
+
+- Added `imageOverlay()` to `@motionforge/presets`.
+- Added image overlay template metadata for `logoBug`, `watermark`, `sticker`, `productShot`, `cornerBadge`, and `avatarBadge`.
+- Added image-specific placement names such as `topRight` and `bottomLeft`, mapped onto the existing safe-area anchors and alignment options.
+- Added options for composition-aware safe-area placement, object fit, object position, opacity, border radius, shadows, image style overrides, timing, and entrance motion.
+- Added tests for metadata stability, schema-valid output, safe-area placement, override behavior, and invalid asset ids.
+- Documented the image overlay template catalog.
+- Marked IX1 complete in the image overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+
+### Notes
+
+- `imageOverlay()` emits ordinary wrapper `div` nodes with a single `img` child so chat, Studio, Playground, validators, and patch loops can inspect and edit overlays directly.
+
 ## 2026-06-18 (image overlay roadmap)
 
 ### Changed
