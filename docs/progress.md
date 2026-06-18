@@ -2,6 +2,30 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text robustness TX5: robust preset upgrade)
+
+### Changed
+
+- Added slot-specific robust text defaults to `textOverlay()` templates: shrink fit, ellipsis, hidden overflow, `maxLines`, and `minFontSize`.
+- Covered title, lower-third, quote, stat, announcement banner, social hook, and chapter title templates.
+- Kept slot style overrides last so callers and patch examples can replace fit, overflow, line count, and minimum font size.
+- Documented robust text defaults and safe-area composition usage in the preset catalog guide.
+- Marked TX5 complete in the text overlay robustness roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test`
+- `pnpm --filter @motionforge/presets build`
+- `pnpm --filter @motionforge/showcase typecheck`
+- `pnpm --filter @motionforge/showcase test`
+- `pnpm --filter @motionforge/showcase build`
+- `pnpm presets:generate`
+
+### Notes
+
+- The change stays data-first: generated presets remain ordinary scene nodes with ordinary style keys, so chat and app inspectors can patch them directly.
+
 ## 2026-06-18 (text robustness TX4: safe-area placement primitives)
 
 ### Changed

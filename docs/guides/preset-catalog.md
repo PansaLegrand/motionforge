@@ -49,12 +49,15 @@ Use with `textOverlay({ template })`.
 | `socialHook`         | `title`       | Short-form hook text           |
 | `chapterTitle`       | `title`       | Section breaks                 |
 
+Text overlay slots use robust bounded text defaults: shrink-to-fit, ellipsis, hidden overflow, and slot-specific `maxLines`. Pass `composition` to opt into safe-area placement, and override any generated slot style through `titleStyle`, `bodyStyle`, `subtitleStyle`, and related style options.
+
 ```ts
 scene.nodes.push(
   textOverlay({
     template: "lowerThird",
     title: "Ada Lovelace",
     subtitle: "Programmer",
+    composition: { width: scene.width, height: scene.height },
     from: 30,
     duration: 120,
   }),

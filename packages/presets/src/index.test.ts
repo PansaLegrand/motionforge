@@ -193,9 +193,7 @@ describe("safe-area placement primitives", () => {
       width: 693,
       height: 288,
     });
-    expect(
-      safeAreaBox({ width: 1920, height: 1080 }, "statCallout"),
-    ).toEqual({
+    expect(safeAreaBox({ width: 1920, height: 1080 }, "statCallout")).toEqual({
       position: "absolute",
       left: 1098,
       top: 324,
@@ -622,6 +620,56 @@ describe("text overlay template catalog", () => {
       width: 693,
       height: 288,
       padding: 28,
+    });
+  });
+
+  it("adds robust text fit defaults to user-facing overlay slots", () => {
+    const overlay = textOverlay({
+      template: "quoteCard",
+      id: "robust-quote",
+      body: "A generated quote can run much longer than the nice hand-authored sample and still stay bounded.",
+      attribution: "MotionForge",
+    });
+    const body = overlay.children?.find(
+      (child) => child.id === "robust-quote-body",
+    );
+    const attribution = overlay.children?.find(
+      (child) => child.id === "robust-quote-attribution",
+    );
+
+    expect(validateScene(sceneWith(overlay))).toMatchObject({ ok: true });
+    expect(body?.style).toMatchObject({
+      overflow: "hidden",
+      textFit: "shrink",
+      textOverflow: "ellipsis",
+      maxLines: 4,
+      minFontSize: 33,
+    });
+    expect(attribution?.style).toMatchObject({
+      maxLines: 1,
+      minFontSize: 16,
+    });
+  });
+
+  it("lets slot style overrides replace robust defaults", () => {
+    const overlay = textOverlay({
+      template: "socialHook",
+      id: "manual-hook",
+      title: "Stop hand-editing captions",
+      titleStyle: {
+        textFit: "wrap",
+        textOverflow: "clip",
+        maxLines: 3,
+        minFontSize: 40,
+      },
+    });
+
+    expect(validateScene(sceneWith(overlay))).toMatchObject({ ok: true });
+    expect(overlay.children?.[0]?.style).toMatchObject({
+      textFit: "wrap",
+      textOverflow: "clip",
+      maxLines: 3,
+      minFontSize: 40,
     });
   });
 

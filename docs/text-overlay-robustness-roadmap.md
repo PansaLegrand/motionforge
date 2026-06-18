@@ -104,7 +104,7 @@ Done:
 - text overlay presets can opt into safe-area anchors
 - tests cover 9:16, 1:1, and 16:9 scene dimensions
 
-## Slice TX5 - Robust Preset Upgrade
+## Slice TX5 - Robust Preset Upgrade ✅
 
 **Goal:** existing text overlay presets use the new fit semantics where they are most likely to receive user-generated long copy.
 
@@ -113,7 +113,7 @@ Targets:
 - `@motionforge/presets`
 - preset gallery/showcase docs
 
-Done when:
+Done:
 
 - title, quote, stat, banner, hook, and lower-third templates have bounded text behavior
 - preset patch examples remain valid

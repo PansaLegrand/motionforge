@@ -427,10 +427,7 @@ export function safeAreaBox(
 ): SafeAreaBox {
   const insets = resolveSafeArea(size, options.safeArea ?? "auto");
   const availableWidth = Math.max(1, size.width - insets.left - insets.right);
-  const availableHeight = Math.max(
-    1,
-    size.height - insets.top - insets.bottom,
-  );
+  const availableHeight = Math.max(1, size.height - insets.top - insets.bottom);
   const defaults = safeAreaAnchorDefaults(size, anchor, insets);
   const width = Math.max(
     1,
@@ -569,9 +566,13 @@ function safeAreaAnchorTop(
     case "bottom":
       return size.height - insets.bottom - height;
     case "subtitle":
-      return size.height - insets.bottom - Math.round(size.height * 0.11) - height;
+      return (
+        size.height - insets.bottom - Math.round(size.height * 0.11) - height
+      );
     case "lowerThird":
-      return size.height - insets.bottom - Math.round(size.height * 0.12) - height;
+      return (
+        size.height - insets.bottom - Math.round(size.height * 0.12) - height
+      );
     case "statCallout":
     case "title":
     case "top":
@@ -1043,31 +1044,53 @@ function titleCardOverlay(options: TextOverlayOptions): SceneNode {
       },
     ),
     [
-      maybeTextNode(id, "kicker", options.kicker, {
-        ...eyebrowStyle(options.accentColor ?? "#38bdf8"),
-        ...options.kickerStyle,
-      }),
-      textNode(id, "title", requiredSlot(options, "title"), {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 108,
-        fontWeight: 900,
-        lineHeight: 0.95,
-        color: "#ffffff",
-        textAlign: "center",
-        textShadow: "0px 12px 42px rgba(0,0,0,0.48)",
-        ...options.titleStyle,
-      }),
-      maybeTextNode(id, "subtitle", options.subtitle, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 42,
-        fontWeight: 700,
-        lineHeight: 1.18,
-        color: "rgba(226,232,240,0.88)",
-        textAlign: "center",
-        ...options.subtitleStyle,
-      }),
+      maybeTextNode(
+        id,
+        "kicker",
+        options.kicker,
+        robustTextStyle(
+          "kicker",
+          eyebrowStyle(options.accentColor ?? "#38bdf8"),
+          options.kickerStyle,
+        ),
+      ),
+      textNode(
+        id,
+        "title",
+        requiredSlot(options, "title"),
+        robustTextStyle(
+          "title",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 108,
+            fontWeight: 900,
+            lineHeight: 0.95,
+            color: "#ffffff",
+            textAlign: "center",
+            textShadow: "0px 12px 42px rgba(0,0,0,0.48)",
+          },
+          options.titleStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "subtitle",
+        options.subtitle,
+        robustTextStyle(
+          "subtitle",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 42,
+            fontWeight: 700,
+            lineHeight: 1.18,
+            color: "rgba(226,232,240,0.88)",
+            textAlign: "center",
+          },
+          options.subtitleStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1103,28 +1126,46 @@ function lowerThirdOverlay(options: TextOverlayOptions): SceneNode {
       },
     ),
     [
-      maybeTextNode(id, "kicker", options.kicker, {
-        ...eyebrowStyle(accent),
-        ...options.kickerStyle,
-      }),
-      textNode(id, "title", requiredSlot(options, "title"), {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 58,
-        fontWeight: 900,
-        lineHeight: 1,
-        color: "#ffffff",
-        ...options.titleStyle,
-      }),
-      maybeTextNode(id, "subtitle", options.subtitle, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 31,
-        fontWeight: 700,
-        lineHeight: 1.16,
-        color: "#cbd5e1",
-        ...options.subtitleStyle,
-      }),
+      maybeTextNode(
+        id,
+        "kicker",
+        options.kicker,
+        robustTextStyle("kicker", eyebrowStyle(accent), options.kickerStyle),
+      ),
+      textNode(
+        id,
+        "title",
+        requiredSlot(options, "title"),
+        robustTextStyle(
+          "title",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 58,
+            fontWeight: 900,
+            lineHeight: 1,
+            color: "#ffffff",
+          },
+          options.titleStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "subtitle",
+        options.subtitle,
+        robustTextStyle(
+          "subtitle",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 31,
+            fontWeight: 700,
+            lineHeight: 1.16,
+            color: "#cbd5e1",
+          },
+          options.subtitleStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1158,29 +1199,51 @@ function quoteCardOverlay(options: TextOverlayOptions): SceneNode {
       },
     ),
     [
-      maybeTextNode(id, "kicker", options.kicker, {
-        ...eyebrowStyle(options.accentColor ?? "#2563eb"),
-        ...options.kickerStyle,
-      }),
-      textNode(id, "body", requiredSlot(options, "body"), {
-        width: "100%",
-        fontFamily: "Georgia, Times New Roman, serif",
-        fontSize: 64,
-        fontWeight: 700,
-        lineHeight: 1.12,
-        color: "#0f172a",
-        textAlign: "center",
-        ...options.bodyStyle,
-      }),
-      maybeTextNode(id, "attribution", options.attribution, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 30,
-        fontWeight: 800,
-        color: "#475569",
-        textAlign: "center",
-        ...options.attributionStyle,
-      }),
+      maybeTextNode(
+        id,
+        "kicker",
+        options.kicker,
+        robustTextStyle(
+          "kicker",
+          eyebrowStyle(options.accentColor ?? "#2563eb"),
+          options.kickerStyle,
+        ),
+      ),
+      textNode(
+        id,
+        "body",
+        requiredSlot(options, "body"),
+        robustTextStyle(
+          "body",
+          {
+            width: "100%",
+            fontFamily: "Georgia, Times New Roman, serif",
+            fontSize: 64,
+            fontWeight: 700,
+            lineHeight: 1.12,
+            color: "#0f172a",
+            textAlign: "center",
+          },
+          options.bodyStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "attribution",
+        options.attribution,
+        robustTextStyle(
+          "attribution",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 30,
+            fontWeight: 800,
+            color: "#475569",
+            textAlign: "center",
+          },
+          options.attributionStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1216,34 +1279,58 @@ function statCalloutOverlay(options: TextOverlayOptions): SceneNode {
       },
     ),
     [
-      textNode(id, "value", requiredSlot(options, "value"), {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 96,
-        fontWeight: 950,
-        lineHeight: 0.92,
-        color: accent,
-        textAlign: "left",
-        ...options.valueStyle,
-      }),
-      maybeTextNode(id, "label", options.label, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 34,
-        fontWeight: 900,
-        color: "#ffffff",
-        lineHeight: 1.05,
-        ...options.labelStyle,
-      }),
-      maybeTextNode(id, "subtitle", options.subtitle, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 25,
-        fontWeight: 700,
-        color: "#94a3b8",
-        lineHeight: 1.18,
-        ...options.subtitleStyle,
-      }),
+      textNode(
+        id,
+        "value",
+        requiredSlot(options, "value"),
+        robustTextStyle(
+          "value",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 96,
+            fontWeight: 950,
+            lineHeight: 0.92,
+            color: accent,
+            textAlign: "left",
+          },
+          options.valueStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "label",
+        options.label,
+        robustTextStyle(
+          "label",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 34,
+            fontWeight: 900,
+            color: "#ffffff",
+            lineHeight: 1.05,
+          },
+          options.labelStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "subtitle",
+        options.subtitle,
+        robustTextStyle(
+          "subtitle",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 25,
+            fontWeight: 700,
+            color: "#94a3b8",
+            lineHeight: 1.18,
+          },
+          options.subtitleStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1278,36 +1365,60 @@ function announcementBannerOverlay(options: TextOverlayOptions): SceneNode {
       },
     ),
     [
-      maybeTextNode(id, "kicker", options.kicker, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 28,
-        fontWeight: 900,
-        letterSpacing: 3,
-        color: "rgba(255,255,255,0.82)",
-        textAlign: "center",
-        ...options.kickerStyle,
-      }),
-      textNode(id, "title", requiredSlot(options, "title"), {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 72,
-        fontWeight: 950,
-        lineHeight: 0.95,
-        color: "#ffffff",
-        textAlign: "center",
-        textStroke: "3px rgba(0,0,0,0.18)",
-        ...options.titleStyle,
-      }),
-      maybeTextNode(id, "subtitle", options.subtitle, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 30,
-        fontWeight: 800,
-        color: "rgba(255,255,255,0.88)",
-        textAlign: "center",
-        ...options.subtitleStyle,
-      }),
+      maybeTextNode(
+        id,
+        "kicker",
+        options.kicker,
+        robustTextStyle(
+          "kicker",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 28,
+            fontWeight: 900,
+            letterSpacing: 3,
+            color: "rgba(255,255,255,0.82)",
+            textAlign: "center",
+          },
+          options.kickerStyle,
+        ),
+      ),
+      textNode(
+        id,
+        "title",
+        requiredSlot(options, "title"),
+        robustTextStyle(
+          "title",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 72,
+            fontWeight: 950,
+            lineHeight: 0.95,
+            color: "#ffffff",
+            textAlign: "center",
+            textStroke: "3px rgba(0,0,0,0.18)",
+          },
+          options.titleStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "subtitle",
+        options.subtitle,
+        robustTextStyle(
+          "subtitle",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 30,
+            fontWeight: 800,
+            color: "rgba(255,255,255,0.88)",
+            textAlign: "center",
+          },
+          options.subtitleStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1339,33 +1450,49 @@ function socialHookOverlay(options: TextOverlayOptions): SceneNode {
       },
     ),
     [
-      textNode(id, "title", requiredSlot(options, "title"), {
-        width: "100%",
-        fontFamily: "Poppins, Inter, system-ui, sans-serif",
-        fontSize: 98,
-        fontWeight: 950,
-        lineHeight: 0.95,
-        color: "#0f172a",
-        textAlign: "center",
-        textBackgroundColor: accent,
-        textBackgroundPaddingX: 34,
-        textBackgroundPaddingY: 16,
-        textBackgroundRadius: 22,
-        textShadow: "0px 6px 0px rgba(255,255,255,0.22)",
-        textStroke: "4px rgba(255,255,255,0.95)",
-        ...options.titleStyle,
-      }),
-      maybeTextNode(id, "subtitle", options.subtitle, {
-        width: "92%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 38,
-        fontWeight: 800,
-        lineHeight: 1.14,
-        color: "#ffffff",
-        textAlign: "center",
-        textStroke: "4px rgba(0,0,0,0.72)",
-        ...options.subtitleStyle,
-      }),
+      textNode(
+        id,
+        "title",
+        requiredSlot(options, "title"),
+        robustTextStyle(
+          "title",
+          {
+            width: "100%",
+            fontFamily: "Poppins, Inter, system-ui, sans-serif",
+            fontSize: 98,
+            fontWeight: 950,
+            lineHeight: 0.95,
+            color: "#0f172a",
+            textAlign: "center",
+            textBackgroundColor: accent,
+            textBackgroundPaddingX: 34,
+            textBackgroundPaddingY: 16,
+            textBackgroundRadius: 22,
+            textShadow: "0px 6px 0px rgba(255,255,255,0.22)",
+            textStroke: "4px rgba(255,255,255,0.95)",
+          },
+          options.titleStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "subtitle",
+        options.subtitle,
+        robustTextStyle(
+          "subtitle",
+          {
+            width: "92%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 38,
+            fontWeight: 800,
+            lineHeight: 1.14,
+            color: "#ffffff",
+            textAlign: "center",
+            textStroke: "4px rgba(0,0,0,0.72)",
+          },
+          options.subtitleStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1407,30 +1534,48 @@ function chapterTitleOverlay(options: TextOverlayOptions): SceneNode {
           borderRadius: 999,
         },
       },
-      maybeTextNode(id, "kicker", options.kicker, {
-        ...eyebrowStyle(accent),
-        ...options.kickerStyle,
-      }),
-      textNode(id, "title", requiredSlot(options, "title"), {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 82,
-        fontWeight: 900,
-        lineHeight: 0.98,
-        color: "#ffffff",
-        textAlign: "center",
-        textShadow: "0px 10px 28px rgba(0,0,0,0.42)",
-        ...options.titleStyle,
-      }),
-      maybeTextNode(id, "subtitle", options.subtitle, {
-        width: "100%",
-        fontFamily: "Inter, system-ui, Arial, sans-serif",
-        fontSize: 32,
-        fontWeight: 700,
-        color: "#cbd5e1",
-        textAlign: "center",
-        ...options.subtitleStyle,
-      }),
+      maybeTextNode(
+        id,
+        "kicker",
+        options.kicker,
+        robustTextStyle("kicker", eyebrowStyle(accent), options.kickerStyle),
+      ),
+      textNode(
+        id,
+        "title",
+        requiredSlot(options, "title"),
+        robustTextStyle(
+          "title",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 82,
+            fontWeight: 900,
+            lineHeight: 0.98,
+            color: "#ffffff",
+            textAlign: "center",
+            textShadow: "0px 10px 28px rgba(0,0,0,0.42)",
+          },
+          options.titleStyle,
+        ),
+      ),
+      maybeTextNode(
+        id,
+        "subtitle",
+        options.subtitle,
+        robustTextStyle(
+          "subtitle",
+          {
+            width: "100%",
+            fontFamily: "Inter, system-ui, Arial, sans-serif",
+            fontSize: 32,
+            fontWeight: 700,
+            color: "#cbd5e1",
+            textAlign: "center",
+          },
+          options.subtitleStyle,
+        ),
+      ),
     ],
   );
 }
@@ -1480,6 +1625,42 @@ function textOverlayContainerStyle(
       safeArea: boxOptions.safeArea ?? options.safeArea,
     }),
     ...style,
+  };
+}
+
+function robustTextStyle(
+  slot: TextOverlaySlot,
+  style: SceneStyle,
+  overrides: SceneStyle = {},
+): SceneStyle {
+  const mergedStyle = { ...style, ...overrides };
+  const fontSize =
+    typeof mergedStyle.fontSize === "number"
+      ? mergedStyle.fontSize
+      : slot === "value"
+        ? 96
+        : slot === "title"
+          ? 72
+          : slot === "body"
+            ? 64
+            : 30;
+  const maxLinesBySlot: Record<TextOverlaySlot, number> = {
+    kicker: 1,
+    title: 2,
+    subtitle: 2,
+    body: 4,
+    value: 1,
+    label: 2,
+    attribution: 1,
+  };
+
+  return {
+    overflow: "hidden",
+    textFit: "shrink",
+    textOverflow: "ellipsis",
+    maxLines: maxLinesBySlot[slot],
+    minFontSize: Math.max(14, Math.round(fontSize * 0.52)),
+    ...mergedStyle,
   };
 }
 
