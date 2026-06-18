@@ -136,6 +136,35 @@ Decorative templates default to muted output (`volume: 0`); `reactionCam` keeps 
 
 The preset catalog can also generate a patch example for video overlays when the current scene already defines a video asset.
 
+## Audio Overlay Templates
+
+Use with `audioOverlay({ assetId, template })`. Audio overlays emit ordinary `audio` nodes, so apps and agents can patch timing, source trim, and static volume by id.
+
+| Key                | Best For                                      |
+| ------------------ | --------------------------------------------- |
+| `backgroundMusic`  | Quiet music beds under a whole scene/section  |
+| `voiceover`        | Primary narration or spoken explanation       |
+| `soundEffect`      | One-shot effects aligned to edits or actions  |
+| `beatAccent`       | Short percussive hits for cuts and reveals    |
+| `ambientBed`       | Low ambience under a scene                    |
+| `notificationPing` | Compact UI/callout cue sounds                 |
+
+```ts
+scene.nodes.push(
+  audioOverlay({
+    assetId: "music",
+    template: "backgroundMusic",
+    from: 0,
+    duration: scene.duration,
+    trimStart: 8,
+  }),
+);
+```
+
+Role templates choose conservative default volumes: music and ambience sit quietly, voiceover stays full-level, and short cues get bounded default durations. Pass `volume`, `muted`, `trimStart`, `from`, or `duration` for stricter control.
+
+Fades, looping beds, and ducking are intentionally not preset options yet. Audio nodes currently support static `volume`; production fades/ducking will land with mixer-visible schema support so preview and export stay identical.
+
 ## Media Looks
 
 Use with `mediaLook(key)` inside an image or video style.

@@ -2263,6 +2263,103 @@ function videoOverlayStyle(
   };
 }
 
+export type AudioOverlayCategory =
+  | "music"
+  | "voice"
+  | "effect"
+  | "ambience"
+  | "cue";
+
+export type AudioOverlayTemplate = {
+  name: string;
+  description: string;
+  category: AudioOverlayCategory;
+  defaultVolume: number;
+  defaultDuration?: number;
+};
+
+export const audioOverlayTemplates = {
+  backgroundMusic: {
+    name: "Background Music",
+    description: "Quiet music bed under the whole scene or a long section.",
+    category: "music",
+    defaultVolume: 0.28,
+  },
+  voiceover: {
+    name: "Voiceover",
+    description: "Primary narration or spoken explanation over visuals.",
+    category: "voice",
+    defaultVolume: 1,
+  },
+  soundEffect: {
+    name: "Sound Effect",
+    description: "One-shot effect aligned with an edit, title, or action.",
+    category: "effect",
+    defaultVolume: 0.85,
+    defaultDuration: 45,
+  },
+  beatAccent: {
+    name: "Beat Accent",
+    description: "Short percussive hit for cuts, pulses, or reveals.",
+    category: "effect",
+    defaultVolume: 0.7,
+    defaultDuration: 18,
+  },
+  ambientBed: {
+    name: "Ambient Bed",
+    description: "Low ambience underneath a scene without dominating dialogue.",
+    category: "ambience",
+    defaultVolume: 0.22,
+  },
+  notificationPing: {
+    name: "Notification Ping",
+    description: "Compact cue sound for UI moments and callouts.",
+    category: "cue",
+    defaultVolume: 0.65,
+    defaultDuration: 30,
+  },
+} satisfies Record<string, AudioOverlayTemplate>;
+
+export type AudioOverlayTemplateKey = keyof typeof audioOverlayTemplates;
+
+export const audioOverlayTemplateEntries = Object.entries(
+  audioOverlayTemplates,
+) as Array<[AudioOverlayTemplateKey, AudioOverlayTemplate]>;
+
+export type AudioOverlayOptions = {
+  template?: AudioOverlayTemplateKey;
+  id?: string;
+  assetId: string;
+  from?: number;
+  duration?: number;
+  trimStart?: number;
+  volume?: number;
+  muted?: boolean;
+};
+
+export function audioOverlay(options: AudioOverlayOptions): SceneNode {
+  const key = options.template ?? "backgroundMusic";
+  const template: AudioOverlayTemplate = audioOverlayTemplates[key];
+  const id = options.id ?? `${key}-audio-overlay`;
+
+  if (options.assetId.trim() === "") {
+    throw new Error("audioOverlay() requires a non-empty assetId.");
+  }
+
+  return {
+    id,
+    type: "audio",
+    assetId: options.assetId,
+    from: options.from,
+    duration: options.duration ?? template.defaultDuration,
+    audioStartTime: options.trimStart,
+    volume: options.volume ?? (options.muted ? 0 : template.defaultVolume),
+    style: {},
+    animations: [],
+    children: [],
+  };
+}
+
 /** One spoken word with millisecond timestamps (ASR output shape). */
 export type CaptionWord = {
   word: string;

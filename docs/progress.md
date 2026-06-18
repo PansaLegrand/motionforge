@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (audio overlay AX2: preset helper)
+
+### Changed
+
+- Added `audioOverlay()` to `@motionforge/presets`.
+- Added audio overlay template metadata for `backgroundMusic`, `voiceover`, `soundEffect`, `beatAccent`, `ambientBed`, and `notificationPing`.
+- Added role defaults for conservative volumes and short cue durations where appropriate.
+- Documented audio overlay presets in the preset catalog guide.
+- Marked AX2 complete in the audio overlay roadmap.
+
+### Tested
+
+- `pnpm --filter @motionforge/presets typecheck`
+- `pnpm --filter @motionforge/presets test -- index.test.ts`
+- `pnpm --filter @motionforge/presets build`
+
+### Notes
+
+- The helper emits ordinary `audio` nodes with static `volume`, `audioStartTime`, `from`, and `duration`. Fades, looping, and ducking wait for a mixer-visible scene contract.
+
 ## 2026-06-19 (audio overlay AX1: roadmap)
 
 ### Changed

@@ -55,7 +55,7 @@ Done:
 - implementation slices scoped around current engine support first, then mixer/schema extensions
 - acceptance criteria defined for programmer helpers, agents, preview, and export
 
-## Slice AX2 - Audio Overlay Preset Helper
+## Slice AX2 - Audio Overlay Preset Helper ✅
 
 **Goal:** programmers can create common audio roles from stable names instead of hand-writing audio node fields.
 
@@ -64,7 +64,7 @@ Targets:
 - `@motionforge/presets`
 - docs/tests
 
-Done when:
+Done:
 
 - `audioOverlay()` emits schema-valid `audio` nodes from an asset id
 - templates cover `backgroundMusic`, `voiceover`, `soundEffect`, `beatAccent`, `ambientBed`, and `notificationPing`

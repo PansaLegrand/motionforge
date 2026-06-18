@@ -11,6 +11,9 @@ import {
   imageOverlayTemplateEntries,
   imageOverlayTemplates,
   karaokeCaptions,
+  audioOverlay,
+  audioOverlayTemplateEntries,
+  audioOverlayTemplates,
   mediaLook,
   mediaLookEntries,
   mediaLooks,
@@ -1156,5 +1159,111 @@ describe("video overlay template catalog", () => {
 
   it("rejects empty video overlay asset ids", () => {
     expect(() => videoOverlay({ assetId: " " })).toThrow("assetId");
+  });
+});
+
+describe("audio overlay template catalog", () => {
+  it("exposes stable audio overlay metadata", () => {
+    expect(audioOverlayTemplateEntries.map(([key]) => key)).toEqual([
+      "backgroundMusic",
+      "voiceover",
+      "soundEffect",
+      "beatAccent",
+      "ambientBed",
+      "notificationPing",
+    ]);
+    expect(audioOverlayTemplates.backgroundMusic.category).toBe("music");
+    expect(audioOverlayTemplates.voiceover.defaultVolume).toBe(1);
+  });
+
+  it("generates schema-valid audio overlays for every template", () => {
+    for (const [template] of audioOverlayTemplateEntries) {
+      const overlay = audioOverlay({
+        template,
+        assetId: "music",
+      });
+      const result = validateScene({
+        ...sceneWith(overlay),
+        assets: {
+          music: {
+            id: "music",
+            type: "audio",
+            src: "music.mp3",
+          },
+        },
+      });
+
+      expect(result.ok ? "ok" : result.errors.join("\n")).toBe("ok");
+      expect(overlay).toMatchObject({
+        type: "audio",
+        assetId: "music",
+        style: {},
+        animations: [],
+        children: [],
+      });
+    }
+  });
+
+  it("uses conservative role defaults", () => {
+    const music = audioOverlay({
+      template: "backgroundMusic",
+      id: "music-bed",
+      assetId: "track",
+    });
+    const effect = audioOverlay({
+      template: "soundEffect",
+      id: "whoosh",
+      assetId: "hit",
+    });
+    const beat = audioOverlay({
+      template: "beatAccent",
+      id: "beat-hit",
+      assetId: "hit",
+    });
+
+    expect(music).toMatchObject({
+      id: "music-bed",
+      type: "audio",
+      volume: 0.28,
+      duration: undefined,
+    });
+    expect(effect).toMatchObject({
+      volume: 0.85,
+      duration: 45,
+    });
+    expect(beat).toMatchObject({
+      volume: 0.7,
+      duration: 18,
+    });
+  });
+
+  it("lets audio overlay timing, source, mute, and volume overrides win", () => {
+    const overlay = audioOverlay({
+      template: "ambientBed",
+      id: "manual-ambience",
+      assetId: "room",
+      from: 24,
+      duration: 120,
+      trimStart: 3.5,
+      volume: 0.4,
+    });
+    const muted = audioOverlay({
+      template: "voiceover",
+      assetId: "voice",
+      muted: true,
+    });
+
+    expect(overlay).toMatchObject({
+      id: "manual-ambience",
+      from: 24,
+      duration: 120,
+      audioStartTime: 3.5,
+      volume: 0.4,
+    });
+    expect(muted.volume).toBe(0);
+  });
+
+  it("rejects empty audio overlay asset ids", () => {
+    expect(() => audioOverlay({ assetId: " " })).toThrow("assetId");
   });
 });
