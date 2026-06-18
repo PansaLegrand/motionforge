@@ -107,6 +107,8 @@ The next preset/template direction is recorded in [`docs/preset-template-roadmap
 
 The next preset discovery direction is recorded in [`docs/preset-explorer-roadmap.md`](preset-explorer-roadmap.md): bring the visual preset catalog into the programmer loop through a playground explorer first, then shared gallery preview and Studio adoption.
 
+The next text robustness direction is recorded in [`docs/text-overlay-robustness-roadmap.md`](text-overlay-robustness-roadmap.md): bounded lines, ellipsis, shrink-to-fit, authoring helpers, safe-area placement, preset upgrades, and stress goldens for production-safe text overlays.
+
 Decisions recorded 2026-06-12:
 
 - **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.

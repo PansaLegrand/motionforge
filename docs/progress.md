@@ -2,6 +2,23 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-18 (text overlay robustness roadmap)
+
+### Changed
+
+- Added `docs/text-overlay-robustness-roadmap.md` as the next core-engine theme.
+- Scoped the theme around bounded text semantics, shrink-to-fit, authoring helpers, safe-area placement, preset upgrades, and stress goldens.
+- Recorded the current text baseline: grapheme-aware wrapping, CJK/emoji tests, renderer-aligned measurement, auto-height text boxes, and existing overlay presets.
+- Linked the roadmap from the main project roadmap.
+
+### Tested
+
+- Documentation/link sanity review with `rg`.
+
+### Notes
+
+- The first implementation slice is TX1: `maxLines` plus `textOverflow` semantics across schema, layout, renderer, and tests.
+
 ## 2026-06-18 (preset explorer PX4: CLI Studio adoption)
 
 ### Changed
