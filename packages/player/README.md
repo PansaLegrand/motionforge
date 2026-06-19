@@ -9,7 +9,7 @@ const context = canvas.getContext("2d")!;
 const player = await createPlayer({ context, scene, loop: true });
 
 player.play();
-player.on("frame", (frame) => slider.value = String(frame));
+player.on("frame", (frame) => (slider.value = String(frame)));
 player.pause();
 await player.seek(45);
 player.dispose();
@@ -34,3 +34,21 @@ Scenes with audible nodes (audio nodes, or video nodes whose clips carry a sound
 - Bring your own implementation via the `audio` option (`AudioPreview` interface) — that's also how the deterministic tests drive it.
 
 Known cost: the whole-scene mix is one buffer in memory (48 kHz stereo ≈ 23 MB/min). Fine for short scenes; long scenes want chunked mixing, tracked in the testing-strategy robustness list.
+
+## API Stability
+
+Stable for 0.x integrations:
+
+- `createPlayer()`, `Player`, `PlayerOptions`, `PlayerEvent`, `FrameClock`, and event names `frame`, `play`, `pause`, and `ended`.
+- `play()`, `pause()`, `seek(frame)`, `dispose()`, `currentFrame`, and `on(event, callback)`.
+- Audio extension point: `AudioPreview` and `WebAudioPreview`.
+
+Experimental before 1.0:
+
+- Scheduler/time injection options are stable enough for tests, but may gain a narrower helper API as Studio and third-party apps converge.
+- Audio preview currently mixes the whole scene into one buffer; long-scene behavior may change while keeping `AudioPreview` as the integration boundary.
+
+Internal/not public:
+
+- Render-loop bookkeeping and audio drift correction internals are implementation details. Prefer the `Player` methods/events over reaching into private state.
+- Files outside the package root export are implementation details.

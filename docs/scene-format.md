@@ -187,7 +187,7 @@ renderStill(context, scene, frame, { assets }); // pure given (scene, frame, ass
 - **Video assets** open through mediabunny for frame-accurate decoding (no `<video>` element seeking). Because decoding is asynchronous and rendering is synchronous, video frames are staged per scene frame: `await prepareFrame(scene, frame, assets)` decodes what every active video node needs, then `renderStill` draws synchronously. `renderFrameSequence`/`exportVideo` call it automatically. Rendering a video node without a staged frame — or with one staged for a different scene frame — **throws**.
 - Rendering a scene that draws an `img` node without resolved assets **throws** with the asset id and the fix — a frame never renders with silently missing media.
 - A failed fetch or decode rejects with the asset id and src; there is no placeholder fallback by design.
-- **Audio assets** open the same way (mediabunny decode); the export mixer pulls PCM from them. Preview playback in the playground is not wired yet — the exported file is the source of truth for audio.
+- **Audio assets** open the same way (mediabunny decode); the export mixer pulls PCM from them. Player/Studio preview uses the same mixer path on a best-effort browser audio clock, while the exported file remains the source of truth for final audio.
 - Call `disposeAssets(assets)` when done with a scene to release video and audio decoder resources.
 
 ## Animations

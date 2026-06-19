@@ -69,10 +69,7 @@ Available templates: `classic`, `minimalBar`, `handwritten`, `retro`, `cinematic
 Common non-subtitle overlays are also compiled to ordinary scene nodes:
 
 ```ts
-import {
-  textOverlay,
-  textOverlayTemplates,
-} from "@motionforge/presets";
+import { textOverlay, textOverlayTemplates } from "@motionforge/presets";
 
 scene.nodes.push(
   textOverlay({
@@ -173,6 +170,27 @@ applyScenePatch(scene, tl.compileToPatch());
 - Offsets compile to a frame-0 hold of each preset's first value, so an entrance's held `opacity: 0` keeps the node invisible until its slot — no node retiming involved.
 - Pure and deterministic; the output round-trips `validateScene`. Choreographed nodes are assumed to share the same `from` (keyframes run on each node's local clock).
 - `tl.durationInFrames` reports where the last entry ends.
+
+## API Stability
+
+Stable for 0.x integrations:
+
+- Motion presets: `popIn()`, `fadeUp()`, `slideIn()`, and `pulse()`.
+- Timeline compiler: `timeline()`, `Timeline`, `TimelinePosition`, and `StaggerOptions`.
+- Template helpers that emit plain scene data: `textOverlay()`, `imageOverlay()`, `videoOverlay()`, `audioOverlay()`, `transitionOverlay()`, `styledCaptions()`, `subtitleTrack()`, `captionTrack` equivalents, and SRT/VTT parsers.
+- Template catalogs and keys for user-facing choices: caption/subtitle, text overlay, image overlay, video overlay, audio overlay, media look, clip layout, transition, and safe-area helpers.
+- `mediaLook()`, `clipLayout()`, `safeAreaBox()`, `resolveSafeArea()`, and `inferSafeAreaProfile()`.
+
+Experimental before 1.0:
+
+- The `@motionforge/presets/catalog` export, `presetCatalog`, and `buildPresetPatchExample()` are shared UI infrastructure for Playground/Studio and may evolve with those apps.
+- Older caption helpers `tiktokCaptions()` and `karaokeCaptions()` remain supported, but new subtitle work should prefer `styledCaptions()` / `subtitleTrack()` templates.
+- Template visual details may change additively; rely on template keys and options rather than exact generated child ids unless you control the preset version.
+
+Internal/not public:
+
+- Helpers that are not exported from the package root or `@motionforge/presets/catalog` are implementation details.
+- Presets do not render or schedule runtime behavior. They compile data; render with MotionForge packages.
 
 ## License
 

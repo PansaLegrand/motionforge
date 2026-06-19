@@ -2,6 +2,8 @@
 
 **Status:** started 2026-06-19
 
+**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit.
+
 MotionForge has enough feature surface to stop chasing overlay breadth for a moment. The next milestone is release-candidate confidence for the open-source base layer: a programmer can author, validate, inspect, preview, test, and export deterministic video scenes with clear APIs and failure modes.
 
 This track is not about making the chat app smarter. The chat app remains a useful reference consumer, but the RC bar is set by the engine packages, CLI/Studio, golden harness, docs, and starter workflow.
@@ -71,6 +73,12 @@ Done when:
 - every package lists stable exports, experimental exports, and internal-only concepts
 - package boundaries are checked for accidental app-only exports
 - README and guides stop implying features are planned when they are already shipped
+
+Completed:
+
+- Package READMEs now classify stable, experimental, and internal API surfaces.
+- `@motionforge/showcase` is documented as private workspace infrastructure rather than a public integration package.
+- Guide and scene-format wording was refreshed where it still implied shipped audio preview, fade, or loop behavior was future-only.
 
 ## Slice RC3 - Golden RC Matrix
 

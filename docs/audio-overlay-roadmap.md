@@ -69,7 +69,7 @@ Done:
 - templates cover `backgroundMusic`, `voiceover`, `soundEffect`, `beatAccent`, `ambientBed`, and `notificationPing`
 - helper exposes id, from, duration, trimStart, volume, muted, and template-specific defaults
 - tests cover schema validity, template metadata, default volumes, source trim, timing, and override behavior
-- docs explain that fades/looping/ducking land in later slices because the current scene contract cannot express them yet
+- docs originally scoped fades, looping, and ducking as later engine work; fades and looping have since shipped through `volumeEnvelope` and `loop`, while ducking remains future mixer work
 
 ## Slice AX3 - Authoring Audio Overlay Helper ✅
 
@@ -133,7 +133,7 @@ Progress:
 - AX5a complete: schema/core/export now carry `volumeEnvelope` on audio/video nodes and the mixer samples it in node-local frames, including clipped chunks.
 - AX5b complete: preset and authoring audio helpers compile fade-in/fade-out options to `volumeEnvelope`.
 - AX5d complete: audio nodes can loop source playback through long node windows, and preset/authoring/chat helpers expose `loop`.
-- Still remaining in AX5: ducking compilation, player/UI affordances, and browser-level audible regression checks.
+- Still remaining in AX5: ducking compilation and browser-level audible regression checks.
 
 ## Slice AX6 - Audio Overlay Stress Gallery
 

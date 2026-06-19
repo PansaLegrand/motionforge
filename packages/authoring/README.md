@@ -237,6 +237,25 @@ export default makeScene({
 
 For larger `.srt`, `.vtt`, or transcript files, keep them beside your source code if you load them at build time, or under `public/assets` if an app or browser workflow fetches them by URL. Parsed subtitles become normal scene nodes; the renderer does not need to fetch subtitle files during export.
 
+## API Stability
+
+Stable for 0.x integrations:
+
+- Scene helpers: `makeScene()`, `bg()`, `box()`, `title()`, `textBlock()`, `textBox()`, `textNode()`, `image()`, `videoClip()`, and `audioTrack()`.
+- Overlay/media helpers: `imageOverlay()`, `videoOverlay()`, `audioOverlay()`, `subtitleTrack()`, `captionTrack()`, and aliases `subtitles` / `captions`.
+- Time and asset helpers: `seconds()`, `frames()`, `time()`, `toFrames()`, `toSeconds()`, `publicAsset()`, `imageAsset()`, `videoAsset()`, `audioAsset()`, and `defineAssets()`.
+- Re-exported preset helpers for common authoring flows, including motion presets, subtitle parsers/templates, overlay template metadata, safe-area helpers, and `audioFadeEnvelope()`.
+
+Experimental before 1.0:
+
+- Higher-level overlay option shapes may gain fields as presets mature. They still emit ordinary validated scene nodes.
+- `AuthorNode` is intentionally simple, but custom author-node composition may get a more formal plugin interface later.
+
+Internal/not public:
+
+- This package is a convenience layer over scene JSON, not a separate runtime. Persist and patch the emitted `Scene`.
+- Files outside the package root export are implementation details.
+
 ## License
 
 MIT

@@ -69,6 +69,24 @@ export default makeScene({
 
 `dev` starts MotionForge Studio for the scene module. The studio validates the source, renders it on Canvas2D, exposes a frame scrubber and JSON inspector, and enables browser MP4 export when WebCodecs is available.
 
+## API Stability
+
+Stable for 0.x integrations:
+
+- CLI commands: `motionforge validate`, `motionforge print`, `motionforge inspect`, and `motionforge dev`.
+- Programmatic helpers: `executeCli()`, `runCli()`, `inspectScene()`, `CliResult`, `CliIo`, and `SceneInspection`.
+- Scene module loading contract: JSON files, JS/ESM modules, TypeScript modules through `tsx`, default export or named `scene`, and scene-returning functions/promises.
+
+Experimental before 1.0:
+
+- Studio UI served by `motionforge dev` is part of the developer workflow, but its HTML/CSS/client internals are not stable.
+- `inspect` output may gain additive fields; existing field names are intended to stay stable through 0.x.
+
+Internal/not public:
+
+- `createStudioServer()` and Vite virtual-module internals are exported only within package source today; do not rely on deep imports.
+- Files outside the package root export and CLI binary are implementation details.
+
 ## License
 
 MIT

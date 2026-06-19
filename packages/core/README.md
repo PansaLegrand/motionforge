@@ -42,6 +42,25 @@ const layout = layoutScene(resolved);
 
 The same builder program always emits the same scene JSON, so scenes can be diffed, patched, and snapshot-tested.
 
+## API Stability
+
+Stable for 0.x integrations:
+
+- Builder API: `composition()`, `div()`, `text()`, `img()`, `video()`, `audio()`, `SceneBuilder`, `NodeBuilder`, and their option types.
+- Evaluation and layout: `evaluateScene()`, `layoutScene()`, `ResolvedScene`, `ResolvedNode`, `LayoutScene`, and `LayoutBox`.
+- Keyframe evaluation and deterministic easing: `evaluateKeyframes()`, `applyEasing()`, `cubicBezierEasing()`, and `springEasing()`.
+- Text measurement helpers used by renderers/editors: `wrapTextLines()`, `prepareTextLines()`, and `prepareTextLayout()`.
+
+Experimental before 1.0:
+
+- Low-level parser helpers such as `parseTransform()` and `parseColor()` are exported for tests and custom tooling, but may be replaced by narrower renderer-facing APIs.
+- `sampleScene()` is a demo helper, not a compatibility contract.
+
+Internal/not public:
+
+- The core package does not render pixels or decode media. Use `@motionforge/renderer-canvas2d`, `@motionforge/player`, or `@motionforge/export` for those jobs.
+- Files outside the package root export are implementation details.
+
 ## License
 
 MIT

@@ -44,6 +44,24 @@ await renderFrameSequence({
 });
 ```
 
+## API Stability
+
+Stable for 0.x integrations:
+
+- Browser export surface: `detectExportCapability()` and `exportVideo()`.
+- Frame-loop surface: `renderFrameSequence()` plus `RenderFrameSequenceOptions`, `RenderFrameSequenceProgress`, `RenderedSequenceFrame`, and `RenderFrameSequenceResult`.
+- User-facing result/option types: `ExportVideoOptions`, `ExportVideoResult`, and `ExportCapability`.
+
+Experimental before 1.0:
+
+- Audio math helpers (`collectAudioPlacements()`, `mixSceneAudio()`, `mixAudioSegments()`, `audioChunkRanges()`, `evaluateVolumeEnvelope()`, `loopedSourceRanges()`) are exported for tests, player preview, and custom pipelines, but may be reorganized once longer-scene audio work settles.
+- `AudioPlacement`, `AudioSegment`, and `LoopedSourceRange` are low-level data shapes rather than authoring contracts.
+
+Internal/not public:
+
+- MP4 muxing details, codec selection internals, and mediabunny object wiring are implementation details. Gate UI on `detectExportCapability()` instead of assuming a codec.
+- Files outside the package root export are implementation details.
+
 ## License
 
 MIT

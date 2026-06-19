@@ -30,6 +30,24 @@ Rendering is pure given `(scene, frame, assets)`: the same inputs always produce
 
 Font assets load through the same call and register under their asset id: declare `{ id: "Inter-Bold", type: "font", src: "..." }` and style text with `fontFamily: "Inter-Bold"`. Embed fonts whenever pixel-exact text matters; unregistered families fall back through the canvas font stack.
 
+## API Stability
+
+Stable for 0.x integrations:
+
+- `resolveAssets(scene)`, `prepareFrame(scene, frame, assets)`, `renderStill(context, scene, frame, options)`, and `disposeAssets(assets)`.
+- `RenderOptions` and `ResolvedAssets` as the handoff shape between preview, export, and custom render loops.
+- `videoSourceTime()` and `lottieSourceFrame()` for tools that need to mirror source-time labels.
+
+Experimental before 1.0:
+
+- Concrete decoded clip shapes (`VideoClip`, `AudioClip`, `LottieClip`, `PreparedVideoFrame`) are exposed so advanced integrations can share resolved assets, but their internals may change with streaming or pooling work.
+- `validateLottieDocument()` is public for preflight tools, but the rejection rules may tighten as Lottie support expands.
+
+Internal/not public:
+
+- Asset resolver internals, mediabunny sinks, and lottie-web player objects should not be manipulated directly unless you own the full render pipeline.
+- Files outside the package root export are implementation details.
+
 ## License
 
 MIT

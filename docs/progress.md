@@ -2,6 +2,24 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (core engine RC2: public API audit)
+
+### Changed
+
+- Added API Stability sections to the schema, core, renderer, export, player, presets, authoring, CLI, and create-project package READMEs.
+- Classified package surfaces as stable for 0.x integrations, experimental before 1.0, or internal/not public.
+- Marked `@motionforge/showcase` as private workspace infrastructure rather than a public API package.
+- Clarified browser export, audio helper, preset catalog, Studio, and generated-template boundaries so app internals do not look like engine contracts.
+
+### Tested
+
+- `pnpm exec prettier --write docs/core-engine-rc-roadmap.md docs/progress.md docs/scene-format.md docs/audio-overlay-roadmap.md packages/schema/README.md packages/core/README.md packages/renderer-canvas2d/README.md packages/export/README.md packages/player/README.md packages/presets/README.md packages/authoring/README.md packages/cli/README.md packages/create-motionforge/README.md packages/showcase/README.md`
+- `git diff --check`
+
+### Notes
+
+- These labels are a 0.x compatibility guide, not a full 1.0 freeze. Additive schema and inspection fields remain expected while the RC track continues.
+
 ## 2026-06-19 (core engine RC1: CLI scene inspection)
 
 ### Changed
