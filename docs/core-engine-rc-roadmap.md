@@ -2,7 +2,7 @@
 
 **Status:** started 2026-06-19
 
-**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit.
+**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix.
 
 MotionForge has enough feature surface to stop chasing overlay breadth for a moment. The next milestone is release-candidate confidence for the open-source base layer: a programmer can author, validate, inspect, preview, test, and export deterministic video scenes with clear APIs and failure modes.
 
@@ -95,6 +95,12 @@ Done when:
 - one table lists exact goldens, probe goldens, browser export smoke, video checks, and audio checks
 - newest audio paths have browser-level coverage: static volume, `volumeEnvelope`, fade, loop, and chunk boundary
 - golden failure artifacts and update commands are documented in one place
+
+Completed:
+
+- `docs/testing-strategy.md` now lists the RC golden matrix by area, check type, and command.
+- Browser golden audio checks now decode exported MP4 audio for static volume, chunk boundaries, `volumeEnvelope` fade behavior, looped audio beds, and video-node soundtrack timing.
+- Failure artifact and update commands are documented alongside the matrix.
 
 ## Slice RC4 - Release Gate Script
 

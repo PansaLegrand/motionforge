@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (core engine RC3: golden RC matrix)
+
+### Changed
+
+- Reworked `docs/testing-strategy.md` into an RC golden matrix covering exact goldens, probe goldens, browser export smoke, video checks, audio checks, and playground E2E.
+- Added browser-level exported-audio checks for `volumeEnvelope` fade behavior and `loop: true` audio beds.
+- Factored the golden harness RMS window reader so future ducking checks can reuse the same decoded-MP4 assertion path.
+- Marked RC3 complete in the core engine RC roadmap.
+
+### Tested
+
+- `pnpm exec prettier --write tools/golden/src/harness.ts docs/testing-strategy.md docs/core-engine-rc-roadmap.md docs/progress.md`
+- `git diff --check`
+- `pnpm --filter @motionforge/golden typecheck`
+- `pnpm --filter @motionforge/golden run golden:test`
+
+### Notes
+
+- Ducking remains future mixer work. The matrix now names it as the audio-browser gap to fill when that feature lands.
+
 ## 2026-06-19 (core engine RC2: public API audit)
 
 ### Changed

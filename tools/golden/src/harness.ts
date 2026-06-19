@@ -373,6 +373,30 @@ function buildToneWav(
   return new Blob([view.buffer], { type: "audio/wav" });
 }
 
+async function rmsOver(
+  sink: AudioBufferSink,
+  start: number,
+  end: number,
+): Promise<number> {
+  let sumSquares = 0;
+  let count = 0;
+
+  for await (const wrapped of sink.buffers(start, end)) {
+    const data = wrapped.buffer.getChannelData(0);
+
+    for (let index = 0; index < data.length; index += 1) {
+      const at = wrapped.timestamp + index / wrapped.buffer.sampleRate;
+
+      if (at >= start && at < end) {
+        sumSquares += (data[index] ?? 0) ** 2;
+        count += 1;
+      }
+    }
+  }
+
+  return count === 0 ? 0 : Math.sqrt(sumSquares / count);
+}
+
 /**
  * End-to-end audio check: a 1s sine WAV placed at scene frame 15 (0.5s) with
  * volume 0.8 exports into the MP4's audio track — silent before 0.5s, tone
@@ -452,29 +476,10 @@ window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
     });
 
     const sink = new AudioBufferSink(track);
-    const rmsOver = async (start: number, end: number): Promise<number> => {
-      let sumSquares = 0;
-      let count = 0;
-
-      for await (const wrapped of sink.buffers(start, end)) {
-        const data = wrapped.buffer.getChannelData(0);
-
-        for (let index = 0; index < data.length; index += 1) {
-          const at = wrapped.timestamp + index / wrapped.buffer.sampleRate;
-
-          if (at >= start && at < end) {
-            sumSquares += (data[index] ?? 0) ** 2;
-            count += 1;
-          }
-        }
-      }
-
-      return count === 0 ? 0 : Math.sqrt(sumSquares / count);
-    };
 
     // Margins around the 0.5s boundary absorb encoder priming/padding.
-    const silentRms = await rmsOver(0.05, 0.4);
-    const toneRms = await rmsOver(0.6, 1.4);
+    const silentRms = await rmsOver(sink, 0.05, 0.4);
+    const toneRms = await rmsOver(sink, 0.6, 1.4);
 
     checks.push({
       label: "audio: silent before the node starts at frame 15",
@@ -578,28 +583,9 @@ window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
 
   if (compositeTrack) {
     const sink = new AudioBufferSink(compositeTrack);
-    const rmsOver = async (start: number, end: number): Promise<number> => {
-      let sumSquares = 0;
-      let count = 0;
 
-      for await (const wrapped of sink.buffers(start, end)) {
-        const data = wrapped.buffer.getChannelData(0);
-
-        for (let index = 0; index < data.length; index += 1) {
-          const at = wrapped.timestamp + index / wrapped.buffer.sampleRate;
-
-          if (at >= start && at < end) {
-            sumSquares += (data[index] ?? 0) ** 2;
-            count += 1;
-          }
-        }
-      }
-
-      return count === 0 ? 0 : Math.sqrt(sumSquares / count);
-    };
-
-    const headRms = await rmsOver(0.05, 0.4);
-    const clipRms = await rmsOver(0.6, 1.4);
+    const headRms = await rmsOver(sink, 0.05, 0.4);
+    const clipRms = await rmsOver(sink, 0.6, 1.4);
 
     checks.push({
       label: "audio: silent before the video node starts",
@@ -624,6 +610,115 @@ window.runGoldenAudioChecks = async (): Promise<VideoCheck[]> => {
   compositeInput.dispose();
   disposeAssets(compositeAssets);
   URL.revokeObjectURL(clipUrl);
+
+  // --- audio automation and looped beds -----------------------------------
+  // Keep the three tones separated so decoded RMS windows can prove static
+  // volume, envelope gain, and source wrapping independently.
+  const automationScene: Scene = {
+    schemaVersion: 0,
+    width: 320,
+    height: 180,
+    fps: 30,
+    duration: 120,
+    assets: { tone: { id: "tone", type: "audio", src: toneUrl } },
+    nodes: [
+      {
+        id: "bg",
+        type: "div",
+        from: 0,
+        duration: 120,
+        style: { width: "100%", height: "100%", backgroundColor: "#101820" },
+        children: [],
+      },
+      {
+        id: "static",
+        type: "audio",
+        assetId: "tone",
+        from: 0,
+        duration: 24,
+        volume: 0.8,
+      },
+      {
+        id: "fade",
+        type: "audio",
+        assetId: "tone",
+        from: 36,
+        duration: 30,
+        volume: 0.8,
+        volumeEnvelope: [
+          { frame: 0, value: 0 },
+          { frame: 30, value: 1, easing: "linear" },
+        ],
+      },
+      {
+        id: "loop",
+        type: "audio",
+        assetId: "tone",
+        from: 78,
+        duration: 42,
+        volume: 0.8,
+        loop: true,
+      },
+    ],
+  };
+
+  const automationAssets = await resolveAssets(automationScene);
+  const { blob: automationBlob, audioCodec: automationAudioCodec } =
+    await exportVideo({
+      scene: automationScene,
+      assets: automationAssets,
+      audioChunkSeconds: 0.35,
+    });
+
+  checks.push({
+    label: "audio: automation/loop scene exports an audio codec",
+    pass: automationAudioCodec !== null,
+    detail: String(automationAudioCodec),
+  });
+
+  const automationInput = new Input({
+    formats: ALL_FORMATS,
+    source: new BlobSource(automationBlob),
+  });
+  const automationTrack = await automationInput.getPrimaryAudioTrack();
+
+  if (automationTrack) {
+    const sink = new AudioBufferSink(automationTrack);
+    const staticRms = await rmsOver(sink, 0.12, 0.65);
+    const fadeEarlyRms = await rmsOver(sink, 1.28, 1.45);
+    const fadeLateRms = await rmsOver(sink, 1.85, 2.12);
+    const loopWrappedRms = await rmsOver(sink, 3.75, 3.95);
+
+    checks.push({
+      label: "audio: static volume remains audible",
+      pass: staticRms > 0.15 && staticRms < 0.4,
+      detail: `rms ${staticRms.toFixed(4)}`,
+    });
+    checks.push({
+      label: "audio: volumeEnvelope starts quieter than the static bed",
+      pass: fadeEarlyRms > 0.015 && fadeEarlyRms < staticRms * 0.6,
+      detail: `rms ${fadeEarlyRms.toFixed(4)} vs static ${staticRms.toFixed(4)}`,
+    });
+    checks.push({
+      label: "audio: volumeEnvelope reaches full audible level",
+      pass: fadeLateRms > staticRms * 0.6 && fadeLateRms < staticRms * 1.25,
+      detail: `rms ${fadeLateRms.toFixed(4)} vs static ${staticRms.toFixed(4)}`,
+    });
+    checks.push({
+      label: "audio: looped source continues after the 1s WAV wraps",
+      pass: loopWrappedRms > 0.15 && loopWrappedRms < 0.4,
+      detail: `rms ${loopWrappedRms.toFixed(4)}`,
+    });
+  } else {
+    checks.push({
+      label: "audio: static volume remains audible",
+      pass: false,
+      detail: "no audio track in automation export",
+    });
+  }
+
+  automationInput.dispose();
+  disposeAssets(automationAssets);
   URL.revokeObjectURL(toneUrl);
 
   return checks;
@@ -679,7 +774,10 @@ window.renderGoldenDiffPng = async (
   expected: RenderedFrame,
   received: RenderedFrame,
 ): Promise<string> => {
-  if (expected.width !== received.width || expected.height !== received.height) {
+  if (
+    expected.width !== received.width ||
+    expected.height !== received.height
+  ) {
     throw new Error(
       `Cannot diff frames with different sizes: expected ${expected.width}x${expected.height}, received ${received.width}x${received.height}`,
     );
@@ -731,7 +829,6 @@ window.renderGoldenDiffPng = async (
   context.putImageData(image, 0, 0);
   return canvas.toDataURL("image/png").split(",")[1] ?? "";
 };
-
 
 export type BenchmarkStage = {
   label: string;
