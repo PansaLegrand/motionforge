@@ -58,6 +58,104 @@ describe("@motionforge/cli", () => {
     }
   });
 
+  it("inspects scene metadata as stable JSON", async () => {
+    const dir = await tempDir();
+
+    try {
+      const scenePath = join(dir, "scene.json");
+      await writeFile(
+        scenePath,
+        JSON.stringify({
+          schemaVersion: 0,
+          width: 1920,
+          height: 1080,
+          fps: 24,
+          duration: 120,
+          assets: {
+            music: { id: "music", type: "audio", src: "music.mp3" },
+            clip: { id: "clip", type: "video", src: "clip.mp4" },
+          },
+          nodes: [
+            {
+              id: "bg",
+              type: "div",
+              children: [
+                {
+                  id: "title",
+                  type: "text",
+                  text: "Hello",
+                  animations: [
+                    {
+                      kind: "keyframes",
+                      property: "opacity",
+                      frames: [
+                        { frame: 0, value: 0 },
+                        { frame: 12, value: 1 },
+                      ],
+                    },
+                  ],
+                },
+              ],
+            },
+            {
+              id: "music",
+              type: "audio",
+              assetId: "music",
+              duration: 120,
+              loop: true,
+              volumeEnvelope: [
+                { frame: 0, value: 0 },
+                { frame: 24, value: 1 },
+              ],
+            },
+          ],
+        }),
+      );
+
+      const result = await executeCli(["inspect", scenePath]);
+      const inspected = JSON.parse(result.stdout) as {
+        width: number;
+        durationSeconds: number;
+        assets: Record<string, number>;
+        nodes: Record<string, number>;
+        capabilities: Record<string, boolean>;
+      };
+
+      expect(result, result.stderr).toMatchObject({ exitCode: 0, stderr: "" });
+      expect(inspected).toMatchObject({
+        schemaVersion: 0,
+        width: 1920,
+        height: 1080,
+        fps: 24,
+        durationFrames: 120,
+        durationSeconds: 5,
+        assets: {
+          total: 2,
+          audio: 1,
+          video: 1,
+        },
+        nodes: {
+          total: 3,
+          root: 2,
+          div: 1,
+          text: 1,
+          audio: 1,
+        },
+        capabilities: {
+          hasVisuals: true,
+          hasAudio: true,
+          hasVideo: true,
+          hasAnimations: true,
+          hasVolumeAutomation: true,
+          hasLoopedAudio: true,
+          requiresBrowserExport: true,
+        },
+      });
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
   it("reports validation errors with a non-zero exit code", async () => {
     const dir = await tempDir();
 
@@ -79,7 +177,9 @@ describe("@motionforge/cli", () => {
 
       expect(result.exitCode).toBe(1);
       expect(result.stdout).toBe("");
-      expect(result.stderr).toContain(`Invalid MotionForge scene: ${scenePath}`);
+      expect(result.stderr).toContain(
+        `Invalid MotionForge scene: ${scenePath}`,
+      );
       expect(result.stderr).toContain("Text nodes require a `text` string.");
     } finally {
       await rm(dir, { recursive: true, force: true });
@@ -124,6 +224,10 @@ describe("@motionforge/cli", () => {
       exitCode: 2,
       stdout: "",
     });
+    await expect(executeCli(["inspect"])).resolves.toMatchObject({
+      exitCode: 2,
+      stdout: "",
+    });
   });
 
   it("starts a studio server for a scene module", async () => {
@@ -164,9 +268,7 @@ describe("@motionforge/cli", () => {
       expect(payload).toMatchObject({ ok: true, scene: { width: 1080 } });
 
       const html = await (await fetch(match?.[1] ?? "")).text();
-      expect(html).toContain(
-        "/@id/__x00__virtual:motionforge-studio-client",
-      );
+      expect(html).toContain("/@id/__x00__virtual:motionforge-studio-client");
       expect(html).toContain("preset-family-tabs");
 
       const clientResponse = await fetch(

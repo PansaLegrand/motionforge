@@ -117,6 +117,8 @@ The next video overlay direction is recorded in [`docs/video-overlay-roadmap.md`
 
 The next audio overlay direction is recorded in [`docs/audio-overlay-roadmap.md`](audio-overlay-roadmap.md): background music, voiceover, ambience, sound effects, beat accents, notification cues, then truthful engine support for fades, looping, and ducking.
 
+The core engine release-candidate direction is recorded in [`docs/core-engine-rc-roadmap.md`](core-engine-rc-roadmap.md): CLI inspection, public API audit, golden RC matrix, release gates, clean-machine verification, and long-scene/resource confidence.
+
 Decisions recorded 2026-06-12:
 
 - **Lead artifact is the chat app** ("one sentence → video") — it is the highest-buzz demo and _is_ the launch video. Built in **Next.js** (maintainer's framework), as a fully client-side app (static export; BYO Anthropic key kept in the browser, calling the API directly via the CORS opt-in header) so "no server anywhere" stays literally true.

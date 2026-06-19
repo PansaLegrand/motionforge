@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (core engine RC1: CLI scene inspection)
+
+### Changed
+
+- Added `docs/core-engine-rc-roadmap.md` for the release-candidate hardening track.
+- Linked the RC track from the main roadmap.
+- Added `motionforge inspect <scene-module>` to validate a scene and print machine-readable metadata.
+- Inspection output summarizes dimensions, duration, asset counts, node counts, and capability flags for visuals, audio, video, Lottie, animations, volume automation, and looped audio.
+- Updated the CLI README with `inspect` usage.
+
+### Tested
+
+- `pnpm --filter @motionforge/cli typecheck`
+- `pnpm --filter @motionforge/cli test`
+- `pnpm --filter @motionforge/cli build`
+
+### Notes
+
+- This starts the RC track by strengthening automation and agent ergonomics around the existing CLI instead of adding a parallel tool.
+
 ## 2026-06-19 (audio overlay AX5d: looped beds)
 
 ### Changed

@@ -1,4 +1,4 @@
-import { validateScene } from "@motionforge/schema";
+import { validateScene, type Scene } from "@motionforge/schema";
 import { loadSceneModule } from "./loader.js";
 import { createStudioServer, type StudioServerOptions } from "./studio.js";
 
@@ -19,6 +19,7 @@ const helpText = `motionforge
 Usage:
   motionforge validate <scene-module>
   motionforge print <scene-module>
+  motionforge inspect <scene-module>
   motionforge dev <scene-module> [--host <host>] [--port <port>]
 
 Scene modules may be .json, .js, .mjs, .cjs, .ts, .mts, or .cts files.
@@ -56,7 +57,7 @@ export async function executeCli(argv: string[]): Promise<CliResult> {
     return await executeDevCommand(modulePath, rest);
   }
 
-  if (command !== "validate" && command !== "print") {
+  if (command !== "validate" && command !== "print" && command !== "inspect") {
     return {
       exitCode: 2,
       stdout: "",
@@ -92,6 +93,14 @@ export async function executeCli(argv: string[]): Promise<CliResult> {
       };
     }
 
+    if (command === "inspect") {
+      return {
+        exitCode: 0,
+        stdout: `${JSON.stringify(inspectScene(result.scene), null, 2)}\n`,
+        stderr: "",
+      };
+    }
+
     return {
       exitCode: 0,
       stdout: `Valid MotionForge scene: ${modulePath}\n`,
@@ -121,7 +130,11 @@ async function executeDevCommand(
   const options = parseDevOptions(args);
 
   if (!options.ok) {
-    return { exitCode: 2, stdout: "", stderr: `${options.error}\n\n${helpText}` };
+    return {
+      exitCode: 2,
+      stdout: "",
+      stderr: `${options.error}\n\n${helpText}`,
+    };
   }
 
   try {
@@ -146,12 +159,12 @@ async function executeDevCommand(
   }
 }
 
-function parseDevOptions(
-  args: string[],
-): ({ ok: true } & Pick<StudioServerOptions, "host" | "port">) | {
-  ok: false;
-  error: string;
-} {
+function parseDevOptions(args: string[]):
+  | ({ ok: true } & Pick<StudioServerOptions, "host" | "port">)
+  | {
+      ok: false;
+      error: string;
+    } {
   let host: string | undefined;
   let port: number | undefined;
 
@@ -188,4 +201,115 @@ function formatValidationErrors(modulePath: string, errors: string[]) {
     ...errors.map((error) => `- ${error}`),
     "",
   ].join("\n");
+}
+
+export type SceneInspection = {
+  schemaVersion: number;
+  width: number;
+  height: number;
+  fps: number;
+  durationFrames: number;
+  durationSeconds: number;
+  assets: {
+    total: number;
+    image: number;
+    video: number;
+    audio: number;
+    font: number;
+    lottie: number;
+  };
+  nodes: {
+    total: number;
+    root: number;
+    div: number;
+    text: number;
+    img: number;
+    video: number;
+    audio: number;
+    lottie: number;
+  };
+  capabilities: {
+    hasVisuals: boolean;
+    hasAudio: boolean;
+    hasVideo: boolean;
+    hasLottie: boolean;
+    hasAnimations: boolean;
+    hasVolumeAutomation: boolean;
+    hasLoopedAudio: boolean;
+    requiresBrowserExport: true;
+  };
+};
+
+export function inspectScene(scene: Scene): SceneInspection {
+  const assets: SceneInspection["assets"] = {
+    total: 0,
+    image: 0,
+    video: 0,
+    audio: 0,
+    font: 0,
+    lottie: 0,
+  };
+  const nodes: SceneInspection["nodes"] = {
+    total: 0,
+    root: scene.nodes.length,
+    div: 0,
+    text: 0,
+    img: 0,
+    video: 0,
+    audio: 0,
+    lottie: 0,
+  };
+  let hasAnimations = false;
+  let hasVolumeAutomation = false;
+  let hasLoopedAudio = false;
+
+  for (const asset of Object.values(scene.assets)) {
+    assets.total += 1;
+    assets[asset.type] += 1;
+  }
+
+  const visit = (sceneNodes: Scene["nodes"]) => {
+    for (const node of sceneNodes) {
+      nodes.total += 1;
+      nodes[node.type] += 1;
+
+      if ((node.animations ?? []).length > 0) {
+        hasAnimations = true;
+      }
+
+      if (node.volumeEnvelope !== undefined) {
+        hasVolumeAutomation = true;
+      }
+
+      if (node.type === "audio" && node.loop === true) {
+        hasLoopedAudio = true;
+      }
+
+      visit(node.children ?? []);
+    }
+  };
+
+  visit(scene.nodes);
+
+  return {
+    schemaVersion: scene.schemaVersion,
+    width: scene.width,
+    height: scene.height,
+    fps: scene.fps,
+    durationFrames: scene.duration,
+    durationSeconds: scene.duration / scene.fps,
+    assets,
+    nodes,
+    capabilities: {
+      hasVisuals:
+        nodes.div + nodes.text + nodes.img + nodes.video + nodes.lottie > 0,
+      hasAudio: nodes.audio > 0 || nodes.video > 0 || assets.audio > 0,
+      hasVideo: nodes.video > 0 || assets.video > 0,
+      hasLottie: nodes.lottie > 0 || assets.lottie > 0,
+      hasAnimations,
+      hasVolumeAutomation,
+      hasLoopedAudio,
+      requiresBrowserExport: true,
+    },
+  };
 }
