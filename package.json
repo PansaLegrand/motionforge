@@ -15,6 +15,7 @@
     "golden:update": "pnpm --filter @motionforge/golden run update",
     "presets:generate": "node examples/generate-preset-gallery.mjs",
     "showcase:generate": "node examples/generate-showcase.mjs",
+    "resource:smoke": "pnpm --filter @motionforge/golden run resource:smoke",
     "test": "pnpm -r test",
     "typecheck": "pnpm -r typecheck",
     "lint": "node scripts/check-determinism.mjs && pnpm -r lint",

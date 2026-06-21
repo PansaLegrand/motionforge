@@ -13,7 +13,7 @@ Testing is part of the design, not a cleanup phase. Each engine slice should lan
 ## Release Gates
 
 - `pnpm release:fast`: run before merging core changes. It runs typecheck, unit tests, determinism lint, builds, and built CLI/create-project smokes.
-- `pnpm release:full`: run before tagging or publishing. It runs the fast gate plus browser goldens, playground E2E, and `npm pack --dry-run` for every publishable package.
+- `pnpm release:full`: run before tagging or publishing. It runs the fast gate plus long-scene resource smoke, browser goldens, playground E2E, and `npm pack --dry-run` for every publishable package.
 - `pnpm verify:clean`: pack publishable packages, install a generated starter in a temp directory, and run the starter's `validate`, `inspect`, and `build` scripts outside the monorepo.
 
 The gate script lives at `scripts/release-gate.mjs`; clean-machine verification lives at `scripts/verify-clean-machine.mjs`. When a command fails, the scripts print the exact command and let the underlying tool output stay visible.
@@ -22,21 +22,22 @@ The gate script lives at `scripts/release-gate.mjs`; clean-machine verification 
 
 `pnpm golden:test` is the release-candidate browser media gate. It runs `tools/golden/src/cli.ts` against `tools/golden/src/harness.ts` and the fixtures in `tools/golden/src/fixtures.ts`.
 
-| Area                  | Coverage                                                                                                                 | Check type                          | Command            |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | ------------------ |
-| Paint/layout baseline | Gradient paint, absolute insets, flex centering, space-between/stretch, overflow clipping                                | Exact frame hash                    | `pnpm golden:test` |
-| Animation baseline    | Opacity midpoint, color midpoint, transform origin, transform tween/easing                                               | Exact frame hash                    | `pnpm golden:test` |
-| Text baseline         | Embedded font, stroke, fitted text background, shadow presence, explicit newlines, wrapping, auto-height                 | Exact hash or probe                 | `pnpm golden:test` |
-| Image/media styling   | `objectFit`, rounded image clipping, filter, z-index, border, shadow                                                     | Exact frame hash                    | `pnpm golden:test` |
-| Lottie                | Source-frame seeking and playback-rate mapping for self-contained vector JSON                                            | Exact frame hash                    | `pnpm golden:test` |
-| Export smoke          | Browser `exportVideo()` creates a plausible MP4 with `ftyp`, expected frame count, and codec metadata                    | Browser encode assertion            | `pnpm golden:test` |
-| Video media           | Synthetic clip trim, playbackRate, preview pixel correctness, export/decode round trip                                   | Browser encode/decode assertion     | `pnpm golden:test` |
-| Audio media           | Audio node export codec, audio track presence, scene-duration coverage, silence before node start, audible static volume | Browser encode/decode RMS assertion | `pnpm golden:test` |
-| Audio chunks          | 0.4s audio chunks across node-start boundaries                                                                           | Browser encode/decode RMS assertion | `pnpm golden:test` |
-| Video soundtrack      | Video node's embedded audio reaches export with correct timing and volume                                                | Browser encode/decode RMS assertion | `pnpm golden:test` |
-| Audio automation      | `volumeEnvelope` starts quiet and reaches full level in exported MP4                                                     | Browser encode/decode RMS assertion | `pnpm golden:test` |
-| Audio looping         | `loop: true` continues a 1s WAV beyond its source end in exported MP4                                                    | Browser encode/decode RMS assertion | `pnpm golden:test` |
-| Playground workflow   | Real UI paints, plays, seeks, patches, loads audio and Lottie scenes, and stays console-clean                            | Playwright UI smoke                 | `pnpm e2e`         |
+| Area                  | Coverage                                                                                                                 | Check type                          | Command               |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------ | ----------------------------------- | --------------------- |
+| Paint/layout baseline | Gradient paint, absolute insets, flex centering, space-between/stretch, overflow clipping                                | Exact frame hash                    | `pnpm golden:test`    |
+| Animation baseline    | Opacity midpoint, color midpoint, transform origin, transform tween/easing                                               | Exact frame hash                    | `pnpm golden:test`    |
+| Text baseline         | Embedded font, stroke, fitted text background, shadow presence, explicit newlines, wrapping, auto-height                 | Exact hash or probe                 | `pnpm golden:test`    |
+| Image/media styling   | `objectFit`, rounded image clipping, filter, z-index, border, shadow                                                     | Exact frame hash                    | `pnpm golden:test`    |
+| Lottie                | Source-frame seeking and playback-rate mapping for self-contained vector JSON                                            | Exact frame hash                    | `pnpm golden:test`    |
+| Export smoke          | Browser `exportVideo()` creates a plausible MP4 with `ftyp`, expected frame count, and codec metadata                    | Browser encode assertion            | `pnpm golden:test`    |
+| Video media           | Synthetic clip trim, playbackRate, preview pixel correctness, export/decode round trip                                   | Browser encode/decode assertion     | `pnpm golden:test`    |
+| Audio media           | Audio node export codec, audio track presence, scene-duration coverage, silence before node start, audible static volume | Browser encode/decode RMS assertion | `pnpm golden:test`    |
+| Audio chunks          | 0.4s audio chunks across node-start boundaries                                                                           | Browser encode/decode RMS assertion | `pnpm golden:test`    |
+| Video soundtrack      | Video node's embedded audio reaches export with correct timing and volume                                                | Browser encode/decode RMS assertion | `pnpm golden:test`    |
+| Audio automation      | `volumeEnvelope` starts quiet and reaches full level in exported MP4                                                     | Browser encode/decode RMS assertion | `pnpm golden:test`    |
+| Audio looping         | `loop: true` continues a 1s WAV beyond its source end in exported MP4                                                    | Browser encode/decode RMS assertion | `pnpm golden:test`    |
+| Resource smoke        | 10-minute audio chunk ranges, looped-bed splitting, envelope chunk offsets, 1,000-node evaluate/layout                   | Node smoke assertion                | `pnpm resource:smoke` |
+| Playground workflow   | Real UI paints, plays, seeks, patches, loads audio and Lottie scenes, and stays console-clean                            | Playwright UI smoke                 | `pnpm e2e`            |
 
 ## Golden Artifacts
 
@@ -60,7 +61,7 @@ Exact hash fixtures store both JSON snapshots and PNG baselines under `fixtures/
 ## Near-Term Gaps
 
 - Ducking is still future mixer work; when it ships, add both unit windows and browser RMS checks before marking AX5 complete.
-- Long-scene resource confidence needs a repeatable benchmark gate with memory notes for audio chunks, looped beds, and many-node scenes.
+- Long-scene preview audio still uses a whole-scene Web Audio buffer. Export is chunked; preview can move to a chunked/custom `AudioPreview` backend when real long-editor workloads require it.
 - Clean-machine package verification is not yet automated outside the monorepo.
 - `pnpm verify:clean -- --keep` preserves the temp starter for manual Studio/browser-export checks.
 

@@ -33,7 +33,7 @@ Scenes with audible nodes (audio nodes, or video nodes whose clips carry a sound
 - **Best-effort by design.** No `AudioContext` (or a custom `audio: false`) means silent preview; the `AudioContext` is created lazily inside `play()`, which is normally a user gesture, satisfying autoplay policies. The exported file remains the audio source of truth.
 - Bring your own implementation via the `audio` option (`AudioPreview` interface) — that's also how the deterministic tests drive it.
 
-Known cost: the whole-scene mix is one buffer in memory (48 kHz stereo ≈ 23 MB/min). Fine for short scenes; long scenes want chunked mixing, tracked in the testing-strategy robustness list.
+Known cost: preview keeps the whole-scene mix in one Web Audio buffer (48 kHz stereo ≈ 23 MB/min), plus decoded source PCM. Fine for short scenes; long-scene editors should pass a custom `AudioPreview` or wait for a chunked preview backend. Export already mixes audio in chunks.
 
 ## API Stability
 

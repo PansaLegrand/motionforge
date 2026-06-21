@@ -32,6 +32,7 @@ const steps =
         ["pnpm", ["test"]],
         ["pnpm", ["lint"]],
         ["pnpm", ["build"]],
+        ["pnpm", ["resource:smoke"]],
         ["pnpm", ["golden:test"]],
         ["pnpm", ["e2e"]],
         ["node", ["scripts/release-gate.mjs", "smoke"]],

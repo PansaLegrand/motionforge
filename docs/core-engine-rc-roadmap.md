@@ -2,7 +2,7 @@
 
 **Status:** started 2026-06-19
 
-**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix; RC4 release gate script; RC5 clean-machine verification.
+**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix; RC4 release gate script; RC5 clean-machine verification; RC6 long-scene and resource confidence.
 
 MotionForge has enough feature surface to stop chasing overlay breadth for a moment. The next milestone is release-candidate confidence for the open-source base layer: a programmer can author, validate, inspect, preview, test, and export deterministic video scenes with clear APIs and failure modes.
 
@@ -160,6 +160,12 @@ Done when:
 - benchmark docs include long-scene audio/video memory notes
 - tests or benchmark scripts cover audio chunks, looped beds, and many-node scenes
 - asset disposal and decoder cleanup expectations are documented
+
+Completed:
+
+- Added `pnpm resource:smoke` for 10-minute audio chunk ranges, looped-bed source splitting, envelope chunk offsets, and a 1,000-node evaluate/layout pass.
+- Added resource smoke to `pnpm release:full`.
+- Updated benchmark/export/player docs with current export chunking, preview audio memory cost, and disposal expectations.
 
 ## Acceptance Criteria
 

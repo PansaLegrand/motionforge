@@ -2,6 +2,27 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (core engine RC6: long-scene resource confidence)
+
+### Changed
+
+- Added `tools/golden/src/resource-smoke.ts`.
+- Added root `pnpm resource:smoke` and golden-package `resource:smoke`.
+- Added resource smoke to `pnpm release:full`.
+- Documented current long-scene behavior: export audio is chunked, player preview audio is whole-scene, looped beds split source ranges instead of duplicating nodes, and asset disposal remains explicit.
+- Marked RC6 complete in the core engine RC roadmap.
+
+### Tested
+
+- `pnpm exec prettier --write package.json tools/golden/package.json scripts/release-gate.mjs tools/golden/src/resource-smoke.ts README.md docs/benchmarks.md docs/testing-strategy.md docs/core-engine-rc-roadmap.md docs/progress.md packages/player/README.md packages/export/README.md`
+- `git diff --check`
+- `pnpm resource:smoke`
+- `pnpm --filter @motionforge/golden typecheck`
+
+### Notes
+
+- This does not replace browser goldens. It is a cheap Node smoke for long-scene math and many-node evaluation; encoded audio/video behavior remains covered by `pnpm golden:test`.
+
 ## 2026-06-19 (core engine RC5: clean-machine verification)
 
 ### Changed

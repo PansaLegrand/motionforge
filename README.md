@@ -165,6 +165,7 @@ Before tagging or publishing, use the release gates:
 pnpm release:fast  # typecheck, unit tests, lint, build, CLI/starter smoke
 pnpm release:full  # fast gate + goldens, E2E, package pack dry-runs
 pnpm verify:clean  # pack packages, install a starter in /tmp, validate/inspect/build
+pnpm resource:smoke # long-scene chunk/loop/many-node resource assertions
 ```
 
 Use `pnpm verify:clean -- --keep` when you want to preserve the temporary starter and manually run `pnpm dev` to inspect Studio or browser MP4 export.
