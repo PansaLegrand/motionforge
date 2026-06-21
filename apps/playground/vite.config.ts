@@ -1,14 +1,26 @@
 import { defineConfig } from "vitest/config";
 import { fileURLToPath } from "node:url";
 
+const workspacePackage = (name: string) =>
+  fileURLToPath(
+    new URL(`../../packages/${name}/src/index.ts`, import.meta.url),
+  );
+
 export default defineConfig({
   // Relative asset URLs so the build works at any static-host mount path.
   base: "./",
   resolve: {
     alias: {
+      "@motionforge/core": workspacePackage("core"),
+      "@motionforge/export": workspacePackage("export"),
+      "@motionforge/player": workspacePackage("player"),
       "@motionforge/presets/catalog": fileURLToPath(
         new URL("../../packages/presets/src/catalog.ts", import.meta.url),
       ),
+      "@motionforge/presets": workspacePackage("presets"),
+      "@motionforge/renderer-canvas2d": workspacePackage("renderer-canvas2d"),
+      "@motionforge/schema": workspacePackage("schema"),
+      "@motionforge/showcase": workspacePackage("showcase"),
     },
   },
   test: {

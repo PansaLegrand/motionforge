@@ -159,6 +159,13 @@ pnpm --filter @motionforge/golden exec playwright install chromium
 pnpm golden:test
 ```
 
+Before tagging or publishing, use the release gates:
+
+```sh
+pnpm release:fast  # typecheck, unit tests, lint, build, CLI/starter smoke
+pnpm release:full  # fast gate + goldens, E2E, package pack dry-runs
+```
+
 Write a scene in TypeScript with the authoring helpers:
 
 ```ts
@@ -245,6 +252,7 @@ Validate or inspect a scene module with the CLI:
 ```sh
 motionforge validate src/video.ts
 motionforge print src/video.ts
+motionforge inspect src/video.ts
 motionforge dev src/video.ts
 ```
 

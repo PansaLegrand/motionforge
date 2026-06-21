@@ -9,7 +9,9 @@ describe("create-motionforge", () => {
     const dir = await tempDir();
 
     try {
-      const result = await createMotionforgeProject("Hello Video", { cwd: dir });
+      const result = await createMotionforgeProject("Hello Video", {
+        cwd: dir,
+      });
 
       expect(result.projectName).toBe("hello-video");
       expect(result.files).toEqual([
@@ -32,6 +34,7 @@ describe("create-motionforge", () => {
         dev: "motionforge dev src/video.ts",
         validate: "motionforge validate src/video.ts",
         print: "motionforge print src/video.ts",
+        inspect: "motionforge inspect src/video.ts",
       });
       expect(packageJson.dependencies).toMatchObject({
         "@motionforge/authoring": "^0.3.0",

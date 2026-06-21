@@ -2,6 +2,33 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (core engine RC4: release gate)
+
+### Changed
+
+- Added `scripts/release-gate.mjs` with `fast` and `full` modes.
+- Added root `pnpm release:fast` and `pnpm release:full` scripts.
+- Added built CLI smokes for `motionforge validate` and `motionforge inspect`.
+- Added a built `create-motionforge` smoke that verifies generated starter scripts.
+- Added `inspect` to the generated starter project scripts so docs and generator output match.
+- Documented release gates in the README, testing strategy, and core RC roadmap.
+
+### Tested
+
+- `pnpm exec prettier --write package.json scripts/release-gate.mjs README.md docs/testing-strategy.md docs/core-engine-rc-roadmap.md docs/progress.md docs/guides/getting-started.md packages/create-motionforge/src/index.ts packages/create-motionforge/src/index.test.ts`
+- `pnpm --filter create-motionforge test`
+- `pnpm --filter @motionforge/cli build`
+- `pnpm --filter create-motionforge build`
+- `node scripts/release-gate.mjs smoke`
+- `node scripts/release-gate.mjs pack`
+- `pnpm --filter @motionforge/playground build`
+- `pnpm release:fast`
+
+### Notes
+
+- `release:full` includes `npm pack --dry-run`, but clean install from packed tarballs remains RC5.
+- The first `release:fast` run exposed and drove a fix for playground production builds resolving workspace package dist dependencies.
+
 ## 2026-06-19 (core engine RC3: golden RC matrix)
 
 ### Changed

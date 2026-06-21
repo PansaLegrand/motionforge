@@ -10,6 +10,13 @@ Testing is part of the design, not a cleanup phase. Each engine slice should lan
 - `pnpm golden:test`: Playwright-pinned Chromium renders fixture scenes, checks golden-frame hashes/probes, runs browser MP4 export smoke, and decodes exported video/audio for media assertions.
 - `pnpm e2e`: launches the real playground, verifies canvas paint, playback controls, patch validation/application, audio scene playback, Lottie playback, and console cleanliness.
 
+## Release Gates
+
+- `pnpm release:fast`: run before merging core changes. It runs typecheck, unit tests, determinism lint, builds, and built CLI/create-project smokes.
+- `pnpm release:full`: run before tagging or publishing. It runs the fast gate plus browser goldens, playground E2E, and `npm pack --dry-run` for every publishable package.
+
+The gate script lives at `scripts/release-gate.mjs`. When a command fails, the script prints the exact command and lets the underlying tool output stay visible.
+
 ## RC Golden Matrix
 
 `pnpm golden:test` is the release-candidate browser media gate. It runs `tools/golden/src/cli.ts` against `tools/golden/src/harness.ts` and the fixtures in `tools/golden/src/fixtures.ts`.
@@ -54,7 +61,7 @@ Exact hash fixtures store both JSON snapshots and PNG baselines under `fixtures/
 - Ducking is still future mixer work; when it ships, add both unit windows and browser RMS checks before marking AX5 complete.
 - Long-scene resource confidence needs a repeatable benchmark gate with memory notes for audio chunks, looped beds, and many-node scenes.
 - Clean-machine package verification is not yet automated outside the monorepo.
-- Release-gate commands are still spread across package scripts; RC4 will consolidate fast-local and full-pre-release checks.
+- Clean-machine installation is tracked separately in RC5 because `pnpm pack --dry-run` proves package contents but does not install packed tarballs into a fresh project.
 
 ## Verification Template
 

@@ -101,11 +101,13 @@ async function ensureWritableProjectDir(projectDir: string, force: boolean) {
 }
 
 function sanitizePackageName(value: string) {
-  return value
-    .trim()
-    .toLowerCase()
-    .replace(/[^a-z0-9._-]+/g, "-")
-    .replace(/^-+|-+$/g, "") || "motionforge-video";
+  return (
+    value
+      .trim()
+      .toLowerCase()
+      .replace(/[^a-z0-9._-]+/g, "-")
+      .replace(/^-+|-+$/g, "") || "motionforge-video"
+  );
 }
 
 function formatSuccess(result: CreateMotionforgeResult) {
@@ -132,6 +134,7 @@ function packageJson(projectName: string) {
         dev: "motionforge dev src/video.ts",
         validate: "motionforge validate src/video.ts",
         print: "motionforge print src/video.ts",
+        inspect: "motionforge inspect src/video.ts",
         build: "tsc -p tsconfig.json && motionforge validate src/video.ts",
       },
       dependencies: {

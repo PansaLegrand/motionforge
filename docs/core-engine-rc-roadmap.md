@@ -2,7 +2,7 @@
 
 **Status:** started 2026-06-19
 
-**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix.
+**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix; RC4 release gate script.
 
 MotionForge has enough feature surface to stop chasing overlay breadth for a moment. The next milestone is release-candidate confidence for the open-source base layer: a programmer can author, validate, inspect, preview, test, and export deterministic video scenes with clear APIs and failure modes.
 
@@ -116,6 +116,12 @@ Done when:
 - release gate includes typecheck, unit tests, builds, lint, golden tests, CLI smoke, create-project smoke, and pack dry-runs
 - docs separate "fast local confidence" from "full pre-release confidence"
 - failures point to actionable commands
+
+Completed:
+
+- Added `pnpm release:fast` for source checks plus built CLI/create-project smoke.
+- Added `pnpm release:full` for the fast gate plus browser goldens, playground E2E, and publishable-package pack dry-runs.
+- Documented the two gates in the README and testing strategy.
 
 ## Slice RC5 - Clean-Machine Verification
 

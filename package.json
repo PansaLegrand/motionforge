@@ -19,7 +19,9 @@
     "typecheck": "pnpm -r typecheck",
     "lint": "node scripts/check-determinism.mjs && pnpm -r lint",
     "format": "prettier --write .",
-    "e2e": "pnpm --filter @motionforge/golden run e2e"
+    "e2e": "pnpm --filter @motionforge/golden run e2e",
+    "release:fast": "node scripts/release-gate.mjs fast",
+    "release:full": "node scripts/release-gate.mjs full"
   },
   "devDependencies": {
     "@types/node": "^20.19.5",
