@@ -2,6 +2,26 @@
 
 This is the living project log. Every meaningful implementation slice should record what changed, how it was tested, and what remains uncertain.
 
+## 2026-06-19 (core engine RC5: clean-machine verification)
+
+### Changed
+
+- Added `scripts/verify-clean-machine.mjs`.
+- Added root `pnpm verify:clean`.
+- The verification packs publishable packages, generates a starter project in a temp directory, installs local tarball dependencies, then runs the starter's `validate`, `inspect`, and `build` scripts outside the monorepo.
+- Documented `pnpm verify:clean -- --keep` for preserving the temp starter and manually checking Studio/browser export.
+- Marked RC5 complete in the core engine RC roadmap.
+
+### Tested
+
+- `pnpm exec prettier --write package.json scripts/verify-clean-machine.mjs README.md docs/testing-strategy.md docs/core-engine-rc-roadmap.md docs/progress.md`
+- `pnpm verify:clean`
+
+### Notes
+
+- Browser MP4 export remains a browser capability check; the clean-machine script verifies the install/build/CLI path and prints the manual Studio follow-up.
+- The verification installs local tarballs into a temp starter, then runs `pnpm validate`, `pnpm inspect`, and `pnpm build` from that starter.
+
 ## 2026-06-19 (core engine RC4: release gate)
 
 ### Changed

@@ -2,7 +2,7 @@
 
 **Status:** started 2026-06-19
 
-**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix; RC4 release gate script.
+**Completed slices:** RC1 CLI scene inspection; RC2 public API surface audit; RC3 golden RC matrix; RC4 release gate script; RC5 clean-machine verification.
 
 MotionForge has enough feature surface to stop chasing overlay breadth for a moment. The next milestone is release-candidate confidence for the open-source base layer: a programmer can author, validate, inspect, preview, test, and export deterministic video scenes with clear APIs and failure modes.
 
@@ -138,6 +138,12 @@ Done when:
 - validates/inspects a starter scene
 - starts Studio or documents the manual check
 - records browser export constraints honestly
+
+Completed:
+
+- Added `pnpm verify:clean` to pack publishable packages and install a starter in a temp directory.
+- The script runs the starter's `pnpm validate`, `pnpm inspect`, and `pnpm build` outside the monorepo against local tarballs.
+- `--keep` preserves the temp starter for the documented manual Studio/browser export check.
 
 ## Slice RC6 - Long-Scene And Resource Confidence
 

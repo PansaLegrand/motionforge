@@ -164,7 +164,10 @@ Before tagging or publishing, use the release gates:
 ```sh
 pnpm release:fast  # typecheck, unit tests, lint, build, CLI/starter smoke
 pnpm release:full  # fast gate + goldens, E2E, package pack dry-runs
+pnpm verify:clean  # pack packages, install a starter in /tmp, validate/inspect/build
 ```
+
+Use `pnpm verify:clean -- --keep` when you want to preserve the temporary starter and manually run `pnpm dev` to inspect Studio or browser MP4 export.
 
 Write a scene in TypeScript with the authoring helpers:
 

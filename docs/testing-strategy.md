@@ -14,8 +14,9 @@ Testing is part of the design, not a cleanup phase. Each engine slice should lan
 
 - `pnpm release:fast`: run before merging core changes. It runs typecheck, unit tests, determinism lint, builds, and built CLI/create-project smokes.
 - `pnpm release:full`: run before tagging or publishing. It runs the fast gate plus browser goldens, playground E2E, and `npm pack --dry-run` for every publishable package.
+- `pnpm verify:clean`: pack publishable packages, install a generated starter in a temp directory, and run the starter's `validate`, `inspect`, and `build` scripts outside the monorepo.
 
-The gate script lives at `scripts/release-gate.mjs`. When a command fails, the script prints the exact command and lets the underlying tool output stay visible.
+The gate script lives at `scripts/release-gate.mjs`; clean-machine verification lives at `scripts/verify-clean-machine.mjs`. When a command fails, the scripts print the exact command and let the underlying tool output stay visible.
 
 ## RC Golden Matrix
 
@@ -61,7 +62,7 @@ Exact hash fixtures store both JSON snapshots and PNG baselines under `fixtures/
 - Ducking is still future mixer work; when it ships, add both unit windows and browser RMS checks before marking AX5 complete.
 - Long-scene resource confidence needs a repeatable benchmark gate with memory notes for audio chunks, looped beds, and many-node scenes.
 - Clean-machine package verification is not yet automated outside the monorepo.
-- Clean-machine installation is tracked separately in RC5 because `pnpm pack --dry-run` proves package contents but does not install packed tarballs into a fresh project.
+- `pnpm verify:clean -- --keep` preserves the temp starter for manual Studio/browser-export checks.
 
 ## Verification Template
 

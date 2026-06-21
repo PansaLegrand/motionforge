@@ -21,7 +21,8 @@
     "format": "prettier --write .",
     "e2e": "pnpm --filter @motionforge/golden run e2e",
     "release:fast": "node scripts/release-gate.mjs fast",
-    "release:full": "node scripts/release-gate.mjs full"
+    "release:full": "node scripts/release-gate.mjs full",
+    "verify:clean": "node scripts/verify-clean-machine.mjs"
   },
   "devDependencies": {
     "@types/node": "^20.19.5",
