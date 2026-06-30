@@ -5,7 +5,9 @@
 [![Status: M0 complete](https://img.shields.io/badge/status-M0%20complete-brightgreen.svg)](docs/m0-roadmap.md)
 [![Version: 0.3.0](https://img.shields.io/badge/version-0.3.0-blue.svg)](CHANGELOG.md)
 
-`motionforge` is a deterministic, browser-native video scene engine for apps and coding agents. Write videos as TypeScript or JSON, then preview, patch, validate, and export the same canonical scene document.
+`motionforge` is an open-source, browser-native video scene engine and **Remotion alternative** for apps and coding agents. Write videos as TypeScript or JSON, then preview, patch, validate, and export the same canonical scene document entirely through the browser rendering stack.
+
+If you like programmatic video but want a data-first system that can render inside a client app, motionforge leans on browser power — Canvas2D, WebCodecs, deterministic frame evaluation, and local MP4 export — instead of requiring a server-side Chrome render farm.
 
 ![motionforge playground previewing the sample scene](docs/assets/playground.png)
 
@@ -78,7 +80,7 @@ flowchart TB
 | [`tools/golden`](tools/golden)                                 | Pixel goldens, E2E, benchmarks, render helpers       | ✅ working |
 | [`tools/agent-eval`](tools/agent-eval)                         | Private mechanical eval harness for LLM scene edits  | ✅ working |
 
-## Why not Remotion?
+## MotionForge vs Remotion: Browser-Native Alternative
 
 Remotion is excellent, and if you want to author videos as React components with the full web platform, use it. motionforge makes a different trade:
 
@@ -86,7 +88,7 @@ Remotion is excellent, and if you want to author videos as React components with
 - **One engine for preview and export.** Remotion previews in the DOM and exports by screenshotting headless Chrome server-side. motionforge renders preview and export through the same Canvas2D path and encodes MP4 in the browser via WebCodecs — no server farm required.
 - **Curated subset, not full CSS.** motionforge validates a small CSS-like style set and rejects everything else with actionable errors. You lose expressiveness; you gain a contract that two renderers — and an LLM — can implement faithfully.
 
-If your videos are templated, data-driven, agent-generated, or need to render inside a client app, that trade favors motionforge.
+If your videos are templated, data-driven, agent-generated, or need to render inside a client app, motionforge is designed to be the browser-rendered Remotion alternative for that job.
 
 ## For coding agents
 
