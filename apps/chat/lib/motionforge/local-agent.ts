@@ -7,7 +7,10 @@ import type {
 } from "@motionforge/schema";
 import {
   applyScenePatch,
+  isEasingExpression,
+  isFilterExpression,
   parseScene,
+  supportedStyleKeys,
   validateScene,
 } from "@motionforge/schema";
 import {
@@ -1582,7 +1585,7 @@ export function normalizeModelOutput(
     };
 
     if (object.scene !== undefined) {
-      const sceneResult = validateScene(object.scene);
+      const sceneResult = validateScene(normalizeModelScene(object.scene));
       if (!sceneResult.ok) {
         throw new Error(sceneResult.errors.join("\n"));
       }
@@ -1603,7 +1606,7 @@ export function normalizeModelOutput(
     if (patchInput !== undefined) {
       return applyPatchOutput(
         currentScene,
-        patchInput,
+        normalizeModelPatch(patchInput),
         object.summary,
         mediaAssets,
       );
@@ -1611,10 +1614,15 @@ export function normalizeModelOutput(
   }
 
   if (Array.isArray(payload)) {
-    return applyPatchOutput(currentScene, payload, undefined, mediaAssets);
+    return applyPatchOutput(
+      currentScene,
+      normalizeModelPatch(payload),
+      undefined,
+      mediaAssets,
+    );
   }
 
-  const sceneResult = validateScene(payload);
+  const sceneResult = validateScene(normalizeModelScene(payload));
 
   if (sceneResult.ok) {
     return {
@@ -1644,7 +1652,24 @@ export function extractJsonFromText(text: string): unknown {
     throw new Error("JSON output appears incomplete.");
   }
 
-  return JSON.parse(sliced.slice(0, end + 1));
+  const jsonText = sliced.slice(0, end + 1);
+
+  try {
+    return JSON.parse(jsonText);
+  } catch (error) {
+    if (error instanceof SyntaxError) {
+      const position = parseJsonErrorPosition(error.message);
+      const context =
+        position === null
+          ? jsonText.slice(0, 360)
+          : jsonText.slice(Math.max(0, position - 180), position + 180);
+      throw new SyntaxError(
+        `${error.message}\nModel JSON near ${position === null ? "the parse failure" : `position ${position}`}:\n${context}`,
+      );
+    }
+
+    throw error;
+  }
 }
 
 function applyPatchOutput(
@@ -1691,6 +1716,643 @@ function unwrapModelPayload(raw: unknown): unknown {
   }
 
   return raw;
+}
+
+function normalizeModelScene(input: unknown): unknown {
+  if (!isRecord(input)) {
+    return input;
+  }
+
+  const scene: Record<string, unknown> = { ...input };
+  const meta = isRecord(scene.meta) ? scene.meta : {};
+
+  scene.schemaVersion ??= 0;
+
+  for (const key of ["width", "height", "fps", "duration"] as const) {
+    if (scene[key] === undefined && typeof meta[key] === "number") {
+      scene[key] = meta[key];
+    }
+  }
+
+  if (Array.isArray(scene.assets)) {
+    scene.assets = Object.fromEntries(
+      scene.assets
+        .filter((asset): asset is Record<string, unknown> => isRecord(asset))
+        .filter((asset) => typeof asset.id === "string")
+        .map((asset) => [asset.id as string, asset]),
+    );
+  } else {
+    scene.assets ??= {};
+  }
+
+  if (Array.isArray(scene.nodes)) {
+    scene.nodes = scene.nodes.map(normalizeModelNode);
+  }
+
+  return scene;
+}
+
+function normalizeModelPatch(input: unknown): unknown {
+  if (!Array.isArray(input)) {
+    return input;
+  }
+
+  return input.map((op) => {
+    if (!isRecord(op)) {
+      return op;
+    }
+
+    const normalized: Record<string, unknown> = { ...op };
+
+    if (normalized.op === "setAnimations" && Array.isArray(normalized.animations)) {
+      normalized.animations = normalizeModelAnimations(normalized.animations);
+    }
+
+    if (normalized.op === "insertNode" && normalized.node !== undefined) {
+      normalized.node = normalizeModelNode(normalized.node);
+    }
+
+    return normalized;
+  });
+}
+
+function normalizeModelNode(input: unknown): unknown {
+  if (!isRecord(input)) {
+    return input;
+  }
+
+  const node: Record<string, unknown> = { ...input };
+  const timing = {
+    from: typeof node.from === "number" ? node.from : 0,
+    duration: typeof node.duration === "number" ? node.duration : undefined,
+  };
+
+  if (isRecord(node.style)) {
+    node.style = normalizeModelStyle(node.style);
+  }
+
+  if (Array.isArray(node.animations)) {
+    node.animations = normalizeModelAnimations(node.animations, timing);
+  }
+
+  if (
+    node.type === "text" &&
+    isRecord(node.style) &&
+    node.style.opacity === 0 &&
+    !hasAnimationForProperty(node.animations, "opacity")
+  ) {
+    node.style = { ...node.style, opacity: 1 };
+  }
+
+  if (Array.isArray(node.children)) {
+    node.children = node.children.map(normalizeModelNode);
+  }
+
+  return node;
+}
+
+function normalizeModelAnimations(
+  input: unknown[],
+  timing?: { from: number; duration?: number },
+): unknown[] {
+  return input.map((animation) => {
+    if (!isRecord(animation)) {
+      return animation;
+    }
+
+    const frames = Array.isArray(animation.frames)
+      ? animation.frames
+      : Array.isArray(animation.keyframes)
+        ? animation.keyframes
+        : undefined;
+
+    if (!frames || typeof animation.property !== "string") {
+      return animation;
+    }
+
+    const normalizedFrames = normalizeModelKeyframes(
+      frames,
+      animation.property,
+      timing,
+    );
+
+    return {
+      ...animation,
+      kind: animation.kind ?? "keyframes",
+      frames: normalizedFrames,
+    };
+  });
+}
+
+function normalizeModelStyle(style: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(style)
+      .filter(([key]) => supportedModelStyleKeys.has(key))
+      .map(([key, value]) => [key, normalizeModelStyleValue(key, value)])
+      .filter((entry): entry is [string, unknown] => entry[1] !== undefined),
+  );
+}
+
+const supportedModelStyleKeys = new Set<string>(supportedStyleKeys);
+
+function normalizeModelStyleValue(key: string, value: unknown): unknown {
+  if (key === "transform" && typeof value === "string") {
+    return normalizeModelTransform(value);
+  }
+
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const normalized = value.trim();
+
+  switch (key) {
+    case "filter":
+      return isFilterExpression(normalized) ? normalized : undefined;
+    case "background":
+      return isUnsupportedGradient(normalized) ? undefined : value;
+    case "alignItems":
+      return normalizeEnumValue(normalized, {
+        start: "flex-start",
+        end: "flex-end",
+        baseline: "center",
+        "first baseline": "center",
+        "last baseline": "center",
+      });
+    case "justifyContent":
+      return normalizeEnumValue(normalized, {
+        start: "flex-start",
+        end: "flex-end",
+        "space-around": "space-between",
+        "space-evenly": "space-between",
+      });
+    case "flexDirection":
+      return normalizeEnumValue(normalized, {
+        "row-reverse": "row",
+        "column-reverse": "column",
+      });
+    case "position":
+      return normalizeEnumValue(normalized, {
+        fixed: "absolute",
+        sticky: "absolute",
+        static: "relative",
+      });
+    case "overflow":
+      return normalizeEnumValue(normalized, {
+        auto: "hidden",
+        scroll: "hidden",
+        clip: "hidden",
+      });
+    case "textAlign":
+      return normalizeEnumValue(normalized, {
+        start: "left",
+        end: "right",
+        justify: "center",
+      });
+    case "fontStyle":
+      return normalizeEnumValue(normalized, {
+        oblique: "italic",
+      });
+    case "objectFit":
+      return normalizeEnumValue(normalized, {
+        "scale-down": "scale-down",
+      });
+    default:
+      return value;
+  }
+}
+
+function normalizeEnumValue(value: string, aliases: Record<string, string>) {
+  return aliases[value] ?? value;
+}
+
+function isUnsupportedGradient(value: string): boolean {
+  return /(?:^|[\s,])(?:radial|conic|repeating-linear|repeating-radial)-gradient\(/i.test(
+    value,
+  );
+}
+
+function normalizeModelKeyframes(
+  frames: unknown[],
+  property: string,
+  timing?: { from: number; duration?: number },
+) {
+  const normalized = frames.map((frame, index) =>
+    normalizeModelKeyframe(frame, property, timing, index, frames.length),
+  );
+
+  if (!shouldConvertAbsoluteFramesToLocal(normalized, timing)) {
+    return sortAndDedupeModelKeyframes(normalized);
+  }
+
+  return sortAndDedupeModelKeyframes(
+    normalized.map((frame) =>
+      isRecord(frame) && typeof frame.frame === "number"
+        ? { ...frame, frame: frame.frame - timing.from }
+        : frame,
+    ),
+  );
+}
+
+function normalizeModelKeyframe(
+  frame: unknown,
+  property: string,
+  timing: { from: number; duration?: number } | undefined,
+  index: number,
+  totalFrames: number,
+): unknown {
+  if (!isRecord(frame)) {
+    return frame;
+  }
+
+  const frameNumber = readModelKeyframeFrame(
+    frame,
+    timing,
+    index,
+    totalFrames,
+  );
+  const value = readModelKeyframeValue(frame, property);
+
+  if (frameNumber === null || value === null) {
+    return {
+      ...frame,
+      ...(frameNumber === null ? {} : { frame: frameNumber }),
+      ...(value === null ? {} : { value }),
+    };
+  }
+
+  const normalized: Record<string, unknown> = {
+    frame: frameNumber,
+    value,
+  };
+  const easing = normalizeModelEasing(frame.easing);
+
+  if (easing) {
+    normalized.easing = easing;
+  }
+
+  return normalized;
+}
+
+function readModelKeyframeFrame(
+  frame: Record<string, unknown>,
+  timing: { from: number; duration?: number } | undefined,
+  index: number,
+  totalFrames: number,
+): number | null {
+  const explicitFrame = readFiniteNumber(frame.frame);
+
+  if (explicitFrame !== null) {
+    return Math.max(0, Math.round(explicitFrame));
+  }
+
+  const offset = readFiniteNumber(frame.offset ?? frame.progress);
+
+  if (offset !== null && timing?.duration) {
+    return Math.max(
+      0,
+      Math.round(clampNumber(offset, 0, 1) * Math.max(0, timing.duration - 1)),
+    );
+  }
+
+  const time = readFiniteNumber(frame.time ?? frame.t ?? frame.at);
+
+  if (time !== null) {
+    if (timing?.duration && time >= 0 && time <= 1) {
+      return Math.max(
+        0,
+        Math.round(time * Math.max(0, timing.duration - 1)),
+      );
+    }
+
+    return Math.max(0, Math.round(time));
+  }
+
+  if (timing?.duration && totalFrames > 1) {
+    return Math.round(
+      (index / (totalFrames - 1)) * Math.max(0, timing.duration - 1),
+    );
+  }
+
+  return index;
+}
+
+function readModelKeyframeValue(
+  frame: Record<string, unknown>,
+  property: string,
+): string | number | null {
+  const direct = normalizeModelKeyframeValue(frame.value, property);
+
+  if (direct !== null) {
+    return direct;
+  }
+
+  const propertyValue = normalizeModelKeyframeValue(frame[property], property);
+
+  if (propertyValue !== null) {
+    return propertyValue;
+  }
+
+  if (isRecord(frame.style)) {
+    const styleValue = normalizeModelKeyframeValue(frame.style[property], property);
+
+    if (styleValue !== null) {
+      return styleValue;
+    }
+  }
+
+  if (property === "transform") {
+    return transformFromModelRecord(frame);
+  }
+
+  return null;
+}
+
+function normalizeModelKeyframeValue(
+  value: unknown,
+  property: string,
+): string | number | null {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    if (property === "transform") {
+      return normalizeModelTransform(value);
+    }
+
+    const numberValue = numericKeyframeProperties.has(property)
+      ? readFiniteNumber(value)
+      : null;
+
+    return numberValue ?? value;
+  }
+
+  if (!isRecord(value)) {
+    return null;
+  }
+
+  const nested = normalizeModelKeyframeValue(value[property], property);
+
+  if (nested !== null) {
+    return nested;
+  }
+
+  if (isRecord(value.style)) {
+    const styleNested = normalizeModelKeyframeValue(
+      value.style[property],
+      property,
+    );
+
+    if (styleNested !== null) {
+      return styleNested;
+    }
+  }
+
+  if (property === "transform") {
+    return transformFromModelRecord(value);
+  }
+
+  return null;
+}
+
+function sortAndDedupeModelKeyframes(frames: unknown[]) {
+  const valid = frames.every(
+    (frame) =>
+      isRecord(frame) &&
+      typeof frame.frame === "number" &&
+      (typeof frame.value === "number" || typeof frame.value === "string"),
+  );
+
+  if (!valid) {
+    return frames;
+  }
+
+  return [...frames]
+    .sort((left, right) => {
+      const leftFrame = isRecord(left) ? readFiniteNumber(left.frame) ?? 0 : 0;
+      const rightFrame = isRecord(right) ? readFiniteNumber(right.frame) ?? 0 : 0;
+      return leftFrame - rightFrame;
+    })
+    .filter((frame, index, sorted) => {
+      if (!isRecord(frame)) {
+        return true;
+      }
+
+      const next = sorted[index + 1];
+      return !(
+        isRecord(next) &&
+        typeof next.frame === "number" &&
+        next.frame === frame.frame
+      );
+    });
+}
+
+function normalizeModelEasing(value: unknown): string | null {
+  if (typeof value !== "string") {
+    return null;
+  }
+
+  const mapped =
+    {
+      ease: "easeInOut",
+      "ease-in": "easeIn",
+      "ease-out": "easeOut",
+      "ease-in-out": "easeInOut",
+    }[value] ?? value;
+
+  return isEasingExpression(mapped) ? mapped : null;
+}
+
+function readFiniteNumber(value: unknown): number | null {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number.parseFloat(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function clampNumber(value: number, min: number, max: number) {
+  return Math.min(max, Math.max(min, value));
+}
+
+const numericKeyframeProperties = new Set([
+  "opacity",
+  "zIndex",
+  "fontSize",
+  "lineHeight",
+  "left",
+  "right",
+  "top",
+  "bottom",
+  "width",
+  "height",
+]);
+
+function transformFromModelRecord(record: Record<string, unknown>): string | null {
+  const translate = translateFromModelRecord(record);
+  const scale = scaleFromModelRecord(record);
+  const rotate = rotateFromModelRecord(record);
+  const parts = [translate, scale, rotate].filter(Boolean);
+
+  return parts.length ? parts.join(" ") : null;
+}
+
+function translateFromModelRecord(record: Record<string, unknown>) {
+  const translate = record.translate;
+
+  if (typeof translate === "string") {
+    return normalizeModelTransform(`translate(${translate})`);
+  }
+
+  if (Array.isArray(translate)) {
+    const x = formatTransformLength(translate[0]) ?? "0px";
+    const y = formatTransformLength(translate[1]) ?? "0px";
+    return `translate(${x}, ${y})`;
+  }
+
+  const x =
+    formatTransformLength(record.translateX) ??
+    formatTransformLength(record.x) ??
+    "0px";
+  const y =
+    formatTransformLength(record.translateY) ??
+    formatTransformLength(record.y) ??
+    "0px";
+
+  const hasTranslateSignal =
+    "translateX" in record ||
+    "translateY" in record ||
+    "x" in record ||
+    "y" in record;
+
+  if (!hasTranslateSignal && x === "0px" && y === "0px") {
+    return null;
+  }
+
+  return `translate(${x}, ${y})`;
+}
+
+function scaleFromModelRecord(record: Record<string, unknown>) {
+  const scale = record.scale;
+
+  if (typeof scale === "number" || typeof scale === "string") {
+    const value = readFiniteNumber(scale);
+    return value === null ? null : `scale(${value})`;
+  }
+
+  if (Array.isArray(scale)) {
+    const x = readFiniteNumber(scale[0]);
+    const y = readFiniteNumber(scale[1]);
+
+    if (x === null) {
+      return null;
+    }
+
+    return y === null ? `scale(${x})` : `scale(${x}, ${y})`;
+  }
+
+  const x = readFiniteNumber(record.scaleX);
+  const y = readFiniteNumber(record.scaleY);
+
+  if (x === null && y === null) {
+    return null;
+  }
+
+  return `scale(${x ?? 1}, ${y ?? x ?? 1})`;
+}
+
+function rotateFromModelRecord(record: Record<string, unknown>) {
+  const rotate = record.rotate ?? record.rotation;
+
+  if (typeof rotate === "string" && rotate.trim().endsWith("deg")) {
+    return `rotate(${rotate.trim()})`;
+  }
+
+  const value = readFiniteNumber(rotate);
+  return value === null ? null : `rotate(${value}deg)`;
+}
+
+function formatTransformLength(value: unknown) {
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return `${value}px`;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const trimmed = value.trim();
+    const parsed = trimmed.match(/^-?\d+(?:\.\d+)?(?:px|%)?$/);
+
+    if (!parsed) {
+      return null;
+    }
+
+    return /\d(?:px|%)$/.test(trimmed) ? trimmed : `${trimmed}px`;
+  }
+
+  return null;
+}
+
+function shouldConvertAbsoluteFramesToLocal(
+  frames: unknown[],
+  timing: { from: number; duration?: number } | undefined,
+): timing is { from: number; duration: number } {
+  if (!timing || timing.from <= 0 || timing.duration === undefined) {
+    return false;
+  }
+
+  const frameNumbers = frames
+    .map((frame) =>
+      isRecord(frame) && typeof frame.frame === "number" ? frame.frame : NaN,
+    )
+    .filter(Number.isFinite);
+
+  if (frameNumbers.length !== frames.length || frameNumbers.length === 0) {
+    return false;
+  }
+
+  const min = Math.min(...frameNumbers);
+  const max = Math.max(...frameNumbers);
+
+  return min >= timing.from && max <= timing.from + timing.duration;
+}
+
+function hasAnimationForProperty(input: unknown, property: string): boolean {
+  return (
+    Array.isArray(input) &&
+    input.some(
+      (animation) =>
+        isRecord(animation) &&
+        animation.property === property &&
+        Array.isArray(animation.frames) &&
+        animation.frames.length > 0,
+    )
+  );
+}
+
+function normalizeModelTransform(value: string) {
+  return value
+    .replace(
+      /translateX\(\s*(-?\d+(?:\.\d+)?(?:px|%)?)\s*\)/g,
+      "translate($1, 0px)",
+    )
+    .replace(
+      /translateY\(\s*(-?\d+(?:\.\d+)?(?:px|%)?)\s*\)/g,
+      "translate(0px, $1)",
+    );
+}
+
+function parseJsonErrorPosition(message: string): number | null {
+  const match = message.match(/position (\d+)/i);
+  return match ? Number.parseInt(match[1] ?? "", 10) : null;
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function titleFromInstruction(instruction: string): string {

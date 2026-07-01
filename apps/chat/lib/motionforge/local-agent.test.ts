@@ -7,6 +7,7 @@ import {
 import {
   applyInstructionLocally,
   createSceneFromInstruction,
+  extractJsonFromText,
   normalizeModelOutput,
 } from "./local-agent";
 
@@ -510,6 +511,345 @@ describe("local motionforge agent", () => {
       { op: "insertNode", node: { id: "model-clip", assetId: "video_1" } },
     ]);
     expect(result.diagnostics.join("\n")).toContain("Repaired node assetId");
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("repairs model patch ops that put timing inside setNodeProps", () => {
+    const scene: Scene = {
+      schemaVersion: 0,
+      width: 1080,
+      height: 1920,
+      fps: 30,
+      duration: 300,
+      assets: {},
+      nodes: [
+        {
+          id: "show-time",
+          type: "text",
+          text: "16:00",
+          from: 0,
+          duration: 120,
+        },
+      ],
+    };
+    const result = normalizeModelOutput(
+      {
+        patch: [
+          { op: "setNodeProps", props: { duration: 30 } },
+          {
+            op: "setNodeProps",
+            id: "show-time",
+            props: { from: 150, duration: 60 },
+          },
+        ],
+        summary: "Updated event timing.",
+      },
+      scene,
+    );
+
+    expect(result.patch).toMatchObject([
+      { op: "retime", id: "show-time", from: 150, duration: 60 },
+    ]);
+    expect(result.scene.nodes[0]).toMatchObject({
+      id: "show-time",
+      from: 150,
+      duration: 60,
+    });
+    expect(result.diagnostics.join("\n")).toContain(
+      "Dropped setNodeProps op because it has no node id",
+    );
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("normalizes common model scene dialect drift", () => {
+    const result = normalizeModelOutput(
+      {
+        scene: {
+          meta: { width: 1080, height: 1920, fps: 30, duration: 180 },
+          assets: [],
+          nodes: [
+            {
+              id: "count_5",
+              type: "text",
+              text: "5",
+              from: 30,
+              duration: 30,
+              style: {
+                opacity: 0,
+                transform: "translateY(20px) scale(0.2) rotate(-10deg)",
+              },
+              animations: [
+                {
+                  property: "opacity",
+                  keyframes: [
+                    { frame: 30, value: 0 },
+                    { frame: 35, value: 1 },
+                  ],
+                },
+                {
+                  property: "transform",
+                  keyframes: [
+                    {
+                      frame: 30,
+                      value: "translateY(60px) scale(0.15) rotate(-18deg)",
+                    },
+                    {
+                      frame: 35,
+                      value: "translateY(0px) scale(1.25) rotate(-9deg)",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        summary: "Generated countdown.",
+      },
+      null,
+    );
+
+    expect(result.scene).toMatchObject({
+      schemaVersion: 0,
+      width: 1080,
+      height: 1920,
+      fps: 30,
+      duration: 180,
+      assets: {},
+    });
+    expect(result.scene.nodes[0]?.animations?.[0]).toMatchObject({
+      kind: "keyframes",
+      property: "opacity",
+      frames: [
+        { frame: 0, value: 0 },
+        { frame: 5, value: 1 },
+      ],
+    });
+    expect(result.scene.nodes[0]?.style?.transform).toBe(
+      "translate(0px, 20px) scale(0.2) rotate(-10deg)",
+    );
+    expect(result.scene.nodes[0]?.animations?.[1]).toMatchObject({
+      kind: "keyframes",
+      property: "transform",
+      frames: [
+        {
+          frame: 0,
+          value: "translate(0px, 60px) scale(0.15) rotate(-18deg)",
+        },
+        {
+          frame: 5,
+          value: "translate(0px, 0px) scale(1.25) rotate(-9deg)",
+        },
+      ],
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("repairs web animation style keyframes from model scenes", () => {
+    const result = normalizeModelOutput(
+      {
+        scene: {
+          schemaVersion: 0,
+          width: 1080,
+          height: 1920,
+          fps: 30,
+          duration: 270,
+          assets: {},
+          nodes: [
+            {
+              id: "step-card",
+              type: "div",
+              from: 90,
+              duration: 90,
+              style: {
+                position: "absolute",
+                left: 90,
+                top: 620,
+                width: 900,
+                height: 360,
+                backgroundColor: "#ffffff",
+              },
+              animations: [
+                {
+                  kind: "keyframes",
+                  property: "opacity",
+                  frames: [{ offset: 0, opacity: 0 }, { offset: 1, opacity: 1 }],
+                },
+                {
+                  property: "transform",
+                  frames: [
+                    {
+                      time: 0,
+                      value: { translateY: 40, scale: 0.92 },
+                    },
+                    {
+                      time: 1,
+                      value: { translateY: 0, scale: 1 },
+                      easing: "ease-out",
+                    },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        summary: "Generated tutorial.",
+      },
+      null,
+    );
+
+    expect(result.scene.nodes[0]?.animations?.[0]?.frames).toEqual([
+      { frame: 0, value: 0 },
+      { frame: 89, value: 1 },
+    ]);
+    expect(result.scene.nodes[0]?.animations?.[1]?.frames).toEqual([
+      {
+        frame: 0,
+        value: "translate(0px, 40px) scale(0.92)",
+      },
+      {
+        frame: 89,
+        value: "translate(0px, 0px) scale(1)",
+        easing: "easeOut",
+      },
+    ]);
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("drops unsupported style keys from model scenes", () => {
+    const result = normalizeModelOutput(
+      {
+        scene: {
+          schemaVersion: 0,
+          width: 1080,
+          height: 1920,
+          fps: 30,
+          duration: 300,
+          assets: {},
+          nodes: [
+            {
+              id: "event-cta",
+              type: "text",
+              text: "Get Tickets",
+              style: {
+                position: "absolute",
+                left: 96,
+                top: 1460,
+                color: "#ffffff",
+                fontSize: 68,
+                textTransform: "uppercase",
+                whiteSpace: "nowrap",
+                backdropFilter: "blur(12px)",
+                backgroundImage: "radial-gradient(circle, #fff, #000)",
+                background: "radial-gradient(circle, #fff, #000)",
+                filter: "url(#glow) drop-shadow(0px 0px 12px #fff)",
+                transform: "translateX(20px)",
+              },
+            },
+          ],
+        },
+        summary: "Generated invite.",
+      },
+      null,
+    );
+
+    expect(result.scene.nodes[0]?.style).toMatchObject({
+      position: "absolute",
+      left: 96,
+      top: 1460,
+      color: "#ffffff",
+      fontSize: 68,
+      transform: "translate(20px, 0px)",
+    });
+    expect(result.scene.nodes[0]?.style).not.toHaveProperty("textTransform");
+    expect(result.scene.nodes[0]?.style).not.toHaveProperty("whiteSpace");
+    expect(result.scene.nodes[0]?.style).not.toHaveProperty("backdropFilter");
+    expect(result.scene.nodes[0]?.style).not.toHaveProperty("backgroundImage");
+    expect(result.scene.nodes[0]?.style).not.toHaveProperty("background");
+    expect(result.scene.nodes[0]?.style).not.toHaveProperty("filter");
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("normalizes unsupported model style enum values", () => {
+    const result = normalizeModelOutput(
+      {
+        scene: {
+          schemaVersion: 0,
+          width: 1080,
+          height: 1920,
+          fps: 30,
+          duration: 300,
+          assets: {},
+          nodes: [
+            {
+              id: "event-row",
+              type: "div",
+              style: {
+                display: "flex",
+                alignItems: "baseline",
+                justifyContent: "space-evenly",
+                flexDirection: "row-reverse",
+                position: "fixed",
+                overflow: "clip",
+                textAlign: "justify",
+                fontStyle: "oblique",
+              },
+            },
+          ],
+        },
+        summary: "Generated invite.",
+      },
+      null,
+    );
+
+    expect(result.scene.nodes[0]?.style).toMatchObject({
+      alignItems: "center",
+      justifyContent: "space-between",
+      flexDirection: "row",
+      position: "absolute",
+      overflow: "hidden",
+      textAlign: "center",
+      fontStyle: "italic",
+    });
+    expect(validateScene(result.scene)).toMatchObject({ ok: true });
+  });
+
+  it("adds context to malformed JSON parse errors", () => {
+    expect(() =>
+      extractJsonFromText('{"patch":[{"op":"setText"} {"op":"setText"}]}'),
+    ).toThrow(/Model JSON near position/);
+  });
+
+  it("repairs permanently invisible model text nodes", () => {
+    const result = normalizeModelOutput(
+      {
+        scene: {
+          schemaVersion: 0,
+          width: 1080,
+          height: 1920,
+          fps: 30,
+          duration: 30,
+          assets: {},
+          nodes: [
+            {
+              id: "num_5",
+              type: "text",
+              text: "5",
+              from: 0,
+              duration: 30,
+              style: {
+                opacity: 0,
+                fontSize: 520,
+                color: "#FFC84A",
+              },
+              animations: [],
+            },
+          ],
+        },
+      },
+      null,
+    );
+
+    expect(result.scene.nodes[0]?.style?.opacity).toBe(1);
     expect(validateScene(result.scene)).toMatchObject({ ok: true });
   });
 });

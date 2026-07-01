@@ -1,5 +1,10 @@
 import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
-import { gateway, generateText, type LanguageModel } from "ai";
+import {
+  gateway,
+  generateText,
+  Output,
+  type LanguageModel,
+} from "ai";
 import { NextResponse } from "next/server";
 import { validateScene, type Scene } from "@motionforge/schema";
 import {
@@ -17,9 +22,12 @@ import type { ChatMediaAssetManifestItem } from "@/lib/media/assets";
 
 export const runtime = "nodejs";
 const DEBUG = process.env.MOTIONFORGE_DEBUG === "1";
-const DEFAULT_MODEL_TIMEOUT_MS = 12_000;
-const DEFAULT_GATEWAY_MODEL = "openai/gpt-4.1-mini";
-const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-4.1-mini";
+const DEFAULT_MODEL_TIMEOUT_MS = 30 * 60 * 1000;
+const DEFAULT_MODEL_MAX_OUTPUT_TOKENS = 12_000;
+// const DEFAULT_GATEWAY_MODEL = "openai/gpt-4.1-mini";
+// const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-4.1-mini";
+const DEFAULT_GATEWAY_MODEL = "openai/gpt-5.2";
+const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-5.2";
 
 type ChatRequest = {
   instruction?: unknown;
@@ -72,6 +80,7 @@ export async function POST(request: Request) {
 
   try {
     const timeoutMs = readModelTimeoutMs();
+    const maxOutputTokens = readModelMaxOutputTokens();
     const controller = new AbortController();
     const abortFromRequest = () => controller.abort(request.signal.reason);
     request.signal.addEventListener("abort", abortFromRequest, { once: true });
@@ -80,14 +89,14 @@ export async function POST(request: Request) {
       model: llm.model,
       system: buildMotionforgeSystemPrompt(currentScene, mediaAssets),
       prompt: buildUserPrompt(instruction, currentScene, mediaAssets),
+      output: Output.json({
+        name: "MotionforgeAgentResult",
+        description:
+          "A JSON object containing either a complete motionforge scene plus summary, or a scene patch plus summary.",
+      }),
       temperature: 0.2,
-      maxOutputTokens: 5000,
+      maxOutputTokens,
       abortSignal: controller.signal,
-    });
-    modelPromise.catch((error) => {
-      debugLog("late model failure after fallback", {
-        error: error instanceof Error ? error.stack ?? error.message : error,
-      });
     });
 
     let timeoutId: ReturnType<typeof setTimeout> | undefined;
@@ -109,14 +118,20 @@ export async function POST(request: Request) {
       request.signal.removeEventListener("abort", abortFromRequest);
     }
 
+    const structuredOutput = readStructuredOutput(result);
+
     debugLog("model result", {
       instruction,
       provider: llm.provider,
       modelId: llm.modelId,
       text: result.text,
+      output: structuredOutput.ok ? structuredOutput.output : undefined,
+      outputError: structuredOutput.ok ? undefined : structuredOutput.error,
     });
 
-    const payload = extractJsonFromText(result.text);
+    const payload = structuredOutput.ok
+      ? structuredOutput.output
+      : extractJsonFromText(result.text);
     debugLog("parsed model payload", payload);
     const normalized = normalizeModelOutput(payload, currentScene, mediaAssets);
 
@@ -128,9 +143,10 @@ export async function POST(request: Request) {
       },
     });
   } catch (error) {
+    const modelError = serializeError(error);
     debugLog("model path failed", {
       instruction,
-      error: error instanceof Error ? error.stack ?? error.message : error,
+      error: modelError,
     });
 
     return json({
@@ -140,7 +156,7 @@ export async function POST(request: Request) {
         summary: `${localFallback.summary} Model path failed, so the local fallback handled this turn.`,
         diagnostics: [
           ...localFallback.diagnostics,
-          error instanceof Error ? error.message : String(error),
+          formatModelErrorForUser(modelError),
         ],
       },
     });
@@ -184,11 +200,149 @@ function debugLog(label: string, payload: unknown) {
   console.dir(payload, { depth: null, colors: true });
 }
 
+type SerializedError = {
+  name?: string;
+  message: string;
+  stack?: string;
+  statusCode?: number;
+  type?: string;
+  reason?: string;
+  generationId?: string;
+  isRetryable?: boolean;
+  url?: string;
+  responseBody?: string;
+  response?: unknown;
+  data?: unknown;
+  validationError?: SerializedError;
+  cause?: SerializedError | string;
+  lastError?: SerializedError | string;
+  errors?: Array<SerializedError | string>;
+};
+
+function serializeError(error: unknown, depth = 0): SerializedError | string {
+  if (depth > 4) {
+    return "[error nesting truncated]";
+  }
+
+  if (error instanceof Error) {
+    const record = error as Error & Record<string, unknown>;
+    const serialized: SerializedError = {
+      name: error.name,
+      message: error.message,
+      stack: error.stack,
+    };
+
+    for (const key of [
+      "statusCode",
+      "type",
+      "reason",
+      "generationId",
+      "isRetryable",
+      "url",
+      "responseBody",
+    ] as const) {
+      const value = record[key];
+      if (typeof value === "string" || typeof value === "number" || typeof value === "boolean") {
+        (serialized as Record<string, unknown>)[key] = value;
+      }
+    }
+
+    for (const key of ["response", "data"] as const) {
+      const value = record[key];
+      if (value !== undefined) {
+        serialized[key] = value;
+      }
+    }
+
+    const validationError = record.validationError;
+    if (validationError !== undefined) {
+      serialized.validationError = serializeError(validationError, depth + 1) as SerializedError;
+    }
+
+    const cause = record.cause;
+    if (cause !== undefined) {
+      serialized.cause = serializeError(cause, depth + 1);
+    }
+
+    const lastError = record.lastError;
+    if (lastError !== undefined) {
+      serialized.lastError = serializeError(lastError, depth + 1);
+    }
+
+    const errors = record.errors;
+    if (Array.isArray(errors)) {
+      serialized.errors = errors.map((entry) => serializeError(entry, depth + 1));
+    }
+
+    return serialized;
+  }
+
+  if (typeof error === "string") {
+    return error;
+  }
+
+  return {
+    message: stringifyUnknown(error),
+  };
+}
+
+function formatModelErrorForUser(error: SerializedError | string): string {
+  if (typeof error === "string") {
+    return error;
+  }
+
+  const last = typeof error.lastError === "object" ? error.lastError : undefined;
+  const primary = last ?? error;
+  const parts = [
+    primary.name,
+    primary.type,
+    primary.statusCode === undefined ? undefined : `status ${primary.statusCode}`,
+    primary.message,
+    primary.generationId ? `generation ${primary.generationId}` : undefined,
+  ].filter(Boolean);
+
+  return parts.join(": ");
+}
+
+function stringifyUnknown(value: unknown): string {
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return String(value);
+  }
+}
+
 function readModelTimeoutMs() {
   const raw = process.env.MOTIONFORGE_CHAT_TIMEOUT_MS?.trim();
   const parsed = raw ? Number.parseInt(raw, 10) : DEFAULT_MODEL_TIMEOUT_MS;
 
   return Number.isFinite(parsed) && parsed > 0 ? parsed : DEFAULT_MODEL_TIMEOUT_MS;
+}
+
+function readModelMaxOutputTokens() {
+  const raw = process.env.MOTIONFORGE_CHAT_MAX_OUTPUT_TOKENS?.trim();
+  const parsed = raw
+    ? Number.parseInt(raw, 10)
+    : DEFAULT_MODEL_MAX_OUTPUT_TOKENS;
+
+  return Number.isFinite(parsed) && parsed > 0
+    ? parsed
+    : DEFAULT_MODEL_MAX_OUTPUT_TOKENS;
+}
+
+function readStructuredOutput(
+  result: Awaited<ReturnType<typeof generateText>>,
+):
+  | { ok: true; output: unknown }
+  | { ok: false; error: string } {
+  try {
+    return { ok: true, output: result.output };
+  } catch (error) {
+    return {
+      ok: false,
+      error: error instanceof Error ? error.message : String(error),
+    };
+  }
 }
 
 function readLlmModel():

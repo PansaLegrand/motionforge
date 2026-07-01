@@ -1,4 +1,10 @@
-import type { Scene, SceneOp, ScenePatch } from "@motionforge/schema";
+import {
+  isFilterExpression,
+  supportedStyleKeys,
+  type Scene,
+  type SceneOp,
+  type ScenePatch,
+} from "@motionforge/schema";
 import type { ChatMediaAssetManifestItem } from "./assets";
 import { resolveMediaAssetAlias } from "./mentions";
 
@@ -31,6 +37,11 @@ export function repairMediaPatch({
 
     const op = opInput as Record<string, unknown>;
     const opName = typeof op.op === "string" ? op.op : "";
+
+    if (!supportedPatchOps.has(opName)) {
+      diagnostics.push(`Dropped unsupported patch op ${index} "${opName || "(missing)"}".`);
+      continue;
+    }
 
     if (opName === "setAsset") {
       const assetResult = repairSetAssetOp(op, mediaAssets);
@@ -90,6 +101,9 @@ export function repairMediaPatch({
 
       if (asset && !knownSceneAssets.has(asset.sceneAssetId)) {
         if (!emittedAssets.has(asset.sceneAssetId)) {
+          const targetId =
+            propsResult.ops.find((candidate) => "id" in candidate)?.id ??
+            "(unknown)";
           repaired.push({
             op: "setAsset",
             asset: {
@@ -100,7 +114,7 @@ export function repairMediaPatch({
           });
           emittedAssets.add(asset.sceneAssetId);
           diagnostics.push(
-            `Inserted missing setAsset for ${asset.label} before setNodeProps ${propsResult.op.id}.`,
+            `Inserted missing setAsset for ${asset.label} before setNodeProps ${targetId}.`,
           );
         }
 
@@ -108,11 +122,59 @@ export function repairMediaPatch({
       }
 
       diagnostics.push(...propsResult.diagnostics);
-      repaired.push(propsResult.op);
+      repaired.push(...propsResult.ops);
       continue;
     }
 
-    repaired.push(opInput as SceneOp);
+    if (opName === "setStyle") {
+      const styleResult = repairSetStyleOp(op, index);
+
+      diagnostics.push(...styleResult.diagnostics);
+
+      if (styleResult.op) {
+        repaired.push(styleResult.op);
+      }
+      continue;
+    }
+
+    if (opName === "setText") {
+      const textResult = repairSetTextOp(op, index);
+
+      diagnostics.push(...textResult.diagnostics);
+
+      if (textResult.op) {
+        repaired.push(textResult.op);
+      }
+      continue;
+    }
+
+    if (opName === "retime") {
+      const retimeResult = repairRetimeOp(op, index);
+
+      diagnostics.push(...retimeResult.diagnostics);
+
+      if (retimeResult.op) {
+        repaired.push(retimeResult.op);
+      }
+      continue;
+    }
+
+    const idResult = repairIdOnlyOp(op, index);
+
+    diagnostics.push(...idResult.diagnostics);
+
+    if (idResult.op) {
+      repaired.push(idResult.op);
+    }
+  }
+
+  if (repaired.length === 0 && patchInput.length > 0) {
+    return {
+      ok: false,
+      errors: [
+        `All ${patchInput.length} model patch ops were dropped during repair. ${diagnostics.join(" ")}`.trim(),
+      ],
+    };
   }
 
   return { ok: true, patch: repaired, diagnostics };
@@ -170,28 +232,81 @@ function repairSetNodePropsOp(
 ):
   | {
       ok: true;
-      op: Extract<SceneOp, { op: "setNodeProps" }>;
+      ops: ScenePatch;
       asset: ChatMediaAssetManifestItem | null;
       diagnostics: string[];
     }
   | { ok: false; error: string } {
-  const id = readString(op.id);
+  const id = readPatchTargetId(op);
 
   if (!id) {
-    return { ok: false, error: "setNodeProps requires a node id." };
+    return {
+      ok: true,
+      ops: [],
+      asset: null,
+      diagnostics: ["Dropped setNodeProps op because it has no node id."],
+    };
   }
 
   if (!op.props || typeof op.props !== "object") {
-    return { ok: false, error: "setNodeProps requires a props object." };
+    return {
+      ok: true,
+      ops: [],
+      asset: null,
+      diagnostics: [`Dropped setNodeProps "${id}" because it has no props object.`],
+    };
   }
 
   const props = structuredClone(op.props) as Record<string, unknown>;
+  const ops: ScenePatch = [];
   const requestedAssetId = readString(props.assetId);
   const mediaAsset = requestedAssetId
     ? resolveMediaAssetAlias(requestedAssetId, mediaAssets)
     : null;
   const currentNode = scene ? findNode(scene.nodes, id) : null;
   const diagnostics: string[] = [];
+  const timing = readRetimeFields({ ...op, ...props });
+
+  if (timing.from !== undefined || timing.duration !== undefined) {
+    ops.push({ op: "retime", id, ...timing });
+    diagnostics.push(`Converted setNodeProps timing for "${id}" to retime.`);
+  }
+
+  delete props.from;
+  delete props.duration;
+
+  const text = readString(props.text);
+
+  if (text) {
+    ops.push({ op: "setText", id, text });
+    diagnostics.push(`Converted setNodeProps text for "${id}" to setText.`);
+  }
+
+  delete props.text;
+
+  if (isRecord(props.style)) {
+    const style = filterSupportedStyle(props.style);
+
+    if (Object.keys(style).length > 0) {
+      ops.push({ op: "setStyle", id, style });
+      diagnostics.push(`Converted setNodeProps style for "${id}" to setStyle.`);
+    }
+  }
+
+  delete props.style;
+
+  if (Array.isArray(props.animations)) {
+    ops.push({
+      op: "setAnimations",
+      id,
+      animations: props.animations,
+    } as Extract<SceneOp, { op: "setAnimations" }>);
+    diagnostics.push(
+      `Converted setNodeProps animations for "${id}" to setAnimations.`,
+    );
+  }
+
+  delete props.animations;
 
   if (requestedAssetId && mediaAsset) {
     if (
@@ -230,15 +345,154 @@ function repairSetNodePropsOp(
     };
   }
 
-  return {
-    ok: true,
-    op: {
+  const supportedProps = filterSupportedNodeProps(props);
+
+  if (Object.keys(supportedProps).length > 0) {
+    ops.push({
       op: "setNodeProps",
       id,
-      props,
-    } as Extract<SceneOp, { op: "setNodeProps" }>,
+      props: supportedProps,
+    } as Extract<SceneOp, { op: "setNodeProps" }>);
+  } else if (ops.length === 0) {
+    diagnostics.push(
+      `Dropped setNodeProps "${id}" because it only contained unsupported props.`,
+    );
+  }
+
+  return {
+    ok: true,
+    ops,
     asset: mediaAsset,
     diagnostics,
+  };
+}
+
+function repairSetStyleOp(
+  op: Record<string, unknown>,
+  index: number,
+): {
+  op: Extract<SceneOp, { op: "setStyle" }> | null;
+  diagnostics: string[];
+} {
+  const id = readPatchTargetId(op);
+
+  if (!id) {
+    return {
+      op: null,
+      diagnostics: [`Dropped setStyle op ${index} because it has no node id.`],
+    };
+  }
+
+  if (!isRecord(op.style)) {
+    return {
+      op: null,
+      diagnostics: [`Dropped setStyle "${id}" because it has no style object.`],
+    };
+  }
+
+  const style = filterSupportedStyle(op.style);
+
+  if (Object.keys(style).length === 0) {
+    return {
+      op: null,
+      diagnostics: [`Dropped setStyle "${id}" because no supported style keys remained.`],
+    };
+  }
+
+  return {
+    op: { op: "setStyle", id, style },
+    diagnostics:
+      id === op.id ? [] : [`Repaired setStyle target id for op ${index} to "${id}".`],
+  };
+}
+
+function repairSetTextOp(
+  op: Record<string, unknown>,
+  index: number,
+): {
+  op: Extract<SceneOp, { op: "setText" }> | null;
+  diagnostics: string[];
+} {
+  const id = readPatchTargetId(op);
+
+  if (!id) {
+    return {
+      op: null,
+      diagnostics: [`Dropped setText op ${index} because it has no node id.`],
+    };
+  }
+
+  const text = readString(op.text ?? op.value ?? op.content);
+
+  if (!text) {
+    return {
+      op: null,
+      diagnostics: [`Dropped setText "${id}" because it has no text.`],
+    };
+  }
+
+  return {
+    op: { op: "setText", id, text },
+    diagnostics:
+      id === op.id ? [] : [`Repaired setText target id for op ${index} to "${id}".`],
+  };
+}
+
+function repairRetimeOp(
+  op: Record<string, unknown>,
+  index: number,
+): {
+  op: Extract<SceneOp, { op: "retime" }> | null;
+  diagnostics: string[];
+} {
+  const id = readPatchTargetId(op);
+
+  if (!id) {
+    return {
+      op: null,
+      diagnostics: [`Dropped retime op ${index} because it has no node id.`],
+    };
+  }
+
+  const timing = readRetimeFields(op);
+
+  if (timing.from === undefined && timing.duration === undefined) {
+    return {
+      op: null,
+      diagnostics: [`Dropped retime "${id}" because it has no timing fields.`],
+    };
+  }
+
+  return {
+    op: { op: "retime", id, ...timing },
+    diagnostics:
+      id === op.id ? [] : [`Repaired retime target id for op ${index} to "${id}".`],
+  };
+}
+
+function repairIdOnlyOp(
+  op: Record<string, unknown>,
+  index: number,
+): { op: SceneOp | null; diagnostics: string[] } {
+  if (!idPatchOps.has(String(op.op))) {
+    return { op: op as SceneOp, diagnostics: [] };
+  }
+
+  const id = readPatchTargetId(op);
+
+  if (!id) {
+    return {
+      op: null,
+      diagnostics: [`Dropped ${String(op.op)} op ${index} because it has no node id.`],
+    };
+  }
+
+  return {
+    op: { ...op, id } as SceneOp,
+    diagnostics:
+      id === op.id
+        ? []
+        : [`Repaired ${String(op.op)} target id for op ${index} to "${id}".`],
   };
 }
 
@@ -298,8 +552,161 @@ function looksLikeUploadedMediaReference(value: string) {
   return /^(video|image|audio)[\s_-]?\d+$/i.test(value) || value.includes(".");
 }
 
+const supportedPatchOps = new Set([
+  "setStyle",
+  "setText",
+  "setNodeProps",
+  "retime",
+  "setAnimations",
+  "insertNode",
+  "removeNode",
+  "moveNode",
+  "setAsset",
+  "removeAsset",
+  "setSceneMeta",
+]);
+
+const idPatchOps = new Set([
+  "setAnimations",
+  "removeNode",
+  "moveNode",
+  "removeAsset",
+]);
+
+const supportedNodePropKeys = new Set([
+  "assetId",
+  "videoStartTime",
+  "playbackRate",
+  "audioStartTime",
+  "volume",
+  "volumeEnvelope",
+  "loop",
+]);
+
+const supportedStyleKeySet = new Set<string>(supportedStyleKeys);
+
 function readString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
+function readPatchTargetId(op: Record<string, unknown>) {
+  return readString(op.id) ?? readString(op.nodeId) ?? readString(op.targetId);
+}
+
+function readRetimeFields(input: Record<string, unknown>) {
+  const from = readInteger(input.from);
+  const duration = readPositiveInteger(input.duration);
+
+  return {
+    ...(from === null ? {} : { from }),
+    ...(duration === null ? {} : { duration }),
+  };
+}
+
+function readInteger(value: unknown) {
+  if (typeof value === "number" && Number.isInteger(value)) {
+    return value;
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    const parsed = Number.parseInt(value, 10);
+    return Number.isInteger(parsed) ? parsed : null;
+  }
+
+  return null;
+}
+
+function readPositiveInteger(value: unknown) {
+  const parsed = readInteger(value);
+  return parsed !== null && parsed > 0 ? parsed : null;
+}
+
+function filterSupportedNodeProps(props: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(props).filter(([key]) => supportedNodePropKeys.has(key)),
+  );
+}
+
+function filterSupportedStyle(style: Record<string, unknown>) {
+  return Object.fromEntries(
+    Object.entries(style)
+      .filter(([key]) => supportedStyleKeySet.has(key))
+      .map(([key, value]) => [key, normalizeStyleValue(key, value)])
+      .filter((entry): entry is [string, unknown] => entry[1] !== undefined),
+  );
+}
+
+function normalizeStyleValue(key: string, value: unknown): unknown {
+  if (typeof value !== "string") {
+    return value;
+  }
+
+  const normalized = value.trim();
+
+  switch (key) {
+    case "filter":
+      return isFilterExpression(normalized) ? normalized : undefined;
+    case "background":
+      return isUnsupportedGradient(normalized) ? undefined : value;
+    case "alignItems":
+      return normalizeEnumValue(normalized, {
+        start: "flex-start",
+        end: "flex-end",
+        baseline: "center",
+        "first baseline": "center",
+        "last baseline": "center",
+      });
+    case "justifyContent":
+      return normalizeEnumValue(normalized, {
+        start: "flex-start",
+        end: "flex-end",
+        "space-around": "space-between",
+        "space-evenly": "space-between",
+      });
+    case "flexDirection":
+      return normalizeEnumValue(normalized, {
+        "row-reverse": "row",
+        "column-reverse": "column",
+      });
+    case "position":
+      return normalizeEnumValue(normalized, {
+        fixed: "absolute",
+        sticky: "absolute",
+        static: "relative",
+      });
+    case "overflow":
+      return normalizeEnumValue(normalized, {
+        auto: "hidden",
+        scroll: "hidden",
+        clip: "hidden",
+      });
+    case "textAlign":
+      return normalizeEnumValue(normalized, {
+        start: "left",
+        end: "right",
+        justify: "center",
+      });
+    case "fontStyle":
+      return normalizeEnumValue(normalized, {
+        oblique: "italic",
+      });
+    default:
+      return value;
+  }
+}
+
+function normalizeEnumValue(value: string, aliases: Record<string, string>) {
+  return aliases[value] ?? value;
+}
+
+function isUnsupportedGradient(value: string): boolean {
+  return /(?:^|[\s,])(?:radial|conic|repeating-linear|repeating-radial)-gradient\(/i.test(
+    value,
+  );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === "object" && value !== null && !Array.isArray(value);
 }
 
 function findNode(nodes: Scene["nodes"], id: string): Scene["nodes"][number] | null {

@@ -102,6 +102,146 @@ describe("repairMediaPatch", () => {
     });
   });
 
+  it("splits model setNodeProps timing, text, and style into supported ops", () => {
+    const scene: Scene = {
+      ...baseScene(),
+      nodes: [
+        {
+          id: "title",
+          type: "text",
+          text: "Old",
+          duration: 90,
+          style: { color: "#fff" },
+        },
+      ],
+    };
+    const result = repairMediaPatch({
+      scene,
+      mediaAssets: [],
+      patchInput: [
+        {
+          op: "setNodeProps",
+          id: "title",
+          props: {
+            from: 12,
+            duration: 45,
+            text: "New",
+            style: {
+              color: "#facc15",
+              textTransform: "uppercase",
+              transform: "scale(1.1)",
+            },
+            durationSeconds: 1.5,
+          },
+        },
+      ],
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      patch: [
+        { op: "retime", id: "title", from: 12, duration: 45 },
+        { op: "setText", id: "title", text: "New" },
+        {
+          op: "setStyle",
+          id: "title",
+          style: { color: "#facc15", transform: "scale(1.1)" },
+        },
+      ],
+    });
+
+    if (result.ok) {
+      expect(result.diagnostics.join("\n")).toContain(
+        'Converted setNodeProps timing for "title" to retime',
+      );
+      expect(applyScenePatch(scene, result.patch).ok).toBe(true);
+    }
+  });
+
+  it("normalizes unsupported style enum values in patch styles", () => {
+    const scene: Scene = {
+      ...baseScene(),
+      nodes: [{ id: "row", type: "div", duration: 90 }],
+    };
+    const result = repairMediaPatch({
+      scene,
+      mediaAssets: [],
+      patchInput: [
+        {
+          op: "setStyle",
+          id: "row",
+          style: {
+            alignItems: "baseline",
+            justifyContent: "space-around",
+            position: "fixed",
+            overflow: "auto",
+            textAlign: "justify",
+            fontStyle: "oblique",
+            background: "radial-gradient(circle, #fff, #000)",
+            filter: "url(#glow) drop-shadow(0px 0px 12px #fff)",
+          },
+        },
+      ],
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      patch: [
+        {
+          op: "setStyle",
+          id: "row",
+          style: {
+            alignItems: "center",
+            justifyContent: "space-between",
+            position: "absolute",
+            overflow: "hidden",
+            textAlign: "center",
+            fontStyle: "italic",
+          },
+        },
+      ],
+    });
+
+    if (result.ok) {
+      const style =
+        result.patch[0]?.op === "setStyle" ? result.patch[0].style : {};
+      expect(style).not.toHaveProperty("background");
+      expect(style).not.toHaveProperty("filter");
+      expect(applyScenePatch(scene, result.patch).ok).toBe(true);
+    }
+  });
+
+  it("drops impossible patch ops while keeping repairable ops", () => {
+    const scene: Scene = {
+      ...baseScene(),
+      nodes: [{ id: "title", type: "text", text: "Old", duration: 90 }],
+    };
+    const result = repairMediaPatch({
+      scene,
+      mediaAssets: [],
+      patchInput: [
+        { op: "setNodeProps", props: { duration: 30 } },
+        { op: "animateNode", id: "title" },
+        { op: "setNodeProps", id: "title", props: { duration: 30 } },
+      ],
+    });
+
+    expect(result).toMatchObject({
+      ok: true,
+      patch: [{ op: "retime", id: "title", duration: 30 }],
+    });
+
+    if (result.ok) {
+      expect(result.diagnostics.join("\n")).toContain(
+        "Dropped setNodeProps op because it has no node id",
+      );
+      expect(result.diagnostics.join("\n")).toContain(
+        'Dropped unsupported patch op 1 "animateNode"',
+      );
+      expect(applyScenePatch(scene, result.patch).ok).toBe(true);
+    }
+  });
+
   it("declines unresolved uploaded media references", () => {
     expect(
       repairMediaPatch({
