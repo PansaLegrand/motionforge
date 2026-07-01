@@ -38,6 +38,7 @@ export type EditorLayer = {
   opacity?: number;
   paintIndex: number;
   childCount: number;
+  descendantCount: number;
   bounds?: EditorLayerBounds;
 };
 
@@ -64,6 +65,7 @@ export function deriveEditorLayers(scene: Scene): EditorLayer[] {
     });
   }
 
+  assignDescendantCounts(layers);
   return layers;
 }
 
@@ -85,6 +87,36 @@ export function displayLayerType(type: SceneNode["type"]): string {
     default:
       return type;
   }
+}
+
+export function collectEditorLayerDescendantIds(
+  layers: EditorLayer[],
+  id: string | null,
+): Set<string> {
+  const descendants = new Set<string>();
+
+  if (!id) {
+    return descendants;
+  }
+
+  const index = layers.findIndex((layer) => layer.id === id);
+  const selectedLayer = layers[index];
+
+  if (!selectedLayer) {
+    return descendants;
+  }
+
+  for (let nextIndex = index + 1; nextIndex < layers.length; nextIndex += 1) {
+    const layer = layers[nextIndex];
+
+    if (!layer || layer.depth <= selectedLayer.depth) {
+      break;
+    }
+
+    descendants.add(layer.id);
+  }
+
+  return descendants;
 }
 
 function collectLayer(
@@ -143,6 +175,7 @@ function collectLayer(
       typeof node.style?.opacity === "number" ? node.style.opacity : undefined,
     paintIndex: context.paintIndex.current,
     childCount: node.children?.length ?? 0,
+    descendantCount: 0,
     bounds: layerBounds(node),
   });
   context.paintIndex.current += 1;
@@ -156,6 +189,30 @@ function collectLayer(
       parentLocalDuration: localDuration,
       paintIndex: context.paintIndex,
     });
+  }
+}
+
+function assignDescendantCounts(layers: EditorLayer[]): void {
+  for (let index = 0; index < layers.length; index += 1) {
+    const layer = layers[index];
+
+    if (!layer) {
+      continue;
+    }
+
+    let descendantCount = 0;
+
+    for (let nextIndex = index + 1; nextIndex < layers.length; nextIndex += 1) {
+      const candidate = layers[nextIndex];
+
+      if (!candidate || candidate.depth <= layer.depth) {
+        break;
+      }
+
+      descendantCount += 1;
+    }
+
+    layer.descendantCount = descendantCount;
   }
 }
 

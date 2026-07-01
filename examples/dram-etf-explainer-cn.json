@@ -1,0 +1,1547 @@
+{
+  "schemaVersion": 0,
+  "width": 1080,
+  "height": 1920,
+  "fps": 30,
+  "duration": 1800,
+  "assets": {},
+  "nodes": [
+    {
+      "id": "background",
+      "type": "div",
+      "duration": 1800,
+      "style": {
+        "width": "100%",
+        "height": "100%",
+        "background": "linear-gradient(180deg, #05070c 0%, #0b1020 48%, #030406 100%)",
+        "overflow": "hidden"
+      }
+    },
+    {
+      "id": "ambient-cyan",
+      "type": "div",
+      "duration": 1800,
+      "style": {
+        "position": "absolute",
+        "left": -320,
+        "top": 260,
+        "width": 760,
+        "height": 760,
+        "borderRadius": 380,
+        "background": "linear-gradient(135deg, rgba(0,234,255,0.16) 0%, rgba(0,234,255,0.025) 70%, rgba(0,0,0,0) 100%)",
+        "opacity": 0.9
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            { "frame": 0, "value": "translate(0px, 0px) scale(1)" },
+            { "frame": 1799, "value": "translate(180px, 720px) scale(1.12)", "easing": "linear" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ambient-lime-magenta",
+      "type": "div",
+      "duration": 1800,
+      "style": {
+        "position": "absolute",
+        "left": 620,
+        "top": 760,
+        "width": 760,
+        "height": 760,
+        "borderRadius": 380,
+        "background": "linear-gradient(315deg, rgba(255,43,214,0.15) 0%, rgba(184,255,44,0.08) 44%, rgba(0,0,0,0) 100%)",
+        "opacity": 0.86
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "transform",
+          "frames": [
+            { "frame": 0, "value": "translate(0px, 0px) scale(1)" },
+            { "frame": 1799, "value": "translate(-170px, -260px) scale(1.08)", "easing": "linear" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "safe-frame",
+      "type": "div",
+      "duration": 1800,
+      "style": {
+        "position": "absolute",
+        "left": 64,
+        "right": 64,
+        "top": 86,
+        "bottom": 142,
+        "border": "2px solid rgba(255,255,255,0.07)",
+        "borderRadius": 42
+      }
+    },
+    {
+      "id": "top-label",
+      "type": "text",
+      "text": "DRAM ETF 解释",
+      "duration": 1800,
+      "style": {
+        "position": "absolute",
+        "left": 96,
+        "top": 118,
+        "width": 420,
+        "height": 42,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 28,
+        "fontWeight": 900,
+        "letterSpacing": 2,
+        "color": "#00eaff",
+        "textAlign": "left",
+        "lineHeight": 1,
+        "textFit": "shrink",
+        "minFontSize": 22,
+        "maxLines": 1,
+        "zIndex": 50
+      }
+    },
+    {
+      "id": "footer-disclaimer",
+      "type": "text",
+      "text": "权重为近似经济敞口；持仓会变化；非投资建议",
+      "duration": 1800,
+      "style": {
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 1660,
+        "height": 60,
+        "fontFamily": "system-ui, Arial, sans-serif",
+        "fontSize": 28,
+        "fontWeight": 800,
+        "color": "rgba(255,255,255,0.82)",
+        "textAlign": "center",
+        "lineHeight": 1.1,
+        "textBackgroundColor": "rgba(255,255,255,0.08)",
+        "textBackgroundPaddingX": 26,
+        "textBackgroundPaddingY": 15,
+        "textBackgroundRadius": 30,
+        "textFit": "shrink",
+        "minFontSize": 22,
+        "maxLines": 1,
+        "zIndex": 50
+      }
+    },
+    {
+      "id": "progress-track",
+      "type": "div",
+      "duration": 1800,
+      "style": {
+        "position": "absolute",
+        "left": 96,
+        "right": 96,
+        "top": 1760,
+        "height": 10,
+        "borderRadius": 5,
+        "backgroundColor": "rgba(255,255,255,0.16)",
+        "overflow": "hidden",
+        "zIndex": 50
+      },
+      "children": [
+        {
+          "id": "progress-fill",
+          "type": "div",
+          "duration": 1800,
+          "style": {
+            "width": "100%",
+            "height": "100%",
+            "background": "linear-gradient(90deg, #00eaff 0%, #b8ff2c 50%, #ff2bd6 100%)",
+            "transform": "translate(-100%, 0px)"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                { "frame": 0, "value": "translate(-100%, 0px)" },
+                { "frame": 1799, "value": "translate(0%, 0px)", "easing": "linear" }
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene-1-hook",
+      "type": "div",
+      "from": 0,
+      "duration": 210,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 1 },
+            { "frame": 190, "value": 1 },
+            { "frame": 209, "value": 0, "easing": "easeIn" }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s1-title",
+          "type": "text",
+          "text": "看好存储行业？",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 300,
+            "height": 120,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 76,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "lineHeight": 1.08,
+            "textShadow": "0 0 26 rgba(0,234,255,0.46)",
+            "textFit": "shrink",
+            "minFontSize": 52,
+            "maxLines": 1
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                { "frame": 0, "value": "translate(-40px, 0px) scale(0.96)" },
+                { "frame": 20, "value": "translate(0px, 0px) scale(1)", "easing": "cubic-bezier(0.22, 1, 0.36, 1)" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "s1-subtitle",
+          "type": "text",
+          "text": "DRAM ETF 的卖点：\n一键买全球存储龙头",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 455,
+            "height": 150,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 46,
+            "fontWeight": 850,
+            "color": "rgba(255,255,255,0.94)",
+            "textAlign": "left",
+            "lineHeight": 1.22,
+            "textFit": "shrink",
+            "minFontSize": 34,
+            "maxLines": 2
+          }
+        },
+        {
+          "id": "s1-warning-card",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 760,
+            "height": 420,
+            "borderRadius": 36,
+            "background": "linear-gradient(140deg, rgba(255,255,255,0.08) 0%, rgba(0,234,255,0.08) 55%, rgba(255,43,214,0.08) 100%)",
+            "border": "2px solid rgba(255,255,255,0.16)",
+            "boxShadow": "0 34 90 rgba(0,0,0,0.52)",
+            "overflow": "hidden"
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                { "frame": 0, "value": "translate(0px, 70px) scale(0.97)" },
+                { "frame": 32, "value": "translate(0px, 0px) scale(1)", "easing": "cubic-bezier(0.22, 1, 0.36, 1)" }
+              ]
+            }
+          ],
+          "children": [
+            {
+              "id": "s1-card-kicker",
+              "type": "text",
+              "text": "关键细节",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "top": 54,
+                "width": 260,
+                "height": 54,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 950,
+                "color": "#b8ff2c",
+                "textAlign": "left",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 26,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s1-card-text",
+              "type": "text",
+              "text": "它不是 100% 只买存储股票。\n基金会使用股票、掉期和现金/国债仓位来实现目标敞口。",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 130,
+                "height": 210,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 42,
+                "fontWeight": 850,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1.25,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 3
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene-2-structure",
+      "type": "div",
+      "from": 210,
+      "duration": 240,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 14, "value": 1, "easing": "easeOut" },
+            { "frame": 220, "value": 1 },
+            { "frame": 239, "value": 0, "easing": "easeIn" }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s2-title",
+          "type": "text",
+          "text": "先看结构",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 280,
+            "height": 100,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 72,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "lineHeight": 1,
+            "textFit": "shrink",
+            "minFontSize": 50,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s2-subtitle",
+          "type": "text",
+          "text": "官方权重口径会把股票和 Total Return Swaps 合并计算。",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 400,
+            "height": 96,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 38,
+            "fontWeight": 820,
+            "color": "rgba(255,255,255,0.9)",
+            "textAlign": "left",
+            "lineHeight": 1.18,
+            "textFit": "shrink",
+            "minFontSize": 28,
+            "maxLines": 2
+          }
+        },
+        {
+          "id": "s2-flow",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 650,
+            "height": 520,
+            "borderRadius": 36,
+            "background": "linear-gradient(150deg, rgba(255,255,255,0.08) 0%, rgba(0,234,255,0.07) 44%, rgba(184,255,44,0.06) 100%)",
+            "border": "2px solid rgba(255,255,255,0.14)",
+            "boxShadow": "0 34 90 rgba(0,0,0,0.52)"
+          },
+          "children": [
+            {
+              "id": "s2-chip-stock",
+              "type": "text",
+              "text": "股票",
+              "style": {
+                "position": "absolute",
+                "left": 60,
+                "top": 88,
+                "width": 230,
+                "height": 74,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 42,
+                "fontWeight": 950,
+                "color": "#020203",
+                "textAlign": "center",
+                "lineHeight": 1,
+                "textBackgroundColor": "#00eaff",
+                "textBackgroundPaddingX": 34,
+                "textBackgroundPaddingY": 19,
+                "textBackgroundRadius": 36,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s2-chip-swap",
+              "type": "text",
+              "text": "掉期",
+              "style": {
+                "position": "absolute",
+                "left": 330,
+                "top": 88,
+                "width": 230,
+                "height": 74,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 42,
+                "fontWeight": 950,
+                "color": "#020203",
+                "textAlign": "center",
+                "lineHeight": 1,
+                "textBackgroundColor": "#b8ff2c",
+                "textBackgroundPaddingX": 34,
+                "textBackgroundPaddingY": 19,
+                "textBackgroundRadius": 36,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s2-chip-cash",
+              "type": "text",
+              "text": "现金/国债",
+              "style": {
+                "position": "absolute",
+                "left": 600,
+                "top": 88,
+                "width": 240,
+                "height": 74,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 36,
+                "fontWeight": 950,
+                "color": "#020203",
+                "textAlign": "center",
+                "lineHeight": 1,
+                "textBackgroundColor": "#ff2bd6",
+                "textBackgroundPaddingX": 28,
+                "textBackgroundPaddingY": 20,
+                "textBackgroundRadius": 36,
+                "textFit": "shrink",
+                "minFontSize": 28,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s2-equals-line",
+              "type": "div",
+              "style": {
+                "position": "absolute",
+                "left": 120,
+                "right": 120,
+                "top": 250,
+                "height": 8,
+                "borderRadius": 4,
+                "background": "linear-gradient(90deg, #00eaff 0%, #b8ff2c 50%, #ff2bd6 100%)",
+                "boxShadow": "0 0 20 rgba(0,234,255,0.46)"
+              },
+              "animations": [
+                {
+                  "kind": "keyframes",
+                  "property": "transform",
+                  "frames": [
+                    { "frame": 0, "value": "scale(0.6)" },
+                    { "frame": 60, "value": "scale(1)", "easing": "easeOut" },
+                    { "frame": 239, "value": "scale(1.04)", "easing": "linear" }
+                  ]
+                }
+              ]
+            },
+            {
+              "id": "s2-result",
+              "type": "text",
+              "text": "目标：获得全球存储公司敞口",
+              "style": {
+                "position": "absolute",
+                "left": 70,
+                "right": 70,
+                "top": 320,
+                "height": 70,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 40,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "textAlign": "center",
+                "lineHeight": 1.1,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 1
+              }
+            }
+          ]
+        },
+        {
+          "id": "s2-facts",
+          "type": "text",
+          "text": "费用：0.65% / 主动管理 / 2026-04-02 开始交易",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 1240,
+            "height": 72,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 34,
+            "fontWeight": 850,
+            "color": "rgba(255,255,255,0.9)",
+            "textAlign": "center",
+            "lineHeight": 1.1,
+            "textFit": "shrink",
+            "minFontSize": 26,
+            "maxLines": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene-3-holdings",
+      "type": "div",
+      "from": 450,
+      "duration": 270,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 14, "value": 1, "easing": "easeOut" },
+            { "frame": 248, "value": 1 },
+            { "frame": 269, "value": 0, "easing": "easeIn" }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s3-title",
+          "type": "text",
+          "text": "真正的大头是谁？",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 260,
+            "height": 96,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 70,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "lineHeight": 1,
+            "textFit": "shrink",
+            "minFontSize": 48,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s3-subtitle",
+          "type": "text",
+          "text": "按经济敞口看，前三家公司占比接近 70%+。",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 382,
+            "height": 78,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 40,
+            "fontWeight": 850,
+            "color": "rgba(255,255,255,0.9)",
+            "textAlign": "left",
+            "lineHeight": 1.1,
+            "textFit": "shrink",
+            "minFontSize": 30,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s3-chart",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 580,
+            "height": 760,
+            "borderRadius": 36,
+            "background": "linear-gradient(150deg, rgba(255,255,255,0.075) 0%, rgba(0,234,255,0.06) 44%, rgba(255,43,214,0.06) 100%)",
+            "border": "2px solid rgba(255,255,255,0.14)",
+            "boxShadow": "0 34 90 rgba(0,0,0,0.52)"
+          },
+          "children": [
+            {
+              "id": "s3-micron-label",
+              "type": "text",
+              "text": "Micron",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "top": 76,
+                "width": 210,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-micron-bar",
+              "type": "div",
+              "style": {
+                "position": "absolute",
+                "left": 270,
+                "top": 78,
+                "width": 420,
+                "height": 36,
+                "borderRadius": 18,
+                "backgroundColor": "#00eaff",
+                "boxShadow": "0 0 18 rgba(0,234,255,0.64)"
+              }
+            },
+            {
+              "id": "s3-micron-value",
+              "type": "text",
+              "text": "~28%",
+              "style": {
+                "position": "absolute",
+                "left": 710,
+                "top": 76,
+                "width": 100,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#00eaff",
+                "textAlign": "right",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-hynix-label",
+              "type": "text",
+              "text": "SK hynix",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "top": 166,
+                "width": 210,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-hynix-bar",
+              "type": "div",
+              "style": {
+                "position": "absolute",
+                "left": 270,
+                "top": 168,
+                "width": 390,
+                "height": 36,
+                "borderRadius": 18,
+                "backgroundColor": "#b8ff2c",
+                "boxShadow": "0 0 18 rgba(184,255,44,0.62)"
+              }
+            },
+            {
+              "id": "s3-hynix-value",
+              "type": "text",
+              "text": "~26%",
+              "style": {
+                "position": "absolute",
+                "left": 710,
+                "top": 166,
+                "width": 100,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#b8ff2c",
+                "textAlign": "right",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-samsung-label",
+              "type": "text",
+              "text": "Samsung",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "top": 256,
+                "width": 210,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-samsung-bar",
+              "type": "div",
+              "style": {
+                "position": "absolute",
+                "left": 270,
+                "top": 258,
+                "width": 285,
+                "height": 36,
+                "borderRadius": 18,
+                "backgroundColor": "#ff2bd6",
+                "boxShadow": "0 0 18 rgba(255,43,214,0.62)"
+              }
+            },
+            {
+              "id": "s3-samsung-value",
+              "type": "text",
+              "text": "~19%",
+              "style": {
+                "position": "absolute",
+                "left": 710,
+                "top": 256,
+                "width": 100,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#ff2bd6",
+                "textAlign": "right",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-kioxia-label",
+              "type": "text",
+              "text": "Kioxia",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "top": 346,
+                "width": 210,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-kioxia-bar",
+              "type": "div",
+              "style": {
+                "position": "absolute",
+                "left": 270,
+                "top": 348,
+                "width": 120,
+                "height": 36,
+                "borderRadius": 18,
+                "backgroundColor": "#ffffff",
+                "boxShadow": "0 0 18 rgba(255,255,255,0.5)"
+              }
+            },
+            {
+              "id": "s3-kioxia-value",
+              "type": "text",
+              "text": "~8%",
+              "style": {
+                "position": "absolute",
+                "left": 710,
+                "top": 346,
+                "width": 100,
+                "height": 42,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 30,
+                "fontWeight": 900,
+                "color": "#ffffff",
+                "textAlign": "right",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 22,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s3-others",
+              "type": "text",
+              "text": "其余：SanDisk / Seagate / Western Digital / Nanya / Winbond 等",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 482,
+                "height": 120,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 820,
+                "color": "rgba(255,255,255,0.88)",
+                "textAlign": "left",
+                "lineHeight": 1.22,
+                "textFit": "shrink",
+                "minFontSize": 26,
+                "maxLines": 2
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene-4-exposure",
+      "type": "div",
+      "from": 720,
+      "duration": 300,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 14, "value": 1, "easing": "easeOut" },
+            { "frame": 278, "value": 1 },
+            { "frame": 299, "value": 0, "easing": "easeIn" }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s4-title",
+          "type": "text",
+          "text": "你实际买到什么？",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 260,
+            "height": 96,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 70,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "lineHeight": 1,
+            "textFit": "shrink",
+            "minFontSize": 48,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s4-main-card",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 520,
+            "height": 760,
+            "borderRadius": 36,
+            "background": "linear-gradient(150deg, rgba(255,255,255,0.075) 0%, rgba(184,255,44,0.06) 46%, rgba(0,234,255,0.06) 100%)",
+            "border": "2px solid rgba(255,255,255,0.14)",
+            "boxShadow": "0 34 90 rgba(0,0,0,0.52)"
+          },
+          "children": [
+            {
+              "id": "s4-stack-base",
+              "type": "div",
+              "style": {
+                "position": "absolute",
+                "left": 70,
+                "top": 110,
+                "width": 748,
+                "height": 72,
+                "borderRadius": 36,
+                "backgroundColor": "rgba(255,255,255,0.12)",
+                "overflow": "hidden"
+              },
+              "children": [
+                {
+                  "id": "s4-stack-dram",
+                  "type": "div",
+                  "style": {
+                    "position": "absolute",
+                    "left": 0,
+                    "top": 0,
+                    "width": 561,
+                    "height": 72,
+                    "background": "linear-gradient(90deg, #00eaff 0%, #b8ff2c 100%)"
+                  }
+                },
+                {
+                  "id": "s4-stack-nand",
+                  "type": "div",
+                  "style": {
+                    "position": "absolute",
+                    "left": 561,
+                    "top": 0,
+                    "width": 112,
+                    "height": 72,
+                    "backgroundColor": "#ff2bd6"
+                  }
+                },
+                {
+                  "id": "s4-stack-other",
+                  "type": "div",
+                  "style": {
+                    "position": "absolute",
+                    "left": 673,
+                    "top": 0,
+                    "width": 75,
+                    "height": 72,
+                    "backgroundColor": "#ffffff"
+                  }
+                }
+              ]
+            },
+            {
+              "id": "s4-dram",
+              "type": "text",
+              "text": "HBM / DRAM\n约 75%",
+              "style": {
+                "position": "absolute",
+                "left": 70,
+                "top": 250,
+                "width": 760,
+                "height": 100,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 46,
+                "fontWeight": 950,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1.15,
+                "textFit": "shrink",
+                "minFontSize": 34,
+                "maxLines": 2
+              }
+            },
+            {
+              "id": "s4-dram-names",
+              "type": "text",
+              "text": "SK hynix / Micron / Samsung",
+              "style": {
+                "position": "absolute",
+                "left": 70,
+                "right": 70,
+                "top": 370,
+                "height": 54,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 850,
+                "color": "#b8ff2c",
+                "textAlign": "left",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 26,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s4-other-lines",
+              "type": "text",
+              "text": "NAND Flash 约 15%\nHDD + 台湾二线 DRAM 约 10%",
+              "style": {
+                "position": "absolute",
+                "left": 70,
+                "right": 70,
+                "top": 500,
+                "height": 130,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 38,
+                "fontWeight": 850,
+                "color": "rgba(255,255,255,0.9)",
+                "textAlign": "left",
+                "lineHeight": 1.28,
+                "textFit": "shrink",
+                "minFontSize": 28,
+                "maxLines": 2
+              }
+            }
+          ]
+        },
+        {
+          "id": "s4-ai-chain",
+          "type": "text",
+          "text": "AI 产业链核心线索：GPU → HBM → 先进封装",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 1348,
+            "height": 76,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 36,
+            "fontWeight": 900,
+            "color": "#00eaff",
+            "textAlign": "center",
+            "lineHeight": 1.1,
+            "textFit": "shrink",
+            "minFontSize": 28,
+            "maxLines": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene-5-risk",
+      "type": "div",
+      "from": 1020,
+      "duration": 300,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 14, "value": 1, "easing": "easeOut" },
+            { "frame": 278, "value": 1 },
+            { "frame": 299, "value": 0, "easing": "easeIn" }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s5-title",
+          "type": "text",
+          "text": "最大问题：太集中",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 260,
+            "height": 96,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 70,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "lineHeight": 1,
+            "textShadow": "0 0 26 rgba(255,43,214,0.5)",
+            "textFit": "shrink",
+            "minFontSize": 48,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s5-big-number",
+          "type": "text",
+          "text": "前三大\n约 70%+",
+          "style": {
+            "position": "absolute",
+            "left": 170,
+            "right": 170,
+            "top": 500,
+            "height": 250,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 90,
+            "fontWeight": 950,
+            "color": "#ff2bd6",
+            "textAlign": "center",
+            "lineHeight": 1.08,
+            "textStroke": "2px rgba(255,255,255,0.16)",
+            "textFit": "shrink",
+            "minFontSize": 58,
+            "maxLines": 2
+          },
+          "animations": [
+            {
+              "kind": "keyframes",
+              "property": "transform",
+              "frames": [
+                { "frame": 0, "value": "scale(0.86)" },
+                { "frame": 30, "value": "scale(1)", "easing": "spring(0.24)" },
+                { "frame": 299, "value": "scale(1.02)", "easing": "linear" }
+              ]
+            }
+          ]
+        },
+        {
+          "id": "s5-explain-card",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 840,
+            "height": 430,
+            "borderRadius": 36,
+            "background": "linear-gradient(150deg, rgba(255,255,255,0.075) 0%, rgba(255,43,214,0.09) 48%, rgba(0,234,255,0.06) 100%)",
+            "border": "2px solid rgba(255,255,255,0.14)",
+            "boxShadow": "0 34 90 rgba(0,0,0,0.52)"
+          },
+          "children": [
+            {
+              "id": "s5-explain",
+              "type": "text",
+              "text": "它不像普通分散 ETF。\n更像：Micron + SK hynix + Samsung，外加一篮子小仓位。",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 58,
+                "height": 210,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 42,
+                "fontWeight": 850,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1.24,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 3
+              }
+            },
+            {
+              "id": "s5-risk-line",
+              "type": "text",
+              "text": "风险来自：行业周期、单一赛道、韩国/美国半导体波动。",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 300,
+                "height": 70,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 32,
+                "fontWeight": 820,
+                "color": "rgba(255,255,255,0.86)",
+                "textAlign": "left",
+                "lineHeight": 1.16,
+                "textFit": "shrink",
+                "minFontSize": 25,
+                "maxLines": 2
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "scene-6-choice",
+      "type": "div",
+      "from": 1320,
+      "duration": 270,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 14, "value": 1, "easing": "easeOut" },
+            { "frame": 248, "value": 1 },
+            { "frame": 269, "value": 0, "easing": "easeIn" }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s6-title",
+          "type": "text",
+          "text": "ETF 还是自己买？",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 260,
+            "height": 96,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 70,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "left",
+            "lineHeight": 1,
+            "textFit": "shrink",
+            "minFontSize": 48,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s6-left-card",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "top": 520,
+            "width": 416,
+            "height": 640,
+            "borderRadius": 36,
+            "background": "linear-gradient(150deg, rgba(0,234,255,0.12) 0%, rgba(255,255,255,0.06) 100%)",
+            "border": "2px solid rgba(0,234,255,0.28)",
+            "boxShadow": "0 30 80 rgba(0,0,0,0.48)"
+          },
+          "children": [
+            {
+              "id": "s6-left-title",
+              "type": "text",
+              "text": "ETF 适合",
+              "style": {
+                "position": "absolute",
+                "left": 40,
+                "right": 40,
+                "top": 48,
+                "height": 58,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 40,
+                "fontWeight": 950,
+                "color": "#00eaff",
+                "textAlign": "center",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s6-left-text",
+              "type": "text",
+              "text": "想一键买\n不想处理韩国市场\n接受 0.65% 费率\n需要基金自动调整",
+              "style": {
+                "position": "absolute",
+                "left": 42,
+                "right": 42,
+                "top": 150,
+                "height": 360,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 820,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1.55,
+                "textFit": "shrink",
+                "minFontSize": 26,
+                "maxLines": 4
+              }
+            }
+          ]
+        },
+        {
+          "id": "s6-right-card",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 568,
+            "top": 520,
+            "width": 416,
+            "height": 640,
+            "borderRadius": 36,
+            "background": "linear-gradient(150deg, rgba(184,255,44,0.12) 0%, rgba(255,255,255,0.06) 100%)",
+            "border": "2px solid rgba(184,255,44,0.28)",
+            "boxShadow": "0 30 80 rgba(0,0,0,0.48)"
+          },
+          "children": [
+            {
+              "id": "s6-right-title",
+              "type": "text",
+              "text": "自己买适合",
+              "style": {
+                "position": "absolute",
+                "left": 40,
+                "right": 40,
+                "top": 48,
+                "height": 58,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 38,
+                "fontWeight": 950,
+                "color": "#b8ff2c",
+                "textAlign": "center",
+                "lineHeight": 1,
+                "textFit": "shrink",
+                "minFontSize": 28,
+                "maxLines": 1
+              }
+            },
+            {
+              "id": "s6-right-text",
+              "type": "text",
+              "text": "能买美韩股票\n想更聚焦 HBM\n想少付管理费\n愿意自己再平衡",
+              "style": {
+                "position": "absolute",
+                "left": 42,
+                "right": 42,
+                "top": 150,
+                "height": 360,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 34,
+                "fontWeight": 820,
+                "color": "#ffffff",
+                "textAlign": "left",
+                "lineHeight": 1.55,
+                "textFit": "shrink",
+                "minFontSize": 26,
+                "maxLines": 4
+              }
+            }
+          ]
+        },
+        {
+          "id": "s6-no-recommendation",
+          "type": "text",
+          "text": "重点不是哪一个一定更好，而是你要不要为便利性付费。",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 1238,
+            "height": 90,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 36,
+            "fontWeight": 850,
+            "color": "rgba(255,255,255,0.9)",
+            "textAlign": "center",
+            "lineHeight": 1.18,
+            "textFit": "shrink",
+            "minFontSize": 28,
+            "maxLines": 2
+          }
+        }
+      ]
+    },
+    {
+      "id": "scene-7-summary",
+      "type": "div",
+      "from": 1590,
+      "duration": 210,
+      "style": {
+        "position": "absolute",
+        "left": 0,
+        "top": 0,
+        "width": 1080,
+        "height": 1920,
+        "opacity": 1
+      },
+      "animations": [
+        {
+          "kind": "keyframes",
+          "property": "opacity",
+          "frames": [
+            { "frame": 0, "value": 0 },
+            { "frame": 14, "value": 1, "easing": "easeOut" },
+            { "frame": 209, "value": 1 }
+          ]
+        }
+      ],
+      "children": [
+        {
+          "id": "s7-title",
+          "type": "text",
+          "text": "一句话结论",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 270,
+            "height": 100,
+            "fontFamily": "system-ui, Arial, sans-serif",
+            "fontSize": 74,
+            "fontWeight": 950,
+            "color": "#ffffff",
+            "textAlign": "center",
+            "lineHeight": 1,
+            "textShadow": "0 0 28 rgba(0,234,255,0.52)",
+            "textFit": "shrink",
+            "minFontSize": 52,
+            "maxLines": 1
+          }
+        },
+        {
+          "id": "s7-card",
+          "type": "div",
+          "style": {
+            "position": "absolute",
+            "left": 96,
+            "right": 96,
+            "top": 500,
+            "height": 760,
+            "borderRadius": 38,
+            "background": "linear-gradient(150deg, rgba(255,255,255,0.085) 0%, rgba(0,234,255,0.08) 46%, rgba(255,43,214,0.07) 100%)",
+            "border": "2px solid rgba(255,255,255,0.16)",
+            "boxShadow": "0 34 90 rgba(0,0,0,0.52)"
+          },
+          "children": [
+            {
+              "id": "s7-line-1",
+              "type": "text",
+              "text": "DRAM 是美国市场少见的\n纯存储 ETF。",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 80,
+                "height": 150,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 46,
+                "fontWeight": 950,
+                "color": "#ffffff",
+                "textAlign": "center",
+                "lineHeight": 1.18,
+                "textFit": "shrink",
+                "minFontSize": 34,
+                "maxLines": 2
+              }
+            },
+            {
+              "id": "s7-line-2",
+              "type": "text",
+              "text": "但它不是普通分散 ETF：\n核心风险是集中度。",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 300,
+                "height": 150,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 42,
+                "fontWeight": 900,
+                "color": "#ff2bd6",
+                "textAlign": "center",
+                "lineHeight": 1.2,
+                "textFit": "shrink",
+                "minFontSize": 32,
+                "maxLines": 2
+              }
+            },
+            {
+              "id": "s7-line-3",
+              "type": "text",
+              "text": "买前只看两件事：\n最新持仓 + 你能承受集中度吗？",
+              "style": {
+                "position": "absolute",
+                "left": 54,
+                "right": 54,
+                "top": 520,
+                "height": 150,
+                "fontFamily": "system-ui, Arial, sans-serif",
+                "fontSize": 40,
+                "fontWeight": 900,
+                "color": "#b8ff2c",
+                "textAlign": "center",
+                "lineHeight": 1.22,
+                "textFit": "shrink",
+                "minFontSize": 30,
+                "maxLines": 2
+              }
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -34,7 +34,11 @@ import {
   describePreviewOverlay,
 } from "@/lib/editor/capability-messages";
 import type { InspectorEditableField } from "@/lib/editor/inspector-patches";
-import { displayLayerType, type EditorLayer } from "@/lib/editor/layers";
+import {
+  collectEditorLayerDescendantIds,
+  displayLayerType,
+  type EditorLayer,
+} from "@/lib/editor/layers";
 import {
   describeTimelineMediaLayer,
   type TimelineMediaInfo,
@@ -131,6 +135,7 @@ export function PanelSwitcher({
   onInsertMediaAsset,
   onRemoveMediaAsset,
   onSelectLayer,
+  onDeleteLayer,
   onSelectPlanStep,
   onEditLayer,
 }: {
@@ -155,6 +160,7 @@ export function PanelSwitcher({
   onInsertMediaAsset: (id: string) => void;
   onRemoveMediaAsset: (id: string) => void;
   onSelectLayer: (id: string) => void;
+  onDeleteLayer: (id: string) => void;
   onSelectPlanStep: (id: string) => void;
   onEditLayer: (
     id: string,
@@ -180,6 +186,7 @@ export function PanelSwitcher({
         layers={editorLayers}
         selectedLayerId={selectedLayerId}
         onSelectLayer={onSelectLayer}
+        onDeleteLayer={onDeleteLayer}
       />
     );
   }
@@ -189,6 +196,7 @@ export function PanelSwitcher({
       <InspectorPanel
         fps={fps}
         selectedLayer={selectedLayer}
+        onDeleteLayer={onDeleteLayer}
         onEditLayer={onEditLayer}
       />
     );
@@ -721,11 +729,18 @@ function LayersPanel({
   layers,
   selectedLayerId,
   onSelectLayer,
+  onDeleteLayer,
 }: {
   layers: EditorLayer[];
   selectedLayerId: string | null;
   onSelectLayer: (id: string) => void;
+  onDeleteLayer: (id: string) => void;
 }) {
+  const selectedDescendantIds = collectEditorLayerDescendantIds(
+    layers,
+    selectedLayerId,
+  );
+
   return (
     <>
       <PanelHeader
@@ -741,7 +756,9 @@ function LayersPanel({
                 key={layer.id}
                 layer={layer}
                 selected={selectedLayerId === layer.id}
+                included={selectedDescendantIds.has(layer.id)}
                 onSelect={() => onSelectLayer(layer.id)}
+                onDelete={() => onDeleteLayer(layer.id)}
               />
             ))}
           </div>
@@ -756,10 +773,12 @@ function LayersPanel({
 function InspectorPanel({
   fps,
   selectedLayer,
+  onDeleteLayer,
   onEditLayer,
 }: {
   fps: number;
   selectedLayer: EditorLayer | null;
+  onDeleteLayer: (id: string) => void;
   onEditLayer: (
     id: string,
     field: InspectorEditableField,
@@ -775,7 +794,24 @@ function InspectorPanel({
 
   return (
     <>
-      <PanelHeader icon={Info} title="Inspector" detail="selection" />
+      <PanelHeader
+        icon={Info}
+        title="Inspector"
+        detail="selection"
+        action={
+          selectedLayer ? (
+            <button
+              type="button"
+              onClick={() => onDeleteLayer(selectedLayer.id)}
+              className="inline-flex h-7 w-7 items-center justify-center rounded-md border border-border bg-white text-muted-foreground hover:text-destructive"
+              title={deleteLayerTitle(selectedLayer)}
+              aria-label={deleteLayerTitle(selectedLayer)}
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+            </button>
+          ) : undefined
+        }
+      />
       {selectedLayer ? (
         <div className="scrollbar-thin min-h-0 flex-1 overflow-y-auto p-3">
           <dl className="grid grid-cols-2 gap-x-3 gap-y-3 text-sm">
@@ -2032,44 +2068,82 @@ function timelineElementForBlock(element: HTMLElement): HTMLDivElement | null {
 function LayerRow({
   layer,
   selected,
+  included,
   onSelect,
+  onDelete,
 }: {
   layer: EditorLayer;
   selected: boolean;
+  included: boolean;
   onSelect: () => void;
+  onDelete: () => void;
 }) {
+  const title = deleteLayerTitle(layer);
+
   return (
-    <button
-      type="button"
-      onClick={onSelect}
+    <div
       data-editor-layer-row-id={layer.id}
       className={cn(
-        "grid w-full grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border px-2 py-2 text-left transition",
+        "grid w-full grid-cols-[minmax(0,1fr)_auto] items-center rounded-md border pr-1 transition",
         selected
           ? "border-primary/40 bg-primary/10 text-foreground"
+          : included
+            ? "border-primary/20 bg-primary/5 text-foreground"
           : "border-transparent bg-transparent text-muted-foreground hover:border-border hover:bg-muted hover:text-foreground",
       )}
       style={{ paddingLeft: `${8 + layer.depth * 14}px` }}
     >
-      <ChevronRight
+      <button
+        type="button"
+        onClick={onSelect}
+        className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 py-2 pl-2 pr-1 text-left"
+      >
+        <ChevronRight
+          className={cn(
+            "h-3.5 w-3.5 shrink-0",
+            layer.childCount ? "opacity-80" : "opacity-0",
+          )}
+        />
+        <span className="min-w-0">
+          <span className="block truncate text-sm font-medium">
+            {layer.label}
+          </span>
+          <span className="mt-0.5 block truncate text-[10px] uppercase text-muted-foreground">
+            {layerKindLabel(layer)} · {layer.id}
+          </span>
+        </span>
+        <span className="rounded bg-white px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
+          {layer.from}
+        </span>
+      </button>
+      <button
+        type="button"
+        onClick={onDelete}
         className={cn(
-          "h-3.5 w-3.5 shrink-0",
-          layer.childCount ? "opacity-80" : "opacity-0",
+          "inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground hover:border-destructive/20 hover:bg-destructive/10 hover:text-destructive",
+          selected ? "bg-white/70" : "hover:bg-white",
         )}
-      />
-      <span className="min-w-0">
-        <span className="block truncate text-sm font-medium">
-          {layer.label}
-        </span>
-        <span className="mt-0.5 block truncate text-[10px] uppercase text-muted-foreground">
-          {displayLayerType(layer.type)} · {layer.id}
-        </span>
-      </span>
-      <span className="rounded bg-white px-1.5 py-0.5 font-mono text-[10px] text-muted-foreground">
-        {layer.from}
-      </span>
-    </button>
+        title={title}
+        aria-label={title}
+      >
+        <Trash2 className="h-3.5 w-3.5" />
+      </button>
+    </div>
   );
+}
+
+function deleteLayerTitle(layer: EditorLayer): string {
+  return layer.descendantCount
+    ? `Delete ${layer.label} block and ${layer.descendantCount} child layer${layer.descendantCount === 1 ? "" : "s"}`
+    : `Delete ${layer.label}`;
+}
+
+function layerKindLabel(layer: EditorLayer): string {
+  const type = displayLayerType(layer.type);
+
+  return layer.descendantCount
+    ? `${type} block · ${layer.descendantCount} ${layer.descendantCount === 1 ? "child" : "children"}`
+    : type;
 }
 
 function PanelHeader({

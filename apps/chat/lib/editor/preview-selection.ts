@@ -48,7 +48,9 @@ export function createPreviewSelectionOverlay({
   }
 
   const visible = frame >= layer.from && frame < layer.end;
-  const label = `${layer.label} · ${layer.type}`;
+  const label = layer.descendantCount
+    ? `${layer.label} · block`
+    : `${layer.label} · ${layer.type}`;
 
   if (!layer.bounds || sceneWidth <= 0 || sceneHeight <= 0) {
     return { kind: "unbounded", label, visible };

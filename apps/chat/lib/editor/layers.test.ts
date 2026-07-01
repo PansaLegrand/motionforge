@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import type { Scene } from "@motionforge/schema";
 import {
+  collectEditorLayerDescendantIds,
   deriveEditorLayers,
   displayLayerType,
   findEditorLayer,
@@ -80,6 +81,7 @@ describe("deriveEditorLayers", () => {
       end: 90,
       zIndex: -1,
       childCount: 1,
+      descendantCount: 1,
       paintIndex: 0,
     });
     expect(layers[1]).toMatchObject({
@@ -93,6 +95,8 @@ describe("deriveEditorLayers", () => {
       duration: 30,
       end: 45,
       zIndex: 5,
+      childCount: 0,
+      descendantCount: 0,
       opacity: 0.72,
       text: "  A launch title with  extra whitespace  ",
       color: "#f97316",
@@ -159,6 +163,51 @@ describe("deriveEditorLayers", () => {
       duration: 10,
       end: 70,
     });
+  });
+
+  it("collects descendants from the flattened tree", () => {
+    const scene: Scene = {
+      schemaVersion: 0,
+      width: 100,
+      height: 100,
+      fps: 25,
+      duration: 25,
+      assets: {},
+      nodes: [
+        {
+          id: "card",
+          type: "div",
+          children: [
+            {
+              id: "label",
+              type: "text",
+              text: "Label",
+            },
+            {
+              id: "nested",
+              type: "div",
+              children: [{ id: "nested-label", type: "text", text: "Nested" }],
+            },
+          ],
+        },
+        { id: "outside", type: "text", text: "Outside" },
+      ],
+    };
+    const layers = deriveEditorLayers(scene);
+
+    expect(findEditorLayer(layers, "card")).toMatchObject({
+      childCount: 2,
+      descendantCount: 3,
+    });
+    expect([...collectEditorLayerDescendantIds(layers, "card")]).toEqual([
+      "label",
+      "nested",
+      "nested-label",
+    ]);
+    expect([...collectEditorLayerDescendantIds(layers, "nested")]).toEqual([
+      "nested-label",
+    ]);
+    expect([...collectEditorLayerDescendantIds(layers, "outside")]).toEqual([]);
   });
 });
 

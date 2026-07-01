@@ -86,7 +86,12 @@ const initialMessages: ChatMessage[] = [
   },
 ];
 
-type SceneChangeSource = "assistant" | "template" | "showcase" | "inspector";
+type SceneChangeSource =
+  | "assistant"
+  | "template"
+  | "showcase"
+  | "inspector"
+  | "delete";
 
 export function MotionforgeChatApp() {
   const [scene, setScene] = useState<Scene | null>(null);
@@ -722,6 +727,31 @@ export function MotionforgeChatApp() {
     [commitSceneChange, scene],
   );
 
+  const deleteLayer = useCallback(
+    (id: string) => {
+      if (!scene) {
+        setEditorError("Create or load a scene before deleting layers.");
+        return;
+      }
+
+      const patch: ScenePatch = [{ op: "removeNode", id }];
+      const result = applyScenePatch(scene, patch);
+
+      if (!result.ok) {
+        setEditorError(result.errors.map((error) => error.message).join("\n"));
+        return;
+      }
+
+      commitSceneChange(result.scene, "delete");
+      setSelectedLayerId(null);
+      setLastPatch(patch);
+      setEditorError(null);
+      setExportStatus("");
+      setShowJson(false);
+    },
+    [commitSceneChange, scene],
+  );
+
   const splitSelectedLayerAtPlayhead = useCallback(() => {
     if (!scene || !selectedLayerId || !selectedLayer) {
       setEditorError("Select a layer before splitting.");
@@ -886,6 +916,7 @@ export function MotionforgeChatApp() {
             onInsertMediaAsset={insertMediaAsset}
             onRemoveMediaAsset={removeMediaAsset}
             onSelectLayer={setSelectedLayerId}
+            onDeleteLayer={deleteLayer}
             onSelectPlanStep={selectMediaPlanStep}
             onEditLayer={editSelectedLayer}
           />

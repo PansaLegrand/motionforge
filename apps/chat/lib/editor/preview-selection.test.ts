@@ -20,6 +20,7 @@ const layer: EditorLayer = {
   zIndex: 0,
   paintIndex: 0,
   childCount: 0,
+  descendantCount: 0,
   bounds: {
     left: 100,
     top: 80,
@@ -76,6 +77,20 @@ describe("createPreviewSelectionOverlay", () => {
       kind: "unbounded",
       label: "Launch title · text",
       visible: true,
+    });
+  });
+
+  it("labels parent selections as blocks", () => {
+    expect(
+      createPreviewSelectionOverlay({
+        layer: { ...layer, descendantCount: 2 },
+        sceneWidth: 1000,
+        sceneHeight: 500,
+        canvasRect: { width: 500, height: 250 },
+        frame: 20,
+      }),
+    ).toMatchObject({
+      label: "Launch title · block",
     });
   });
 });

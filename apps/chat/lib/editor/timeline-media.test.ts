@@ -81,6 +81,7 @@ function layer(overrides: Partial<EditorLayer>): EditorLayer {
     zIndex: 0,
     paintIndex: 0,
     childCount: 0,
+    descendantCount: 0,
     ...overrides,
   };
 }

@@ -26,8 +26,8 @@ const DEFAULT_MODEL_TIMEOUT_MS = 30 * 60 * 1000;
 const DEFAULT_MODEL_MAX_OUTPUT_TOKENS = 12_000;
 // const DEFAULT_GATEWAY_MODEL = "openai/gpt-4.1-mini";
 // const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-4.1-mini";
-const DEFAULT_GATEWAY_MODEL = "openai/gpt-5.2";
-const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-5.2";
+const DEFAULT_GATEWAY_MODEL = "openai/gpt-5.4";
+const DEFAULT_OPENAI_COMPATIBLE_MODEL = "gpt-5.4";
 
 type ChatRequest = {
   instruction?: unknown;
